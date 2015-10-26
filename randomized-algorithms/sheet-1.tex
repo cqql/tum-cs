@@ -1,0 +1,116 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Randomized Algorithms, Sheet 1}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1.1}
+
+\begin{equation*}
+  A_{3} = \{ 1, 2, 3 \}
+\end{equation*}
+
+This algorithm cannot generate the permutation $(2, 3, 1)$, because therefore $2$ would have to be selected as the first pivot element.
+But then the left subtree will be $(1)$ and the right one $(3)$ deterministically, such that $3$ can never come before $1$ in a level-order traversal.
+
+\section*{Exercise 1.2}
+
+Without loss of generality assume that the $n$ elements are the sequence $1, \dots, n$.
+Otherwise we create an ordered enumeration of the elements and generate a random permutation of the indices.
+
+We can use our unbiased coin to generate uniformly distributed random numbers from $1$ to $n$ in binary by the following algorithm.
+Flip the coin $\lceil \log_{2}(n) \rceil$ times and jot down a $1$ if it comes up $H$ and a $0$ otherwise.
+If the resulting binary number is not a valid index into sequence, retry.
+
+Using this we can selected items of the sequence uniformly.
+Then the probability that the $i$th element is put into the $j$th position is
+\begin{equation*}
+  \left( \prod_{k = 1}^{j - 1} \frac{n - k}{n - (k - 1)} \right) \cdot \frac{1}{n - (j - 1)} = \frac{n - 1}{n} \cdot \frac{n - 2}{n - 1} \dots \frac{n - (j - 1)}{n - (j - 2)} \cdot \frac{1}{n - (j - 1)} = \frac{1}{n}
+\end{equation*}
+We need to choose elements $\ne i$ $j - 1$ times and then pick element $i$.
+The probability for this is $\frac{1}{n}$ and thus the distribution is uniform over all permutations.
+
+\section*{Exercise 1.3}
+
+We observe that the biased coin is equally likely to land $HT$ and $TH$.
+If the biased coin lands $HT$, we report an unbiased result of $H$.
+If it lands $TH$, we report $T$.
+If we get $HH$ or $TT$, we start again.
+Since this algorithm only terminates once the coin lands in the pattern $HT$ or $TH$ and both are equally likely to occur, i.e. they have a probability of $\frac{1}{2}$.
+
+Define $X$ as the number of double coin-flips needed.
+\begin{align*}
+  p(X = n) & = (p^{2} + (1 - p)^{2})^{n - 1} \cdot 2(p \cdot (1 - p))\\
+           & = (p^{2} + (1 - 2p + p^{2}))^{n - 1} \cdot 2(p - p^{2})\\
+           & = (1 - 2(p - p^{2}))^{n - 1} \cdot 2(p - p^{2})\\
+\end{align*}
+So $X$ is geometrically distributed with a probability of success of $2(p - p^{2})$.
+This means that
+\begin{equation*}
+  E[X] = \frac{1}{2(p - p^{2})}
+\end{equation*}
+Thus the expected number of single coin-flips needed is
+\begin{equation*}
+  E[2X] = \frac{1}{p - p^{2}}
+\end{equation*}
+
+\section*{Exercise 1.4}
+
+Without loss of generality assume that the $n$ elements are the sequence $1, \dots, n$.
+Otherwise we create an ordered enumeration of the elements and generate a random permutation of the indices.
+
+The number $i$ in starting position $j$ has to be swapped $k$ times if the random permutation has exactly $k$ numbers that are greater than $i$ in the positions $1, \dots, j - 1$.
+\begin{equation*}
+  (4, 3, 6, 1, 5, 2)
+\end{equation*}
+Here $5$ has to be swapped once because only $6 > 5$.
+The number of swaps is thus the number of inversions in the analysis of permutations.
+
+Define $X$ as the number of swaps needed.
+Then the expected number of swaps (inversions) is
+\begin{equation*}
+  E[X] = \sum_{k = 0}^{\frac{n(n - 1)}{2}} k \cdot \frac{I_{n,k}}{n!}
+\end{equation*}
+where $I_{n,k}$ is the number of permutations of length $n$ with exactly $k$ inversions.
+However there is no closed form for $I_{n,k}$, so I do not know how to compute this any further.
+
+\section*{Exercise 1.5}
+
+A min-cut partitions the graph into two sets of vertices, such that the number of edges connecting the two sets is minimal.
+Let $k$ be the size of a min-cut that divides the vertices into two sets $V_{1}$ and $V_{2}$ of sizes $m = |V_{1}|$ and $n = |V_{2}|$.
+
+Assume a graph of $n$ vertices with a unique min-cut of size $k$ that divides the vertices into two sets $V_{1}, V_{2}$ of size $s = \frac{n}{2}$.
+The probability of not increasing the size of the min-cut in the first iteration is
+\begin{equation*}
+  P(X_{1}) = \frac{\frac{n}{2} - 1}{n - 1} = \frac{\frac{n - 2}{2}}{n - 1} = \frac{n - 2}{2(n - 1)} = \frac{n - 2}{2n - 2} \le \frac{n - 2}{2n - 4} = \frac{1}{2}
+\end{equation*}
+If we can bound $P(X_{i} \mid \cap_{j = 1}^{i - 1} X_{j})$ to $\frac{1}{2}$ as well, $P(\cap_{i}^{n - 2} X_{i})$ will be bound by $\left( \frac{1}{2} \right)^{n - 2}$ and thus get exponentially smaller as demanded.
+So we will examine $P(X_{i} \mid \cap_{j = 1}^{i - 1} X_{j})$ next.
+In the $i$th iteration there will be $n - i + 1$ vertices left.
+
+\end{document}
