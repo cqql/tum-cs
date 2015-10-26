@@ -1,0 +1,80 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Grundlagen: Datenbanken, Blatt 2}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\begin{align*}
+  & \sigma_{Assistenten.Name}(\\
+  & \qquad (((\sigma_{Name=Fichte}(Studenten) \bowtie hoeren)\\
+  & \qquad \qquad \bowtie Vorlesungen) \bowtie_{gelesenVon=PersNr} Professoren) \bowtie_{Boss=PersNr} Assistenten)
+\end{align*}
+
+\subsection*{Part b)}
+
+\begin{align*}
+  & \sigma_{Studenten}(\sigma_{Studenten,Vorgaenger}(Studenten \bowtie hoeren \bowtie voraussetzen)\\
+  & \qquad - \rho_{VorlNr \rightarrow Vorgaenger}(\sigma_{Studenten,VorlNr}(Studenten \bowtie hoeren)))
+\end{align*}
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+\subsection*{Part c)}
+
+\section*{Exercise 3}
+
+\begin{enumerate}
+\item 3
+\item $T \times S \rightarrow U$, $U \times S \rightarrow T$ und $U \times T \rightarrow S$
+\item
+  1) Ein Student kann bei einem Tutor nur eine Übung haben und ein Tutor kann einem Studenten nur eine Übung geben
+  2) Ein Student kann eine Übung nur bei einem Tutor haben und eine Übung kann einem Studenten nur von einem Tutor gegeben werden
+  3) Ein Tutor kann eine Übung nur einem Studenten geben
+\end{enumerate}
+
+Hier gelten die partiellen Funktionen $S \times T \rightarrow U$ und $S \times U \rightarrow T$.
+
+\section*{Exercise 4}
+
+A -> N, C -> M, B -> 1.
+
+Die Entitäten, die als Zielmenge vorkommen, kriegen eine 1.
+Der Rest kriegt ein N.
+
+Alle Entitäten, die eine 1 als Funktionalitätsangabe haben, können als partielle Funktion aus allen anderen Entitäten gefunden werden.
+Sie implizieren also eine partielle Funktion von allen anderen Entitäten auf die eine.
+
+\end{document}
