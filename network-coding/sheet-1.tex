@@ -1,0 +1,83 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Network Coding, Sheet 1}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\begin{equation*}
+  Pr[X = 0] = (1 - \varepsilon)^{l} = 0.9999^{15808} \approx 0.2
+\end{equation*}
+
+\subsection*{Part b)}
+
+\begin{equation*}
+  Pr[T = i] = (1 - Pr[X = 0])^{i - 1} \cdot Pr[X = 0]
+\end{equation*}
+\begin{align*}
+  Pr[T \le i] & = \sum_{k = 1}^{i} Pr[T = k]\\
+              & = \sum_{k = 1}^{i} (1 - Pr[X = 0])^{k - 1} \cdot Pr[X = 0]\\
+              & = Pr[X = 0] \cdot \sum_{k = 1}^{i} (1 - Pr[X = 0])^{k - 1}\\
+              & = Pr[X = 0] \cdot \sum_{k = 1}^{i} \left( 1 - (1 - \varepsilon)^{l} \right)^{k - 1}\\
+              & = Pr[X = 0] \cdot \sum_{k = 0}^{i - 1} \left( 1 - (1 - \varepsilon)^{l} \right)^{k}\\
+              & = (1 - \varepsilon)^{l} \cdot \frac{1 - \left( 1 - (1 - \varepsilon)^{l} \right)^{i}}{(1 - \varepsilon)^{l}}\\
+              & = 1 - \left( 1 - (1 - \varepsilon)^{l} \right)^{i}
+\end{align*}
+\begin{equation*}
+  Pr[T = 7] \approx 0.05
+\end{equation*}
+\begin{equation*}
+  Pr[T \le 7] \approx 0.8
+\end{equation*}
+
+\subsection*{Part c)}
+
+$T$ is geometrically distributed and thus
+\begin{equation*}
+  E[T] = \frac{1}{p} \approx 4.8
+\end{equation*}
+
+\subsection*{Part d)}
+
+\begin{equation*}
+  p = (1 - \varepsilon)^{255} + 255 \cdot \varepsilon \cdot (1 - \varepsilon)^{254}
+\end{equation*}
+\begin{equation*}
+  p \approx 0.9999
+\end{equation*}
+
+\subsection*{Part e)}
+
+\begin{equation*}
+  Pr[Z = 0] = p^{\frac{15808}{247}} = p^{64} \approx 0.98
+\end{equation*}
+
+\end{document}

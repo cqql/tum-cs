@@ -1,0 +1,80 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Network Coding, Sheet 2}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\begin{equation*}
+  Pr[X = n] = \frac{1}{C + 1}
+\end{equation*}
+
+\subsection*{Part b)}
+
+\begin{equation*}
+  Pr[X \le n] = \sum_{i = 0}^{n} Pr[X = i] = \sum_{i = 0}^{n} \frac{1}{C + 1} = \frac{n + 1}{C + 1}
+\end{equation*}
+
+\subsection*{Part c)}
+
+\begin{equation*}
+  Pr[Coll] = \frac{1}{C + 1}
+\end{equation*}
+
+\subsection*{Part d)}
+
+Let $C_{1} > C_{2}$.
+\begin{equation*}
+  Pr[Coll] = \frac{C_{2} + 1}{C_{1} + 1} \cdot \frac{1}{C_{2} + 1} = \frac{1}{C_{1} + 1}
+\end{equation*}
+
+\subsection*{Part e)}
+
+\begin{align*}
+  Pr[X_{1} < X_{2}] & = \frac{C_{2} - C_{1}}{C_{2} + 1} + \frac{C_{1} + 1}{C_{2} + 1} \cdot \left( \sum_{i = 1}^{C_{1}} \frac{1}{C_{1} + 1} \cdot \frac{i - 1}{C_{1} + 1} \right)\\
+                    & = \frac{C_{2} - C_{1}}{C_{2} + 1} + \frac{1}{(C_{2} + 1)(C_{1} + 1)} \cdot \left( \sum_{i = 1}^{C_{1}} i - 1 \right)\\
+                    & = \frac{C_{2} - C_{1}}{C_{2} + 1} + \frac{1}{(C_{2} + 1)(C_{1} + 1)} \cdot \left( \sum_{i = 1}^{C_{1} - 1} i \right)\\
+                    & = \frac{C_{2} - C_{1}}{C_{2} + 1} + \frac{1}{(C_{2} + 1)(C_{1} + 1)} \cdot \frac{C_{1}(C_{1} + 1)}{2}\\
+                    & = \frac{C_{2} - C_{1}}{C_{2} + 1} + \frac{C_{1}}{2(C_{2} + 1)}\\
+                    & = \frac{1}{C_{2} + 1} \cdot \left( C_{2} - \frac{C_{1}}{2} \right)
+\end{align*}
+
+\subsection*{Part f)}
+
+\begin{equation*}
+  \frac{1}{(C + 1)^{n}} \sum_{k = 1}^{C} k^{n}
+\end{equation*}
+
+\subsection*{Part g)}
+
+\section*{Exercise 2}
+
+\end{document}
