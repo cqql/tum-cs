@@ -1,6 +1,6 @@
 #### The petsc environment can also be fixed in the makefile
-# PETSC_DIR = 
-# PETSC_ARCH = 
+PETSC_DIR = /home/cqql/projects/petsc
+PETSC_ARCH = arch-linux2-c-debug
 include ${PETSC_DIR}/conf/variables
 
 # default gnu compiler (currently not used)
