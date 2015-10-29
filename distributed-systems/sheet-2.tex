@@ -1,0 +1,139 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Distributed Systems, Sheet 2}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+The third one because it has the lowest round trip time and thus the highest
+accuracy.
+
+\subsection*{Part b)}
+
+\begin{equation*}
+  10:54:28 + \frac{20}{2} = 10:54:38
+\end{equation*}
+
+\subsection*{Part c)}
+
+Our new time can be at most 10 seconds off because we assume that both trips
+take the same time. If that is true, our guessed time is totally
+accurate. Otherwise we are $\pm 10$ seconds off in the worst case.
+
+\subsection*{Part d)}
+
+We would still use the third time, but under certain conditions we can improve
+our guess of the RTT. Namely if we assume that the time is taken directly before
+the response is sent, i.e. the known processing time is spent before the reading
+of the clock, we can subtract the known processing time from our guess of the
+RTT.
+\begin{equation*}
+  RTT = 20 - 8 = 12
+\end{equation*}
+So we would set our clock to $10:54:34$ with an accuracy of $\pm 6$ seconds.
+
+\subsection*{Part e)}
+
+No, this is impossible, because network latency and thus RTT cannot be zero and
+the accuracy of Cristian's algorithm is lower bounded by $\frac{RTT}{2}$.
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\begin{itemize}
+\item The master actively synchronizes the time across all systems
+\item Does not ensure the correct time but just that no single process deviates
+  too far from the mean
+\end{itemize}
+
+\subsection*{Part b)}
+
+We ignore the time from P1 because it has drifted too far from the its
+P3's. Using the others we compute a mean time of
+\begin{equation*}
+  \frac{1}{4}
+  \begin{pmatrix}
+    1 & 1 & 1 & 1
+  \end{pmatrix}
+  \begin{pmatrix}
+    8:44:52:874\\
+    8:44:53:123\\
+    8:44:53:100\\
+    8:44:50:996
+  \end{pmatrix}
+  = 8:44:52:523
+\end{equation*}
+
+\subsection*{Part c)}
+
+P3 will send the other processes the difference between their time and the mean,
+i.e. the amount of time they have to adjust their clocks.
+\begin{description}
+\item[P1] $-3.612$
+\item[P3] $-0.351$
+\item[P4] $-0.577$
+\item[P5] $+1.527$
+\end{description}
+
+\subsection*{Part d)}
+
+We still kept a value that was skewed pretty far. As a result of this 4
+processes had to slow down their clocks while only one process had to adjust it
+forward.
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+\begin{description}
+\item[Fault Tolerance] Every NTP server synchronizes with multiple others and
+  recognizes and ignores ``insane'' time sources
+\item[High Scalability] The hierarchichal architecture of NTP makes it highly
+  scalable
+\item[Availability] NTP copes with temporary network partitions
+\end{description}
+
+\subsection*{Part b)}
+
+\subsubsection*{Symmetric}
+
+\subsubsection*{Client/Server}
+
+\subsubsection*{Broadcast}
+
+\subsection*{Part c)}
+
+\begin{equation*}
+  \theta = \frac{(16:34:15.725 - 16:34:13.430) - (16:34:25.7 - 16:34:23.48)}{2} = 0.0375
+\end{equation*}
+
+\end{document}
