@@ -1,0 +1,251 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Randomized Algorithms, Sheet 2}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 2.1}
+
+\subsection*{Part a)}
+
+Every edge contraction reduces the number of vertices by $1$ and we run the algorithm until only $2$ vertices are left.
+This means that we perform $n - 2$ edge contractions per iteration of the algorithm and thus $2(n - 2)$ edge contractions in total.
+
+In class we proved that the probability of discovering a min-cut is at least $\frac{2}{n^{2}}$.
+Using this we can compute the probability of finding a min-cut in two iterations as the probability of not not finding one in any interation.
+\begin{equation*}
+  P \ge 1 - \left( 1 - \frac{2}{n^{2}} \right)^{2} = 1 - \frac{\left( n^{2} - 2 \right)^{2}}{n^{4}} = 1 - \frac{n^{4} - 4n^{2} + 4}{n^{4}} = 1 - 1 + \frac{4}{n^{2}} - \frac{4}{n^{4}} = \frac{4}{n^{2}} - \frac{4}{n^{4}}
+\end{equation*}
+
+\subsection*{Part b)}
+
+The modified algorithm starts with $n - k$ edge contractions and then goes on to do $k - 2$ more contractions $l$ times.
+So the total number is $n - k + l(k - 2)$.
+
+Let $X$ be the event of picking one of the min-cut edges in the first $n - k$ contractions and thus destroying the min-cut.
+Further let $Y_{i}$ be the event of finding a min-cut in the $i$th of the $l$ iterations.
+Using this define $Y$ as the event of not finding the min-cut in any of the $l$ iterations, i.e. $Y = \cap_{i = 1}^{l} \lnot Y_{i}$.
+Finally let $S$ be the event of success, namely that the modified algorithm finds a min-cut.
+Then we can express the probability of $S$ as
+\begin{align*}
+  P[S] & = P[\lnot X] \cdot P[\lnot Y \mid \lnot X]\\
+       & = P[\lnot X] \cdot P\left[ \lnot \left( \cap_{i = 1}^{l} \lnot Y_{i} \right) \mid \lnot X \right]\\
+       & = P[\lnot X] \cdot \left( 1 - P\left[ \left( \cap_{i = 1}^{l} \lnot Y_{i} \right) \mid \lnot X \right] \right)\\
+       & = P[\lnot X] \cdot \left( 1 - \prod_{i = 1}^{l} P\left[ \lnot Y_{i} \mid \lnot X \right] \right)\\
+  \intertext{because the $Y_{i}$ are independent}
+       & = P[\lnot X] \cdot \left( 1 - \left( P\left[ \lnot Y_{1} \mid \lnot X \right] \right)^{l} \right)\\
+  \intertext{because the $Y_{i}$ are identically distributed}
+\end{align*}
+
+Now we can analyze the probability of not picking an edge of the min-cut in the first $n - k$ iterations.
+Let $W_{i}$ be the event of picking a min-cut edge in the $i$th pick.
+\begin{align*}
+  P[\lnot X] & = P\left[ \cap_{i = 1}^{n - k} \lnot W_{i} \right]\\
+             & = \prod_{i = 1}^{n - k} P\left[ \lnot W_{i} \mid \cap_{j = 1}^{i - 1} W_{j} \right]\\
+             & \ge \prod_{i = 1}^{n - k} \left( 1 - \frac{2}{n - i + 1} \right)\\
+  \intertext{As we have shown in the lecture}
+             & = \prod_{i = 1}^{n - k} \left( \frac{n - i - 1}{n - i + 1} \right)\\
+             & = \frac{(n - 2)(n - 3) \cdots (k - 1)}{n(n - 1) \cdots (k + 1)}\\
+             & = \frac{\frac{(n - 2)!}{(k - 2)!}}{\frac{n!}{k!}}\\
+             & = \frac{(n - 2)!k!}{n!(k - 2)!}\\
+             & = \frac{k(k - 1)}{n(n - 1)}
+\end{align*}
+
+Next we will look for an upper bound of $P\left[ Y_{1} \mid \lnot X \right]$.
+Here we can basically reuse our analysis done in the lecture respectively repeated in the previous paragraph.
+Redefine $W_{i}$ for the last $k - 2$ iterations.
+\begin{align*}
+  P\left[ Y_{1} \mid \lnot X \right] & = P\left[ \cap_{i = 1}^{k - 2} \lnot W_{i} \right]\\
+                                     & = \prod_{i = 1}^{k - 2} P\left[ \lnot W_{i} \mid \cap_{j = 1}^{i - 1} W_{j} \right]\\
+                                     & \ge \prod_{i = 1}^{k - 2} \left( 1 - \frac{2}{k - i + 1} \right)\\
+                                     & = \prod_{i = 1}^{k - 2} \left( \frac{k - i - 1}{k - i + 1} \right)\\
+                                     & = \frac{(k - 2)(k - 3) \cdots 1}{k(k - 1) \cdots 3}\\
+                                     & = \frac{(k - 2)!}{\frac{k!}{2!}}\\
+                                     & = \frac{(k - 2)!2!}{k!}\\
+                                     & = \frac{2}{k(k - 1)}
+\end{align*}
+
+Now we can go back to the beginning and plug these into our original equation.
+\begin{align*}
+  P[S] & = P[\lnot X] \cdot \left( 1 - \left( P\left[ \lnot Y_{1} \mid \lnot X \right] \right)^{l} \right)\\
+       & = P[\lnot X] \cdot \left( 1 - \left( 1 - P\left[ Y_{1} \mid \lnot X \right] \right)^{l} \right)\\
+       & \ge \frac{k(k - 1)}{n(n - 1)} \cdot \left( 1 - \left( 1 - \frac{2}{k(k - 1)} \right)^{l} \right)\\
+       & = \frac{k(k - 1)}{n(n - 1)} \cdot \left( 1 - \left( \frac{k(k - 1) - 2}{k(k - 1)} \right)^{l} \right)\\
+       & = \frac{k(k - 1)}{n(n - 1)} \cdot \left( \frac{(k(k - 1))^{l} - (k(k - 1) - 2)^{l}}{(k(k - 1))^{l}} \right)\\
+       & = \frac{(k(k - 1))^{l} - (k(k - 1) - 2)^{l}}{n(n - 1)(k(k - 1))^{l - 1}}\\
+\end{align*}
+
+\section*{Exercise 2.2}
+
+Let $n \in \mathbb{N}$, $V = \{ s, t, i_{1}, i_{n} \}$ and $E = \{ (s, i_{k}) \mid 1 \le k \le n \} \cup \{ (i_{k}, t) \mid 1 \le k \le n \}$.
+Then the min-cut size of this graph is $n$ because you have to cut all $n$ pairs of $(s, i_{k}), (i_{k}, t)$ paths between $s$ and $t$.
+The number of such cuts is $2^{n}$ because for each such pair you can either cut the former or the latter part and do so in all possible combinations.
+Unfortunately this is not $2^{|V|}$ but at least it is of the right order of magnitude.
+
+\section*{Exercise 2.3}
+
+The exact statement canot be true because that would mean that every possible configuration of $U$ gives a cut size of at least $\frac{OPT}{2}$ which is easily disproven by considering $U = \{  \}$ in any graph with $OPT > 0$.
+Therefore I guess that we were actually meant to examine the \emph{expected} size of the cut.
+
+\begin{proof}
+  \begin{align*}
+    E[|\delta U|] & = E[|\{ uv \in E \mid u \in U, v \notin U \}|]\\
+                  & = \sum_{uv \in E} P[(u \in U \land v \notin U) \lor (u \notin U \land v \in U)]\\
+    \intertext{because the graph is undirected and thus the edges $uv$ and $vu$ are equal}
+                  & = \sum_{uv \in E} \left( P[u \in U \land v \notin U] + P[u \notin U \land v \in U] \right)\\
+    \intertext{because the two events are disjoint}
+                  & = \sum_{uv \in E} \left( P[u \in U] \cdot P[v \notin U] + P[u \notin U] \cdot P[v \in U] \right)\\
+    \intertext{because the decision about each vertex is independent of all other decisions}
+                  & = \sum_{uv \in E} \left( \frac{1}{2} \cdot \frac{1}{2} + \frac{1}{2} \cdot \frac{1}{2} \right)\\
+                  & = \sum_{uv \in E} \frac{1}{2} = \frac{1}{2} |E| \ge \frac{1}{2} OPT\\
+    \intertext{because the size of the max cut cannot be greater than the number of edges, i.e. $|E| \ge OPT$}
+  \end{align*}
+
+  This proves that the expected size of the generated is cut is at least $\frac{1}{2}OPT$.
+\end{proof}
+
+\section*{Exercise 2.4}
+
+\begin{minted}{c}
+  struct LineSegment {
+    // ...
+  }
+
+  struct Node {
+    Node left;
+    Node right;
+
+    // If n > 0, the node is actually a leaf and left and right are empty
+    // n is the number lines in this leaf
+    int n;
+
+    // The indices of the line segments in this leaf
+    int[] lines;
+  }
+
+  RandAuto(S) {
+    n = length(S)
+
+    // Construct array of elements 1 to n
+    // Runtime O(n)
+    pi = 1..n
+
+    // Generate a random permutation of the indices
+    // Runtime O(n)
+    pi = random_permutation(pi)
+
+    // The root of the BPP tree
+    tree = new Node(n = n, lines = pi)
+
+    // Leaves that have more than 1 line segment
+    leaves = new Queue(size = n)
+    // The queue is implemented as a circular queue of fixed size so that #push
+    // and #pop can be implemented in O(1)
+
+    leaves.push(tree)
+
+    // This loop will run once for every line segment and then once more for
+    // every cut that happens during the execution of this algorithm. So it
+    // runs O(n + X) times where X is the number of cuts occurring.
+    while (!leaves.empty()) {
+      // Everything in this loop besides the for loop has a run time of O(1)
+
+      leaf = leaves.pop()
+
+      if (leaf.n > 1) {
+        // The first line segment index
+        k = leaf.lines[0]
+        splitter = S[k]
+
+        leftN = 0
+        rightN = 0
+        leftLines = new Array(size = leaf.n)
+        rightLines = new Array(size = leaf.n)
+
+        // Run time O(leaf.n)
+        for (i in leaf.lines) {
+          line = S[i]
+
+          if (i == k) {
+            // We ignore the splitter itself and handle it at the end
+          } else if (splitter.cuts(line)) {
+            leftLines[leftN] = i
+            rightLines[rightN] = i
+            leftN++
+            rightN++
+          } else if (splitter.isLeftOf(line)) {
+            rightLines[rightN] = i
+            rightN++
+          } else {
+            leftLines[leftN] = i
+            leftN++
+          }
+        }
+
+        // Put the splitter on the side with less lines
+        //
+        // This behavior ensures that the algorithm terminates when we have only
+        // two line segments left in the leaf.
+        //
+        // By putting it at the very end of the lines it will only be used for
+        // splitting again after all other lines in the left half of the plane
+        // have been used for splitting and only in the case that one of those
+        // remaining lines has split the current splitter. That case is not
+        // handled by the RandAuto algorithm as it was introduced in class.
+        if (leftN < rightN) {
+          leftLines[leftN] = k
+          leftN++
+        } else {
+          rightLines[rightN] = k
+          rightN++
+        }
+
+        left = new Node(n = leftN, lines = leftLines)
+        right = new Node(n = rightN, lines = rightLines)
+
+        leaf.n = 0
+        leaf.lines = NULL
+        leaf.left = left
+        leaf.right = right
+
+        leaves.push(leaf.left)
+        leaves.push(leaf.right)
+      }
+    }
+
+    return tree
+  }
+\end{minted}
+
+The runtime of this implementation is clearly dominated by the loop in which we iterate over all the segments that yet need to be split.
+From the analysis in the lecture we know that the expected number of splits and therefore segments respectively iterations is $O(n \log(n))$.
+So we are iterating over all nodes of a random binary tree with $O(n \log(n))$ nodes and for each node perform equal to the number of children of that node because all its children have to be compared with the splitter chosen at that node.
+So the run time of this implementation is the expected number of children in a random binary tree of size $O(n \log(n))$ times the number of nodes.
+I guess it is $O(n \log(n) \log(n))$, but I cannot prove it.
+
+\end{document}
