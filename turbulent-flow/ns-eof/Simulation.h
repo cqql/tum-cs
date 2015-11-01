@@ -52,6 +52,9 @@ class Simulation {
     FieldIterator<FlowField> _velocityIterator;
     FieldIterator<FlowField> _obstacleIterator;
 
+    VTKStencil _vtkStencil;
+    FieldIterator<FlowField> _vtkIterator;
+
     PetscSolver _solver;
 
 
@@ -73,6 +76,8 @@ class Simulation {
        _obstacleStencil(parameters),
        _velocityIterator(_flowField,parameters,_velocityStencil),
        _obstacleIterator(_flowField,parameters,_obstacleStencil),
+       _vtkStencil(parameters),
+       _vtkIterator(_flowField,parameters,_vtkStencil),
        _solver(_flowField,parameters)
        {
        }
@@ -108,7 +113,7 @@ class Simulation {
             for(int j=0;j<sizez + 3;j++)
               rhs.getScalar(0,i,j) =value;
 	    }
-	    
+
 	    // do same procedure for domain flagging as for regular channel
 	    BFStepInitStencil stencil(_parameters);
         FieldIterator<FlowField> iterator(_flowField,_parameters,stencil,0,1);
@@ -126,7 +131,7 @@ class Simulation {
         _wallFGHIterator.iterate();
         // compute the right hand side
         _rhsIterator.iterate();
-        // solve for pressure 
+        // solve for pressure
         _solver.solve();
         // TODO WS2: communicate pressure values
         // compute velocity
@@ -142,6 +147,8 @@ class Simulation {
     virtual void plotVTK(int timeStep){
       // TODO WS1: create VTKStencil and respective iterator; iterate stencil
       //           over _flowField and write flow field information to vtk file
+      this->_vtkIterator.iterate();
+      this->_vtkStencil.write(_flowField, timeStep);
     }
 
   protected:
@@ -183,4 +190,3 @@ class Simulation {
 };
 
 #endif // _SIMULATION_H_
-
