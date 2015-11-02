@@ -1,0 +1,114 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Databases, Sheet 3}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\begin{itemize}
+\item $A \times C \rightarrow B$
+\item $A \times B \rightarrow C$
+\end{itemize}
+
+\subsection*{Part b)}
+
+3 Tabellen für A, B und C mit jeweils der ID-Spalte und eine vierte mit jeweils allen drei IDs, um die Relation zu modellieren.
+
+\subsection*{Part c)}
+
+Schlüssel in R sind dabei $\{ \{ c_{id} \}, \{ b_{id} \}, \{ a_{id}, b_{id}, c_{id} \} \}$
+
+\subsection*{Part d)}
+
+Ich weiß nicht, was gemeint ist.
+Meiner Ansicht nach, ist das ER-Modell vollständig umgesetzt: B und C können jeweils nur einmal an der Relation teilnehmen, A jedoch beliebig oft.
+Dazu kann das gesamte Tripel nur einmal in der Relation auftauchen.
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\begin{equation*}
+  \pi_{Vorlesungen}(\sigma_{Student.Name = Xenokrates}(Studenten) \bowtie hoeren \bowtie Vorlesungen)
+\end{equation*}
+
+\subsection*{Part b)}
+
+\begin{align*}
+  & \pi_{V2.Titel}(\\
+  & \quad \sigma_{V2.VorlNr = voraussetzen.Vorgaenger}(\\
+  & \quad \quad \sigma_{V1.VorlNr = voraussetzen.Nachfolger}(\\
+  & \quad \quad \quad \rho_{V1}(\sigma_{Vorlesungen.Titel = Wissenschaftstheorie}(Vorlesungen)) \times voraussetzen\\
+  & \quad \quad ) \times \rho_{V2}(Vorlesungen)))
+\end{align*}
+
+\subsection*{Part c)}
+
+\begin{align*}
+  & \pi_{S1.Name, S2.Name}(\sigma_{S1.Name \ne S2.Name}(\\
+  & \quad \sigma_{V.Titel = Grundzuege}(\rho_{S1}(Studenten) \bowtie hoeren \bowtie Vorlesungen)\\
+  & \quad \times\\
+  & \quad \sigma_{V.Titel = Grundzuege}(\rho_{S1}(Studenten) \bowtie hoeren \bowtie Vorlesungen)))
+\end{align*}
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+\begin{equation*}
+  Vorlesungen - \pi_{Vorlesungen}(Vorlesungen \bowtie hoeren)
+\end{equation*}
+Oder
+\begin{equation*}
+  \pi_{Vorlesungen}(\sigma_{hoeren = -}(Vorlesungen) left outer join hoeren)
+\end{equation*}
+
+\subsection*{Part b)}
+
+\begin{align*}
+  & Studenten - \pi_{Studenten}(\\
+  & \qquad (Studenten \times Vorlesungen)\\
+  & \qquad - \pi_{Studenten, Vorlesungen}(Studenten \bowtie hoeren \bowtie Vorlesungen))
+\end{align*}
+Wir berechnen zuerst alle Studenten mit allen Vorlesungen, die sie hoeren.
+Indem wir dies von dem Kreuzprodukt aller Studenten und Vorlesungen abziehen, erhalten wir alle Studenten mit den Vorlesungen, die sie nicht hoeren.
+Wenn wir diese nun wieder von allen Studenten abziehen, bleiben diejenigen, die alle Vorlesungen hoeren.
+
+\section*{Exercise 4}
+
+Die Darstellung ternärer durch binäre Beziehungen lässt die Datenbank weniger Integritätsbedingungen durchsetzen.
+
+Wenn man ein Attribut als Entity mit Beziehung darstellt, kann man mehrere Attribute mit einer Entität verknüpfen.
+
+\end{document}
