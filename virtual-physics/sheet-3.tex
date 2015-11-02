@@ -1,0 +1,66 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Virtual Physics, Sheet 3}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise A}
+
+\section*{Exercise B}
+
+If the voltage applied to the diode is negative, i.e. the current is conducted backwards, the diode blocks all current.
+This means that $I = 0$ for $U < 0$.
+If the current is applied in the direction of the diode with a positive voltage, it conducts everything.
+Written down it is $I = \infty$ if $U \ge 0$.
+
+Cable ties are a mechanical analogon.
+They allow movement in one direction but block it in the other.
+
+\section*{Exercise C}
+
+See the article on hydraulic analogy on wikipedia.
+
+\subsection*{Resistor}
+
+A constrictive pipe that requires more pressure to move the same amout of fluid through.
+
+\subsection*{Capacitor}
+
+A tube with an elastic barrier that deforms and pushes water out when the incoming pressure is increased.
+
+\subsection*{Coil}
+
+A massive paddle wheel with a lot of inertia placed in the stream.
+The pressure will slowly make the wheel move which will then keep moving for a while even after the pressure has dropped again.
+
+\subsection*{Transformer}
+
+\end{document}
