@@ -1,0 +1,278 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Robotics, Sheet 1}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\begin{proof}
+  Let $v, w$
+  be two vectors in our vector space. Because angles are preserved, the
+  following must be true.
+  \begin{equation*}
+    \frac{v^{T}y}{|v| \cdot |w|} = \frac{(Rv)^{T}(Rw)}{|Rv| \cdot |Rw|}
+  \end{equation*}
+  Because lenghts are preserved as well, $|Rv| = |v|$
+  and the same is true for $w$, so
+  \begin{equation*}
+    v^{T}y = (Rv)^{T}(Rw) = v^{T}(R^{T}R)w
+  \end{equation*}
+  Since it is true for arbitrary vectors especially for the standard basis
+  vectors, $R^{T}$
+  has to be the inverse of $R$
+  and thus $R^{-1} = R \Leftrightarrow R \cdot R^{T} = I$.
+\end{proof}
+
+\section*{Exercise 2}
+
+\begin{equation*}
+  {}_{T}^{W}T = {}_{G}^{W}T = ({}_{W}^{B}T)^{-1}{}_{S}^{B}T{}_{G}^{S}T
+\end{equation*}
+
+\section*{Exercise 3}
+
+\begin{minted}{asm}
+| Joint | \alpha_{i - 1} | a_{i - 1} | \phi_{i} |     d_{i} |
+|-------+----------------+-----------+----------+-----------|
+|     1 |              0 | 0         | phi_1    | L_1 + L_2 |
+|     2 |         pi / 2 | 0         | phi_2    |         0 |
+|     3 |              0 | L_3       | phi_3    |         0 |
+|     4 |              0 | L_4       | 0        |         0 |
+\end{minted}
+
+\begin{equation*}
+  {}_{1}^{0}T = \begin{pmatrix}
+    \cos(\phi_{1}) & -\sin(\phi_{1}) & 0 & 0\\
+    \sin(\phi_{1}) & \cos(\phi_{1}) & 0 & 0\\
+    0 & 0 & 1 & L_{1} + L_{2}\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{2}^{1}T = \begin{pmatrix}
+    \cos(\phi_{2}) & -\sin(\phi_{2}) & 0 & 0\\
+    \sin(\phi_{2}) & \cos(\phi_{2}) & -1 & 0\\
+    \sin(\phi_{2}) & \cos(\phi_{2}) & 0 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{3}^{2}T = \begin{pmatrix}
+    \cos(\phi_{3}) & \sin(\phi_{3}) & 0 & L_{3}\\
+    \sin(\phi_{3}) & \cos(\phi_{3}) & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{4}^{3}T = \begin{pmatrix}
+    1 & 0 & 0 & L_{4}\\
+    0 & 1 & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+\section*{Exercise 4}
+
+\subsection*{Part a)}
+
+\begin{minted}{asm}
+| Joint | alpha_{i - 1} | a_{i - 1} | phi_i | d_i |
+|-------+---------------+-----------+-------+-----|
+|     1 |             0 | 0         | phi_1 |   0 |
+|     2 |             0 | L_1       | phi_2 |   0 |
+|     3 |             0 | L_2       | phi_3 |   0 |
+|     4 |             0 | L_3       | 0     |   0 |
+\end{minted}
+
+\subsection*{Part b)}
+
+\begin{equation*}
+  {}_{1}^{0}T = \begin{pmatrix}
+    \cos(\phi_{1}) & -\sin(\phi_{1}) & 0 & 0\\
+    \sin(\phi_{1}) & \cos(\phi_{1}) & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{2}^{1}T = \begin{pmatrix}
+    \cos(\phi_{2}) & -\sin(\phi_{2}) & 0 & L_{1}\\
+    \sin(\phi_{2}) & \cos(\phi_{2}) & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{3}^{2}T = \begin{pmatrix}
+    \cos(\phi_{3}) & -\sin(\phi_{3}) & 0 & L_{2}\\
+    \sin(\phi_{3}) & \cos(\phi_{3}) & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{4}^{3}T = \begin{pmatrix}
+    1 & 0 & 0 & L_{3}\\
+    0 & 1 & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{4}^{0}T = {}_{1}^{0}T{}_{2}^{1}T{}_{3}^{2}T{}_{4}^{3}T = \begin{pmatrix}
+    \textit{Some really complicated sines and cosines} &&&\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+\subsection*{Part c)}
+
+It is reachable if its distance to the origin of the base coordinate system is less than the sum of all joint lengths $L_{1} + L_{2} + L_{3}$.
+
+\section*{Exercise 5}
+
+\begin{equation*}
+  \begin{pmatrix}
+    c_{1}c_{2} & -c_{1}s_{2} & s_{1} & l_{1}c_{1}\\
+    s_{1}c_{2} & -s_{1}s_{2} & -c_{1} & l_{1}s_{1}\\
+    s_{2} & c_{2} & 0 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+  \cdot
+  \begin{pmatrix}
+    l_{2}\\0\\0\\1
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    l_{2}c_{1}c_{2} + l_{1}c_{1}\\
+    l_{2}s_{1}c_{2} + l_{1}s_{1}\\
+    l_{2}s_{2}\\
+    1
+  \end{pmatrix}
+\end{equation*}
+
+\section*{Exercise 6}
+
+All three link frames have their origin at the intersection point.
+The first two have to be placed there because the Denavit-Hartenberg conventions require that the origin is placed at the point of least distance to the next Z axis.
+The last link frame's origin could be translated arbitrarily but just keeping it there simplifies the calculations.
+Since they are intersecting, the position of the origin is fixed but not the direction.
+Therefore we choose to point X axis into the paper orthogonal to the plane spanned by the two axes of rotation.
+
+\begin{minted}{asm}
+| Joint | alpha_{i - 1} | a_{i - 1} | phi_i | d_i |
+|-------+---------------+-----------+-------+-----|
+|     5 | phi           |         0 |     0 |   0 |
+|     6 | -phi          |         0 |     0 |   0 |
+
+\end{minted}
+
+\section*{Exercise 7}
+
+No, you cannot do reflections.
+Also there is has to be some rotation missing because the rotational part in DH transformation matrices only has two degrees of freedom and one of entry is restricted to be zero but there are rotation matrices that have a non-zero there.
+
+\section*{Exercise 8}
+
+The link frames are set with the Z axis on the axis of rotation, the origin at the point closest to the next Z axis, X axis in the direction of the next Z axis and Y axis such that the system is right handed.
+In the case of the 4th joint the placement of the origin is arbitrary because the axis of rotation 4 and 5 are parallel.
+
+\section*{Exercise 9}
+
+The link frames are placed as explained in exercise 8.
+The corresponding linkage parameters are as follows.
+\begin{minted}{asm}
+| Joint | alpha_{i - 1} | a_{i - 1} | phi_i | d_i |
+|-------+---------------+-----------+-------+-----|
+|     1 | 0             |         0 | phi_1 |   0 |
+|     2 | pi / 2        |       l_1 | 0     | d_2 |
+|     3 | -pi / 2       |         0 | phi_3 |   0 |
+\end{minted}
+
+\section*{Exercise 10}
+
+\begin{equation*}
+  {}_{1}^{0}T = \begin{pmatrix}
+    \cos(\theta_{1}) & -\sin(\theta_{1}) & 0 & 0\\
+    \sin(\theta_{1}) & \cos(\theta_{1}) & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{2}^{1}T = \begin{pmatrix}
+    \cos(\theta_{2}) & -\sin(\theta_{2}) & 0 & 1\\
+    \sin(\theta_{2}) & \cos(\theta_{2}) & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{3}^{2}T = \begin{pmatrix}
+    \cos(\theta_{3}) & -\sin(\theta_{3}) & 0 & 0\\
+    \frac{\sqrt{2}}{2}\sin(\theta_{3}) & \frac{\sqrt{2}}{2}\cos(\theta_{3}) & -\frac{\sqrt{2}}{2} & -1\\
+    \frac{\sqrt{2}}{2}\sin(\theta_{3}) & \frac{\sqrt{2}}{2}\cos(\theta_{3}) & \frac{\sqrt{2}}{2} & 1\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{4}^{3}T = \begin{pmatrix}
+    1 & 0 & 0 & \sqrt{2}\\
+    0 & 1 & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+These matrices define the forward kinematics.
+
+\begin{equation*}
+  {}_{4}^{0}T = \textit{Some big fucking matrix that you can compute with maple}
+\end{equation*}
+
+\begin{equation*}
+  {}_{4}^{0}T \cdot \begin{pmatrix}
+    0\\0\\0\\1
+  \end{pmatrix} = \begin{pmatrix}
+    \textit{Something here}\\
+    \textit{Something here}\\
+    \sin(\theta_{3}) + 1\\
+    1
+  \end{pmatrix}
+\end{equation*}
+So we know that the third coordinate of the 4th joint will be $\sin(\theta_{3} + 1)$.
+\begin{equation*}
+  \sin(\theta_{3} + 1) = 1 + \frac{1}{\sqrt{2}} \Leftrightarrow \theta_{3} = \arcsin\left( 1 + \frac{1}{\sqrt{2}} \right) - 1
+\end{equation*}
+This is not solvable though, so apparently the requested position is unreachable.
+
+\end{document}
