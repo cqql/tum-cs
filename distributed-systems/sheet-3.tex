@@ -1,0 +1,147 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\usepackage{comment}
+
+\usepackage{enumerate}
+
+\title{Distributed Systems, Sheet 3}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+% BEGIN RECEIVE ORGTBL logical-timestamps
+\begin{tabular}{lr}
+Event & Timestamp\\
+\hline
+a & 4\\
+b & 3\\
+c & 5\\
+d & 6\\
+e & 6\\
+f & 8\\
+\end{tabular}
+% END RECEIVE ORGTBL logical-timestamps
+\begin{comment}
+#+ORGTBL: SEND logical-timestamps orgtbl-to-latex :splice nil :skip 0
+| Event | Timestamp |
+|-------+-----------|
+| a     |         4 |
+| b     |         3 |
+| c     |         5 |
+| d     |         6 |
+| e     |         6 |
+| f     |         8 |
+\end{comment}
+
+\subsection*{Part b)}
+
+% BEGIN RECEIVE ORGTBL vector-timestamps
+\begin{tabular}{ll}
+Event & Timestamp\\
+\hline
+a & (3, 1, 0)\\
+b & (3, 3, 0)\\
+c & (2, 1, 2)\\
+d & (2, 2, 3)\\
+e & (3, 4, 2)\\
+f & (4, 5, 2)\\
+\end{tabular}
+% END RECEIVE ORGTBL vector-timestamps
+\begin{comment}
+#+ORGTBL: SEND vector-timestamps orgtbl-to-latex :splice nil :skip 0
+| Event | Timestamp |
+|-------+-----------|
+| a     | (3, 1, 0) |
+| b     | (3, 3, 0) |
+| c     | (2, 1, 2) |
+| d     | (2, 2, 3) |
+| e     | (3, 4, 2) |
+| f     | (4, 5, 2) |
+\end{comment}
+
+\subsection*{Part c)}
+
+\begin{enumerate}[i)]
+\item $a \| c$
+\item $b \| d$
+\item $c \rightarrow e$
+\item $c \rightarrow f$
+\end{enumerate}
+
+\subsection*{Part d)}
+
+Yes, but only in the context of a single process.
+If the events are from different processes, they are not comparable because logical clocks are only valid in the context of their own process.
+
+\section*{Exercise 2}
+
+I think this is impossible if there is a consumer of the incoming messages.
+Suppose that processes 1 and 2 send the first messages at all at roughly the same size and process 3 receives the message from 2 first while process 4 receives the message from 1 first.
+Then there is no way for 3 to know if it is supposed to wait for another message or not.
+
+So I will assume that there is no consumer and messages remain in the queue forever.
+
+\begin{minted}{python}
+  # In Process i
+  clock = [ 0 | 1..n ]
+
+  def broadcastATO(msg):
+      clock[i] = clock[i] + 1
+
+      send(msg, clock, processId)
+
+  messages = []
+  def onReceiveATO(newMsg, newClock, newProcessId):
+      clock = mergeVectorClocks(clock, newClock)
+      clock[i] = clock[i] + 1
+
+      for (msg, oldClock, processId) in messages:
+          if happensBefore(oldClock, newClock):
+              next
+          else if happensBefore(newClock, oldClock) or newProcessId < processId:
+              messages.insertBefore((newMsg, newClock, newProcessId), (msg, oldClock, processId))
+              return
+
+      messages.append((msg, newClock, processId))
+\end{minted}
+
+So we order incoming messages by their attached timestamps.
+If two messages are concurrent we order them by their process IDs.
+
+\section*{Exercise 3}
+
+With the same argument as above I think that this is impossible.
+A processor cannot know if it has to wait for a message without having received another message saying so.
+
+\end{document}
