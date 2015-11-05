@@ -1,0 +1,178 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+\title{Databases, Sheet 4}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\begin{align*}
+  \{ v | & v \in Vorlesungen\ \land\\
+         & \forall s \in Studenten (\\
+         & \quad s.Name = ``Xenokrates''\\
+         & \quad \Rightarrow \exists h \in hoeren (h.MatrNr = s.MatrNr\ \land\ s.VorlNr = v.VorlNr)) \}
+\end{align*}
+
+\begin{align*}
+  \{ v, t, s, g \mid & [v, t, s, g] \in Vorlesungen\ \land\\
+                     & \forall [m, n, \_] \in Studenten (\\
+                     & n = ``Xenokrates'' \Rightarrow \exists [m, v] \in hoeren) \}
+\end{align*}
+
+\subsection*{Part b)}
+
+\begin{align*}
+  \{ v.Titel \mid & v \in Vorlesungen\ \land\\
+                  & \exists vr \in vorraussetzen (\\
+                  & \quad vr.Vorgaenger = v.VorlNr\ \land\\
+                  & \quad \exists v2 \in Vorlesungen (v2.VorlNr = vr.Nachfolger\ \land\ v2.Name = ``Wissenschaftstheorie'')) \}
+\end{align*}
+
+\begin{align*}
+  \{ t \mid & [v, t, \_, \_], [v2, ``Wissenschaftstheorie'', \_, \_] \in Vorlesungen\ \land\\
+            & [v, v2] \in voraussetzen \}
+\end{align*}
+
+\subsection*{Part c)}
+
+\begin{align*}
+  \{ s1.Name, s2.Name \mid & s1, s2 \in Studenten\ \land\\
+                           & \forall v \in Vorlesungen (\\
+                           & \quad v.Name = ``Grundzuege''\\
+                           & \quad \rightarrow \exists h1, h2 \in hoeren (\\
+                           & \quad \quad h1.MatrNr = s1.MatrNr\ \land\ h2.MatrNr = s2.MatrNr\\
+                           & \quad \quad \land h1.VorlNr = h2.VorlNr = v.VorlNr)) \}
+\end{align*}
+
+\begin{align*}
+  \{ [n1, n2] \mid & [m1, n1, \_], [m2, n2, \_] \in Studenten\ \land\\
+                   & [v, ``Grundzuege'', \_, \_] \in Vorlesungen\ \land\\
+                   & [m1, v], [m2, v] \in hoeren \}
+\end{align*}
+
+\section*{Exercise 2}
+
+\subsection*{Relationenalgebra}
+
+\begin{align*}
+  & \Pi_{Studenten}(\\
+  & \quad (Studenten \bowtie hoeren)\\
+  & \quad \div\\
+  & \quad \Pi_{Vorlesungen.VorlNr}(\\
+  & \quad \quad \sigma_{Professoren.Name = ``Sokrates''}(\\
+  & \quad \quad \quad Vorlesungen \bowtie_{gelesenVon = PersNr} Professoren)))
+\end{align*}
+
+\subsection*{Relationaler Tupelkalkül}
+
+\begin{align*}
+  \{ s | & s \in Studenten\ \land\\
+         & \forall v \in Vorlesungen\ (\\
+         & \quad \exists p \in Professoren (p.Name = ``Sokrates''\ \land\ v.gelesenVon = p.PersNr)\\
+         & \quad \Rightarrow \exists h \in hoeren (h.MatrNr = s.MatrNr\ \land\ h.VorlNr = v.VorlNr)) \}
+\end{align*}
+
+\subsection*{Relationaler Domänenkalkül}
+
+\begin{align*}
+  \{ m, n, s | & \exists [m, n, s] \in Studenten\ \land\\
+               & \forall [v, \_, \_, g] \in Vorlesungen\ (\\
+               & \quad \exists ([g, name, \_, \_] \in Professoren\ \land\ name = ``Sokrates'')\\
+               & \quad \Rightarrow \exists [m, v] \in hoeren) \}
+\end{align*}
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+\begin{minted}{sql}
+  SELECT s.*
+  FROM Studenten s
+  INNER JOIN hoeren h ON h.MatrNr = S.MatrNr
+  INNER JOIN Vorlesungen v ON v.VorlNr = h.VorlNr
+  INNER JOIN Professoren p ON p.PersNr = v.gelesenVon
+  WHERE p.Name = "Sokrates"
+\end{minted}
+
+\subsection*{Part b)}
+
+\begin{minted}{sql}
+  SELECT s.*
+  FROM Studenten s
+  INNER JOIN hoeren h ON h.MatrNr = S.MatrNr
+  WHERE h.VorlNr IN (
+    SELECT v.VorlNr
+    FROM Vorlesungen v
+    INNER JOIN hoeren h2 ON h2.VorlNr = v.VorlNr
+    INNER JOIN Studenten s2 ON s2.MatrNr = h2.MatrNr
+    WHERE s2.Name = "Fichte"
+  )
+\end{minted}
+
+\subsection*{Part c)}
+
+\begin{minted}{sql}
+  SELECT a.*
+  FROM Assistenten a
+  INNER JOIN Professoren p ON p.PersNr = a.Boss
+  INNER JOIN Vorlesungen v ON v.gelesenVon = p.PersNr
+  INNER JOIN hoeren h ON h.VorlNr = v.VorlNr
+  INNER JOIN Studenten s ON s.MatrNr = h.MatrNr
+  WHERE s.Name = "Fichte"
+\end{minted}
+
+\subsection*{Part d)}
+
+\begin{minted}{sql}
+  SELECT p.Name
+  FROM Professoren p
+  INNER JOIN Vorlesungen v ON v.gelesenVon = p.PersNr
+  INNER JOIN hoeren h ON h.VorlNr = v.VorlNr
+  INNER JOIN Studenten s ON s.MatrNr = h.MatrNr
+  WHERE s.Name = "Xenokrates"
+\end{minted}
+
+\subsection*{Part e)}
+
+\begin{minted}{sql}
+  SELECT v.Titel
+  FROM Vorlesungen v
+  INNER JOIN hoeren h ON h.VorlNr = v.VorlNr
+  INNER JOIN Studenten s ON s.MatrNr = h.MatrNr
+  WHERE s.Semester >= 1 AND s.Semester <= 4
+\end{minted}
+
+\end{document}
