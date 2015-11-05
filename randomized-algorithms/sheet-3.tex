@@ -1,0 +1,191 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+\title{Randomized Algorithms, Sheet 3}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 3.1}
+
+Let $\varphi$ be our opponents winning probability.
+We believe all three possbilities to be equally likely, so
+\begin{equation*}
+  P[\varphi = 0.4] = P[\phi = 0.5] = P[\varphi = 0.6] = \frac{1}{3}
+\end{equation*}
+Let $X$ be the event from the problem description.
+Then we can express the probability of $X$ for a given $\varphi$ as
+\begin{equation*}
+  P[X \mid \varphi] = \varphi(1 - \varphi)\varphi^{2} = (1 - \varphi)\varphi^{3}
+\end{equation*}
+Now we are looking to compute $P[\varphi = 0.6 \mid X]$.
+To that end we invoke Bayes' theorem.
+\begin{align*}
+  P[\varphi = 0.6 \mid X] & = \frac{P[\varphi = 0.6] \cdot P[X \mid \varphi = 0.6]}{P[X]}\\
+                          & = \frac{P[\varphi = 0.6] \cdot P[X \mid \varphi = 0.6]}{P[X \mid \varphi = 0.4] \cdot P[\varphi = 0.4] + P[X \mid \varphi = 0.5] \cdot P[\varphi = 0.5] + P[X \mid \varphi = 0.6] \cdot P[\varphi = 0.6]}\\
+                          & = \frac{\frac{1}{3} \cdot P[X \mid \varphi = 0.6]}{\frac{1}{3}\left(P[X \mid \varphi = 0.4] + P[X \mid \varphi = 0.5] + P[X \mid \varphi = 0.6]\right)}\\
+                          & = \frac{P[X \mid \varphi = 0.6]}{P[X \mid \varphi = 0.4] + P[X \mid \varphi = 0.5] + P[X \mid \varphi = 0.6]}\\
+                          & = \frac{\frac{54}{625}}{\frac{24}{625} + \frac{1}{16} + \frac{54}{625}} = \frac{864}{1873} \approx 0.46
+\end{align*}
+So after having observed event $X$, the probability of our opponent being slightly better than us is around $46\%$.
+
+\section*{Exercise 3.2}
+
+\subsection*{Part a)}
+
+\begin{proof}
+  Let $s_{1}, \dots, s_{m}$ be the input sequence in order.
+  You are equally likely to pick any of them as the separator.
+  If you pick $s_{i}$ with $i < k$ as the separator, you reduce $m$ by $i$.
+  If you pick $s_{i}$ with $i > k$ as the separator, you reduce $m$ by $m - k - (i - k) = m - i$.
+  If you are particularly lucky and pick $s_{k}$, you reduce $m$ by $m$.
+  As a result we can write the expected value of $X$ as
+  \begin{align*}
+    E[X] & = \sum_{i = 1}^{k - 1} \frac{1}{m} i + \frac{1}{m} \cdot m + \sum_{i = k + 1}^{m} \frac{1}{m} (m - i)\\
+         & = \frac{1}{m} \left( \sum_{i = 1}^{k - 1} i + m + \sum_{i = k + 1}^{m} (m - i) \right)\\
+         & = \frac{1}{m} \left( \sum_{i = 1}^{k - 1} i + (m - k + 1)m - \sum_{i = k + 1}^{m} i \right)\\
+         & = \frac{1}{m} \left( \sum_{i = 1}^{k - 1} i - \sum_{i = k + 1}^{m} i \right) + m - k + 1\\
+         & = \frac{1}{m} \left( \sum_{i = 1}^{k - 1} i - \sum_{i = 1}^{m} i + \sum_{i = 1}^{k} i \right) + m - k + 1\\
+         & = \frac{1}{m} \left( \frac{k(k - 1)}{2} - \frac{m(m + 1)}{2} + \frac{k(k + 1)}{2} \right) + m - k + 1\\
+         & = \frac{k(k - 1) + k(k + 1)}{2m} + m - k + 1 - \frac{m + 1}{2}\\
+         & = \frac{k(k - 1) + k(k + 1) + 2m(m - k + 1) - m(m + 1)}{2m}\\
+         & = \frac{k^{2} - k + k^{2} + k + 2m^{2} - 2mk + 2m - m^{2} - m}{2m}\\
+         & = \frac{2k^{2} + m^{2} - 2mk + m}{2m}\\
+         & = \frac{m}{2} + \frac{1}{m}k^{2} - k + \frac{1}{2}
+  \end{align*}
+  The $\frac{1}{m}k^{2} - k + \frac{1}{2}$ part is a parabola that is opened to the top.
+  This means that it has a global minimum.
+  \begin{equation*}
+    \left( \frac{1}{m}k^{2} - k + \frac{1}{2} \right)' = \frac{2k}{m} - 1 = 0 \Leftrightarrow k = \frac{m}{2}
+  \end{equation*}
+  So it has a minimum at $k = \frac{m}{2}$.
+  Plugging this into our equation gets us
+  \begin{equation*}
+    E[X] = \frac{m}{2} + \frac{1}{m}\left( \frac{m}{2} \right)^{2} - \frac{m}{2} + \frac{1}{2} = \frac{m}{2} + \frac{m}{4} - \frac{m}{2} + \frac{1}{2} = \frac{m}{4} + \frac{1}{2} \ge \frac{m}{4}
+  \end{equation*}
+\end{proof}
+
+\subsection*{Part b)}
+
+\begin{proof}
+  On each level of the recursive call tree we are doing work proportional to the number of elements in the input sequence.
+  Therefore the runtime is proportional to the sum of lengths of input sequences to all recursive calls.
+  Let $X_{i}$ be the length of the input sequence in the $i$th recursive call and $X$ be the sum of all $X_{i}$.
+  Then $X_{0} = n$ and
+  \begin{equation*}
+    E[X_{i}] \le \left( \frac{3}{4} \right)^{i} n
+  \end{equation*}
+  \begin{align*}
+    E[X] & = \sum_{i = 0}^{4 \log(n)} E[X_{i}]\\
+         & \le \sum_{i = 0}^{4 \log(n)} \left( \frac{3}{4} \right)^{i} n\\
+         & = n \sum_{i = 0}^{4 \log(n)} \left( \frac{3}{4} \right)^{i}\\
+         & \le n \sum_{i = 0}^{\infty} \left( \frac{3}{4} \right)^{i}\\
+         & = \frac{n}{1 - \frac{3}{4}} = 4n
+  \end{align*}
+  So the expected run time is upper bounded by $4n$ and thus it is in $O(n)$.
+\end{proof}
+
+\section*{Exercise 3.3}
+
+Randomized Quicksort creates a binary decision tree and on every level of that tree it performs $O(n)$ steps of work.
+This tree has a expected depth of $\log(n)$.
+Therefore the total work done amounts to $O(n) \cdot \log(n) = O(n \log(n))$.
+
+However in Randomized Selection you only go along one branch of that tree.
+On the first level you have to do $O(n)$ steps of work, on the next step $O\left( \frac{3}{4}n \right)$ and so forth.
+Summed up this does not exceed a constant multiple of $n$, so that the run time of randomized selection is $O(n)$.
+
+\begin{proof}
+  Define $T(n)$ as
+  \begin{equation*}
+    T(n) = n + T(n - k) + T(k - 1)
+  \end{equation*}
+  where $k$ is the index of the separator element in the sorted set, i.e. $k = 3$ if we pick the third smallest element.
+  Now assume that $T(m) \le c_{1}m + c_{2}n\log(m)$ for $m < n$ and some positive constants $c_{1}, c_{2}$.
+  \begin{align*}
+    T(n) & \leq n + c_{1}(n - k) + c_{2}(n - k)\log(n - k) + c_{1}(k - 1) + c_{2}(k - 1)\log(k - 1)\\
+         & = n + c_{1}n - c_{1}k + c_{2}n\log(n - k) - c_{2}k\log(n - k) + c_{1}k - c_{1} + c_{2}k\log(k - 1) - c_{2}\log(k - 1)\\
+         & = n + c_{1}n + c_{2}n\log(n - k) - c_{2}k\log(n - k) - c_{1} + c_{2}k\log(k - 1) - c_{2}\log(k - 1)\\
+         & = (1 + c_{1})n + c_{2}n\log(n - k) - c_{2}k\log(n - k) + c_{2}k\log(k - 1) - c_{2}\log(k - 1) - c_{1}\\
+    \intertext{$k$ ranges from $1$ to $n$. We can surely overestimate this term by maximing the positive terms and minimizing the negative ones.}
+         & \le (1 + c_{1})n + c_{2}n\log(n - 1) - c_{2} + c_{2}n\log(n - 1) - c_{2} - c_{1}\\
+         & = (1 + c_{1})n + 2c_{2}n\log(n - 1) - 2c_{2} - c_{1}\\
+         & \le (1 + c_{1})n + 2c_{2}n\log(n)
+  \end{align*}
+\end{proof}
+
+\section*{Exercise 3.4}
+
+\subsection*{$\mathbf{P \subseteq RP}$}
+
+\begin{proof}
+  Let $L \in \mathbf{P}$.
+  By definition of $\mathbf{P}$ there is an algorithm $A$ that accepts $L$ in polynomial time.
+  As a consequence we have
+  \begin{itemize}
+  \item $x \in L \Rightarrow P[A\ accepts\ x] = 1 \ge \frac{1}{2}$
+  \item $x \notin L \Rightarrow P[A\ accepts\ x] = 0$
+  \end{itemize}
+  Therefore $L \in \mathbf{RP}$ and $\mathbf{P \subseteq RP}$.
+\end{proof}
+
+\subsection*{$\mathbf{RP \subseteq NP}$}
+
+\begin{proof}
+  Let $L \in \mathbf{RP}$.
+  By definition of $\mathbf{RP}$ we have an algorithm $A$ with polynomial run time such that
+  \begin{itemize}
+  \item $x \in L \Rightarrow P[A\ accepts\ x] \ge \frac{1}{2}$
+  \item $x \notin L \Rightarrow P[A\ accepts\ x] = 0$
+  \end{itemize}
+
+  $A$ is a randomized algorithm.
+  This means that it makes random choices.
+  For a run of $A$ we could record a bit string $y$ that encodes all random choices made during this particular run such that rerunning $A$ with the same input and $y$ as its source of randomness will give the same result deterministically.
+  For an input $x$ we write this as $A(x, y)$.
+
+  In the terminology of complexity theory $y$ is our witness/certificate.
+  With this one has
+  \begin{equation*}
+    x \in L \Rightarrow \exists\ \text{certificate $y$ such that $A(x, y) accepts$}
+  \end{equation*}
+  For every $x \in L$ there has to be at least one sequence of random choices such that $A$ accepts $x$ because $P[A\ accepts\ x] \ge \frac{1}{2}$.
+  So if someone hands us this sequence together with the input we can verify that $A(x, y)$ accepts deterministically and in polynomial time.
+
+  Further one has
+  \begin{equation*}
+    x \notin L \Rightarrow \forall\ \text{certificate $y$, $A(x, y)$ rejects}
+  \end{equation*}
+  The definition of $\mathbf{RP}$ requires that $A$ rejects an $x \notin L$ in every case, i.e. there is no sequence of random choices that lead to $A$ accepting such an $x$.
+  Therefore $A$ deterministically and in polynomial time rejects every $x \notin L$ regardless of the certificate.
+
+  In the end this shows that $L \in \mathbf{NP}$ and $\mathbf{RP} \subseteq \mathbf{NP}$.
+\end{proof}
+
+\end{document}
