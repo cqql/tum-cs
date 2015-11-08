@@ -1,0 +1,157 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+\title{Operating Systems, Sheet 4}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part 1.1)}
+
+\begin{itemize}
+\item Ein Semaphor kontrolliert, dass nur einer gleichzeitig an der Rampe ist
+\item Ein weiterer Semaphor kontrolliert, dass S nur an die Rampe fährt, wenn ein Schrank verfügbar ist
+\item Ein letzter tut das Analoge für C
+\end{itemize}
+
+\subsection*{Part 1.2)}
+
+\begin{minted}{c}
+  rampe(1);
+  schrank(0);
+  couch(0);
+
+  Process S {
+    while (true) {
+      P(schrank);
+
+      P(rampe);
+      V(rampe);
+    }
+  }
+
+  Process C {
+    while (true) {
+      P(couch);
+
+      P(rampe);
+      V(rampe);
+    }
+  }
+
+  Process F {
+    while (true) {
+      P(rampe);
+
+      V(couch);
+      V(schrank);
+
+      V(rampe);
+    }
+  }
+\end{minted}
+
+\section*{Exercise 2}
+
+Nein, weil vor dem Schalten einer Transition gleichzeitig gelten muss, dass alle Eingaben ausreichend markiert sind \emph{und} alle nachfolgenden Stellen ausreichend Kapazität haben.
+Dies ist hier nicht der Fall, weil $s1$ zwar ausreichend markiert ist, aber nicht genügend freie Kapazität hat ($0$).
+
+\section*{Exercise 3}
+
+\subsection*{Part 3.1)}
+
+\subsection*{Part 3.2)}
+
+\subsection*{Part 3.3)}
+
+\subsection*{Part 3.4)}
+
+\section*{Exercise 4}
+
+\subsection*{Part 4.1)}
+
+\begin{description}
+\item[Race Condition] Ein Bereich ist nicht ausreichend geschützt, sodass das Ergebnis davon abhängt, welcher Prozess den Bereich zuerst betritt
+\item[Mutual Exclusion] Es kann jeweils nur ein Prozess den Wert der globalen Struktur ändern
+\item[Critical Section] Ein Bereich des Programms vor dessen Eintritt die globale Struktur einen Freiwert haben und auf einen Besetztwert gesetzt werden muss
+\item[Busy Waiting] Abfragen der globalen Struktur, bis sie den Freiwert annimmt
+\item[Deadlock] Zwei Prozesse warten darauf, dass der jeweils andere Prozess einen globalen Wert auf den Freiwert setzt, auf den man selbst wartet
+\end{description}
+
+\subsection*{Part 4.2)}
+
+In Java gibt es den Monitor, bzw. ist jedes Objekt ein Monitor.
+Ein Monitor ist quasi ein binärer Semaphor, wobei $wait$ $P$ ist und $notify$ $V$.
+
+\subsection*{Part 4.3)}
+
+\subsubsection{Frage 1}
+
+Das Problem ist, dass die blockierten Prozesse ihre Rechenzeit nicht direkt wieder abgeben können, sondern stattdesssen immer wieder das Schloss abfragen, bis sie vom Betriebssystem unterbrochen werden.
+
+\subsubsection{Frage 2}
+
+Der Speicher, in dem das Schloss liegt, muss von allen Prozessoren geteilt werden.
+Falls es im Hauptspeicher liegt, müssen alle prozessornahen Caches aktualisiert werden.
+
+\subsubsection{Frage 3}
+
+Man benötigt eine atomare Compare-And-Set-Operation.
+
+\section*{Exercise 5}
+
+\subsection*{Part 5.1)}
+
+Es gibt 4 Prozesse, jeweils einen für jedes Auto.
+Es gibt 4 Resourcen, jeweils eine für die Vorfahrt vor einem anderen Auto.
+Jedes Auto hat Vorfahrt vor jeweils einem anderen, also hält jeder Prozess eine dieser Resourcen.
+Um fahren zu dürfen, ist jedoch die Vorfahrt vor dem linken und rechten Auto notwendig.
+Also fordert jedes Auto noch eine weitere Resource, die aber schon von einem anderen Auto belegt wird.
+
+\begin{enumerate}
+\item Es können nicht zwei Autos Vorfahrt voreinander haben
+\item Das Fahren auf der Kreuzung kann nicht unterbrochen werden
+\item Jeder Prozess hat per Gesetz automatisch Vorfahrt vor dem rechten Auto, auch während darauf gewartet wird, dass links frei wird
+\item Alle Autos warten zirkulär aufeinander
+\end{enumerate}
+
+Ja, es gibt einen Zykel einmal um die Kreuzung herum.
+
+\subsection*{Part 5.2)}
+
+Man könnte die jeweils gegenüberliegenden Vorfahrten mit nur einem Lock schützen, sodass sie nur gemeinsam belegt werden können.
+
+Mir fallen keine guten Möglichkeiten ein, die das Problem nicht nur woandershin verschieben.
+
+\end{document}
