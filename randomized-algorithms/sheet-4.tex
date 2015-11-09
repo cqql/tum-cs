@@ -1,0 +1,325 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\title{Randomized Algorithms, Sheet 4}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 4.1}
+
+\begin{proof}
+  Let $L \in \mathbf{RP} \cap \mathbf{co\text{-}RP}$.
+  By definition there is an algorithm $A$ running in worst-case polynomial time such that
+  \begin{itemize}
+  \item $x \in L \Rightarrow P[A(x)\ accepts] \ge \frac{1}{2}$
+  \item $x \notin L \Rightarrow P[A(x)\ accepts] = 0$
+  \end{itemize}
+  and another algorithm $A'$ running in worst-case polynomial time as well such that
+  \begin{itemize}
+  \item $x \in L \Rightarrow P[A'(x)\ accepts] = 1$
+  \item $x \notin L \Rightarrow P[A'(x)\ accepts] \le \frac{1}{2}$
+  \end{itemize}
+  Now define a new algorithm $B$ by
+  \begin{enumerate}
+  \item Run $A(x)$. If it accepts, $x \in L$ and $B$ terminates.
+  \item Run $A'(x)$. If it rejects, $x \notin L$ and $B$ terminates.
+  \item Start over
+  \end{enumerate}
+  The worst-case run time for each iteration is the sum of run times of $A$ and $A'$, so it is still polynomial and bounded by some polynomial $P$.
+  The probability of reaching step 3 is $P[A(x)\ rejects\ \land A'(x)\ accepts] < \frac{1}{2}$.
+  It is less than $\frac{1}{2}$ because either $x \in L$ and $A(x)$ rejects with probability less than a half and $A'(x)$ always accepts or $x \notin L$ and $A'(x)$ accepts with probability less than a half and $A(x)$ always rejects.
+  As a result we can write down the following expression for the expected run time of $B$.
+  \begin{equation*}
+    E[R(B)] \le \sum_{k = 1}^{\infty} \left( \frac{1}{2} \right)^{k - 1} k \cdot P = P \cdot \sum_{k = 1}^{\infty} \left( \frac{1}{2} \right)^{k - 1} k = P \cdot \left( \sum_{k = 0}^{\infty} \frac{1}{2^{k}} \right)' = \frac{1}{\left( 1 - \frac{1}{2} \right)^{2}}P = 4P
+  \end{equation*}
+  This shows that the expected run time of $B$ is bounded by a polynomial.
+  Therefore $L \in \mathbf{ZPP}$ and $\mathbf{ZPP} \supseteq \mathbf{RP} \cap \mathbf{co \text{-} RP}$.
+
+  \vspace{1em}
+
+  Let $L \in \mathbf{ZPP}$.
+  By definition there is an algorithm $A$ with an expected polynomial run time that is always correct.
+  Let $P$ be the polynomial that bounds the expected run time.
+  Define a new algorithm $B(x)$ by
+  \begin{enumerate}
+  \item Run $A(x)$ for $k$ steps. If it terminates return the same value that $A(x)$ returned.
+  \item Otherwise reject $x$
+  \end{enumerate}
+  If we apply $B$ to an $x \notin L$, $B$ will always be correct.
+  Otherwise if $x \in L$, $B$ will be incorrect if we cut $A$ off before it terminates.
+  Let $X$ be the run time of $A$.
+  We are now interested in examining $P(X > k)$ as that is the probability of rejecting $x$ even though $x \in L$.
+  Invoking Markov's inequality we get
+  \begin{equation*}
+    P(X > k) = P(X \ge k + 1) \le \frac{E[X]}{k + 1} < \frac{E[X]}{k}
+  \end{equation*}
+  To fit the definition of a randomized polynomial time algorithm, we need to achieve $\frac{E[X]}{k} \le \frac{1}{2}$.
+  Through rewriting we conclude that we need to choose $k$ such that $k \ge 2E[x] = 2P(x)$.
+  In the end $B(x)$ is defined as
+  \begin{enumerate}
+  \item Run $A(x)$ for $2P(x)$ steps. If it terminates return the same value that $A(x)$ returned.
+  \item Otherwise reject $x$
+  \end{enumerate}
+  The worst-case run time is obviously in $O(2P)$, so it is polynomial.
+  The error is one-sided ($B$ only errs in the case that $x \in L$) and the probability of a mistake is $\le \frac{1}{2}$.
+  Ultimately we have $L \in \mathbf{RP}$ and therefore $\mathbf{ZPP} \subseteq \mathbf{RP}$.
+
+  \vspace{1em}
+
+  To further show that $L \in \mathbf{co\text{-}RP}$ define another algorithm $C(x)$ in analogy to $B$ through
+  \begin{enumerate}
+  \item Run $A(x)$ for $2P(x)$ steps. If it terminates return the same value that $A(x)$ returned.
+  \item Otherwise accept $x$
+  \end{enumerate}
+  The worst case running time is the same as $B$'s and $C$ only errs for $x \notin L$ with a probability of less than $\frac{1}{2}$.
+  In summary this means that $L \in \mathbf{co\text{-}RP}$ and $\mathbf{ZPP} \subseteq \mathbf{co\text{-}RP}$.
+
+  \vspace{1em}
+
+  In the end we can combine the partial results to $\mathbf{ZPP} = \mathbf{RP} \cap \mathbf{co \text{-} RP}$.
+\end{proof}
+
+\section*{Exercise 4.2}
+
+\begin{proof}
+  Let $L \in \mathbf{RP}$.
+  By definition there is an algorithm $A$ running in worst-case polynomial time with the properties
+  \begin{itemize}
+  \item $x \in L \Rightarrow P[A(x)\ accepts] \ge \frac{1}{2}$
+  \item $x \notin L \Rightarrow P[A(x)\ accepts] = 0$
+  \end{itemize}
+  Now define another algorithm $B(x)$ through
+  \begin{enumerate}
+  \item Run $A(x)$ two times
+  \item If any of the two runs accepted $x$, $B$ accepts it too
+  \item Otherwise $B$ rejects $x$
+  \end{enumerate}
+  This gives the probabilities
+  \begin{itemize}
+  \item $x \in L \Rightarrow P[B(x)\ accepts] = 1 - (P[A(x)\ rejects])^{2} \ge 1 - \left( \frac{1}{2} \right)^{2} = \frac{3}{4}$
+  \item $x \notin L \Rightarrow P[B(x)\ accepts] \le P[A(x)\ accepts] = 0 \le \frac{1}{4}$
+  \end{itemize}
+  which put $L \in \mathbf{BPP}$ and thus show $\mathbf{RP} \subseteq \mathbf{BPP}$.
+
+  \vspace{1em}
+
+  Let $L \in \mathbf{BPP}$.
+  By definition there is an algorithm $A$ running in worst-case polynomial time such that
+  \begin{itemize}
+  \item $x \in L \Rightarrow P[A(x)\ accepts] \ge \frac{3}{4} \ge \frac{1}{2}$
+  \item $x \not\in L \Rightarrow P[A(x)\ accepts] \le \frac{1}{4} \le \frac{1}{2}$
+  \end{itemize}
+  Hence $L$ is obviously also in $\mathbf{PP}$ and $\mathbf{BPP} \subseteq \mathbf{PP}$.
+\end{proof}
+
+\section*{Exercise 4.3}
+
+\subsection*{Part a)}
+
+\begin{proof}
+  We will prove it inductively on the height of the tree.
+  Let $h = 1$, $x$ be the root of the tree and and $a, b, c$ be the values of the three children.
+  Algorithm $A$ inspects $a, b, c$ in a deterministic order.
+  Without loss of generality assume that the order is $a, b, c$.
+  Then setting $a = 0$, $b = 1$ or $a = 1$, $b = 0$ will force $A$ to examine $c$ as well to determine the majority.
+  So $A$ inspect all $3$ children.
+
+  \vspace{1em}
+
+  Assume that we can force $A$ to inspect all $3^{h - 1}$ children for such trees of height $h - 1$ and force a value at the root.
+  Let $a, b, c$ be the subtrees with height $h - 1$ of a tree with height $h$.
+  $A$ will determine their values in a deterministic order.
+  Without loss of generality assume the order to be $a, b, c$.
+  As in the base case we can arrange the values at the leaves to result in $a = 1, b = 0$ or $a = 0, b = 1$ so that $A$ is forced to evaluate $c$ as well to compute the majority.
+  So $A$ has to inspect all $3 \cdot 3^{h - 1} = 3^{h}$ leaves.
+\end{proof}
+
+\subsection*{Part b)}
+
+\begin{proof}
+  Again we will employ induction for this proof.
+  Consider a tree of height $1$ with random binary values $a, b, c$ at the leaves.
+  The probability that the second leaf the algorithm inspects disagrees with the first is $\frac{1}{2}$.
+  Consequently the expected number of leaf inspections is $\frac{1}{2} \cdot 2 + \frac{1}{2} \cdot 3 = \frac{5}{2} < 2.65 \approx 3^{0.9}$.
+
+  Assume that the randomized algorithm can evaluate trees of height $h - 1$ with $n = 3^{h - 1}$ children in an expected number of $O(n^{0.9})$ steps.
+  Again the subtree that is fully evaluated second disagrees with the first fully evaluated one with a probability of $\frac{1}{2}$.
+  Hence we can evaluate the expected number of leaf inspections as
+  \begin{align*}
+    \frac{1}{2} \cdot 2 \cdot O((3^{h - 1})^{0.9}) + \frac{1}{2} \cdot 3 \cdot O((3^{h - 1})^{0.9}) & = \frac{5}{2} \cdot O\left((3^{h - 1})^{0.9}\right)\\
+                                                                                                    & = \frac{5}{2} \cdot O\left((3^{0.9})^{h - 1}\right)\\
+                                                                                                    & = 3^{0.9} \cdot O\left((3^{0.9})^{h - 1}\right)\\
+    \intertext{We approximated $\frac{5}{2} \approx 3^{0.9}$ but we are in the $O$ calculus so it is still equality}
+                                                                                                    & = O\left((3^{0.9})^{h}\right) = O\left(n^{0.9}\right)
+  \end{align*}
+\end{proof}
+
+\section*{Exercise 4.4}
+
+\subsection*{Part a)}
+
+\begin{equation*}
+  \max_{i} \min_{j} M_{ij} = 2 < 3 = \min_{j} \max_{i} M_{ij}
+\end{equation*}
+According to the lecture there is no optimal pure strategy if this inequality is strict which it is for the given matrix $M$.
+
+\subsection*{Part b)}
+
+We are looking for two strategies $p = \begin{pmatrix}
+  p_{1}\\1 - p_{1}
+\end{pmatrix}$ and $q = \begin{pmatrix}
+  q_{1}\\1 - q_{1}
+\end{pmatrix}$ for the row respectively column player such that
+\begin{equation*}
+  \max_{p} \min_{q} p^{T}Mq = \min_{q} \max_{p} p^{T}Mq
+\end{equation*}
+
+First we evaluate $p^{T}Mq$ in general.
+\begin{align*}
+  p^{T}Mq & = \begin{pmatrix}
+    p_{1} + 3(1 - p_{1}) & 4p_{1} + 2(1 - p_{1})
+  \end{pmatrix}q\\
+          & = q_{1}(p_{1} + 3(1 - p_{1})) + (1 - q_{1})(4p_{1} + 2(1 - p_{1}))\\
+          & = q_{1}p_{1} + 3q_{1} - 3q_{1}p_{1} + 4p_{1} + 2 - 2p_{1} - 4q_{1}p_{1} + 2q_{1} - 2q_{1}p_{1}\\
+          & = -8q_{1}p_{1} + 5q_{1} + 2p_{1} + 2
+\end{align*}
+Now we will try to minimize this with respect to $q_{1}$.
+The first derivative with respect to $q_{1}$ is
+\begin{equation*}
+  -8p_{1} + 5
+\end{equation*}
+This gives us the following minima for different values of $p_{1}$
+\begin{itemize}
+\item $p_{1} = \frac{5}{8} \Rightarrow (p^{T}Mq)' = 0 \Rightarrow $ it is minimal for every $q_{1} \in [0, 1]$
+\item $p_{1} > \frac{5}{8} \Rightarrow (p^{T}Mq)' < 0 \Rightarrow $ it is minimal for $q_{1} = 1$
+\item $p_{1} < \frac{5}{8} \Rightarrow (p^{T}Mq)' > 0 \Rightarrow $ it is minimal for $q_{1} = 0$
+\end{itemize}
+Evaluating $-8q_{1}p_{1} + 5q_{1} + 2p_{1} + 2$ for the three possible values gets you (we can reconcile the case where $q_{1}$ is arbitrary with one of the others)
+\begin{itemize}
+\item $p_{1} \le \frac{5}{8} \Rightarrow \min_{q_{1}}(-8q_{1}p_{1} + 5q_{1} + 2p_{1} + 2) = 2p_{1} + 2$
+\item $p_{1} \ge \frac{5}{8} \Rightarrow \min_{q_{1}}(-8q_{1}p_{1} + 5q_{1} + 2p_{1} + 2) = -6p_{1} + 7$
+\end{itemize}
+Maximizing both terms on their respective domain yields a maximum for $p_{1} = \frac{5}{8}$ of $\frac{13}{4}$.
+
+To find the optimal strategy for the column player, we will start over and maximize the original term with respect to $p_{1}$.
+To that end we will take the derivative with respect to $p_{1}$.
+\begin{equation*}
+  -8q_{1} + 2
+\end{equation*}
+So the original term is maximized by different $p_{1}$ depending on $q_{1}$.
+\begin{itemize}
+\item $q_{1} = \frac{1}{4} \Rightarrow p^{T}Mq$ is constant for all $p_{1}$
+\item $q_{1} > \frac{1}{4} \Rightarrow (p^{T}Mq)' < 0 \Rightarrow p^{T}Mq$ is maximized for $p_{1} = 0$
+\item $q_{1} < \frac{1}{4} \Rightarrow (p^{T}Mq)' > 0 \Rightarrow p^{T}Mq$ is maximized for $p_{1} = 1$
+\end{itemize}
+Again we evaluate the original term for the different choices of $p_{1}$
+\begin{itemize}
+\item $q_{1} \ge \frac{1}{4} \Rightarrow \max_{p_{1}}(-8q_{1}p_{1} + 5q_{1} + 2p_{1} + 2) = 5q_{1} + 2$
+\item $q_{1} \le \frac{1}{4} \Rightarrow \max_{p_{1}}(-8q_{1}p_{1} + 5q_{1} + 2p_{1} + 2) = -3q_{1} + 4$
+\end{itemize}
+Minimizing both terms on their respective domains yields a global minimum for $q_{1} = \frac{1}{4}$ of $\frac{13}{4}$.
+
+\vspace{1em}
+
+Since we get the same value in both cases this has to be the value of the game and hence the optimal mixed strategies are
+\begin{equation*}
+  p = \begin{pmatrix}
+  \frac{5}{8}\\\frac{3}{8}
+\end{pmatrix} \qquad q = \begin{pmatrix}
+  \frac{1}{4}\\\frac{3}{4}
+\end{pmatrix}
+\end{equation*}
+
+\subsection*{Part c)}
+
+Loomi's theorem tells us that you can employ a pure strategy once you know the mixed strategy of your opponent and it will be optimal.
+
+Let $p$ be the mixed strategy of the row player.
+With this we can precompute the $p^{T}M$ part of $p^{T}Mq$
+\begin{equation*}
+  p^{T}M = \begin{pmatrix}
+    p_{1} + 3p_{2} & 4p_{1} + 2p_{2}
+  \end{pmatrix}
+\end{equation*}
+Then the optimal strategy for the column player is $e_{i}$ where $i = \argmin_{i} (p^{T}M)_{i}$ and $e_{i}$ is the $i$th unit vector.
+
+Similarly we can compute the optimal for the row player once the mixed strategy of the column player is known.
+Let $q$ be that know mixed strategy of the column player.
+With this we can precompute the $Mq$ part of $p^{T}Mq$
+\begin{equation*}
+  Mq = \begin{pmatrix}
+    q_{1} + 4q_{2}\\
+    3q_{1} + 2q_{2}
+  \end{pmatrix}
+\end{equation*}
+Then the optimal strategy for the row player is $e_{i}$ where $i = \argmax_{i} (Mq)_{i}$ and $e_{i}$ is the $i$th unit vector.
+
+In the case of the optimal mixed strategies we computed in part b, we get the following optimal pure strategies.
+When the row player is playing $p = \begin{pmatrix}
+  \frac{5}{8}\\\frac{3}{8}
+\end{pmatrix}$, we get
+\begin{equation*}
+  p^{T}M = \begin{pmatrix}
+    p_{1} + 3p_{2} & 4p_{1} + 2p_{2}
+  \end{pmatrix} = \begin{pmatrix}
+    \frac{5}{8} + 3\frac{3}{8} & 4 \frac{5}{8} + 2 \frac{3}{8}
+  \end{pmatrix} = \begin{pmatrix}
+    \frac{7}{4} & \frac{13}{4}
+  \end{pmatrix}
+\end{equation*}
+so $q = e_{2}$ is the optimal/minimizing strategy for the column player.
+
+When the row player has a know strategy of $q = \begin{pmatrix}
+  \frac{1}{4}\\\frac{3}{4}
+\end{pmatrix}$, we can compute
+\begin{equation*}
+  Mq = \begin{pmatrix}
+    q_{1} + 4q_{2}\\
+    3q_{1} + 2q_{2}
+  \end{pmatrix} = \begin{pmatrix}
+    \frac{1}{4} + 4 \frac{3}{4}\\
+    3 \frac{1}{4} + 2 \frac{3}{4}
+  \end{pmatrix} = \begin{pmatrix}
+    \frac{13}{4}\\
+    \frac{9}{4}
+  \end{pmatrix}
+\end{equation*}
+so $p = e_{1}$ is the maximizing strategy for the row player.
+
+\end{document}
