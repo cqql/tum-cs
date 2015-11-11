@@ -1,0 +1,82 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Distributed Systems, Sheet 4}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\begin{description}
+\item[Safety] Only one process can enter the CS at a time because a process can only get $n - 1$ acknowledgements if no other process is in the CS
+\item[Liveness] You can prove inductively that all requests to enter the CS will succeed eventually if every process releases after a finite amount of time
+\item[Fairness] A process cannot enter the CS twice while another process is waiting because the waiting process will be in the queues before the first one
+\item[Order] This is not given.
+  If node 1 and 2 both want to enter the CS and 2 sends the request first, 1 can still be the first to get access when it tries to enter the CS before receiving the request from 2.
+  Because in this case 1 will queue the request from 2 while 2 will respond immediately.
+  To resolve this you need to send timestamps with the requests as is done in the correct algorithm by Ricart \& Agrawala.
+\end{description}
+
+\section*{Exercise 2}
+
+Processes are granted access to the CS according to their position on the ring instead of the order of requests.
+So a simple example would be a ring of 3 processes where process 1 currently holds the token.
+Now first process 3 tries to enter the CS, i.e. waits for the token, and then process 2.
+However process 2 gets to enter first once process 1 releases because it is the next on the ring.
+
+\section*{Exercise 3}
+
+No, it cannot because you need some kind of circular dependency for a dead lock.
+None the less you would have two totally separate lock systems for the two critical sections, so two state variables and therefore no interaction between the two locks/critical sections.
+
+\section*{Exercise 4}
+
+\subsection*{Part a)}
+
+Nothing special because once a normal election starts you will have many elections of higher IDs in parallel anyway.
+
+\subsection*{Part b)}
+
+I think the bully algorithm handles the partition aspect already because it just elects a new leader once the current one becomes unavailable.
+The interesting part is the reunification of the network.
+For this case the leader could send a coordinator message periodically to ``convert'' peers once the network partitions are reunited.
+Unless a leader with a higher ID receives such a coordinator message.
+Then the higher leader would just respond with another one.
+
+The only interesting case regarding a slow process is an election where the would-be leader is slow.
+Here you could try the same treatment and just make everyone accept late or unexpected coordinator messages from peers with higher IDs.
+
+\end{document}
