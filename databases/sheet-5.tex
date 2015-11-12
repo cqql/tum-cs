@@ -1,0 +1,159 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Databases, Sheet 5}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\begin{align*}
+  \{ (r.a_{1}, \dots, r.a_{n}, s.b_{1}, \dots, s.b_{m}) \mid & r \in R\ \land\ s \in S\ \land\\
+                                                             & r.a_{1} = s.b_{1} \}
+\end{align*}
+
+\begin{align*}
+  \{ [a_{1}, \dots, a_{n}, b_{1}, \dots, b_{m}] \mid & [a_{1}, \dots, a_{n}] \in R\ \land\ [a_{1}, b_{2}, \dots, b_{m}] \in S \}
+\end{align*}
+
+\subsection*{Part b)}
+
+\begin{align*}
+  Q_{1} \cup \{ (r, -, \dots, -) \mid r \in R\ \land\ \lnot \exists s \in S (s.b_{1} = r.a_{1}) \}
+\end{align*}
+
+\begin{align*}
+  Q_{1} \cup \{ [a_{1}, \dots, a_{n}, -, \dots, -] \mid [a_{1}, \dots, a_{n}] \in R\ \land\ \lnot \exists [a_{1}, \_, \dots, \_] \in S \}
+\end{align*}
+
+\subsection*{Part c)}
+
+\begin{align*}
+  \{ s \mid r \in R\ \land\ s \in S\ \land r.a_{1} = s.b_{1} \}
+\end{align*}
+
+\begin{align*}
+  \{ [b_{1}, \dots, b_{m}] \mid & [b_{1}, a_{2}, \dots, a_{n}] \in R\ \land\ [b_{1}, b_{2}, \dots, b_{m}] \in S \}
+\end{align*}
+
+\subsection*{Part d)}
+
+\begin{align*}
+  S - Q_{3}
+\end{align*}
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\begin{minted}{sql}
+  SELECT AVG(semester)
+  FROM Studenten
+\end{minted}
+
+\subsection*{Part b)}
+
+\begin{minted}{sql}
+  SELECT AVG(s2.semester)
+  FROM (
+    SELECT DISTINCT s.MatrNr, s.semester
+    Studenten s
+    INNER JOIN hoeren h ON h.MatrNr = s.MatrNr
+    INNER JOIN Vorlesungen v ON v.VorlNr = h.VorlNr
+    INNER JOIN Professoren p ON p.PersNr = v.gelesenVon
+    WHERE p.Name = "Sokrates"
+  ) s2
+\end{minted}
+
+\subsection*{Part c)}
+
+\begin{minted}{sql}
+  SELECT h.count / s.count
+  FROM (SELECT COUNT(*) AS count FROM hoeren) h,
+    (SELECT COUNT(*) AS count FROM Studenten) s
+\end{minted}
+
+\section*{Exercise 3}
+
+\subsection*{Relationale Algebra}
+
+\begin{align*}
+  & \pi_{Z.Name, Z.Disziplin}(\\
+  & \quad \sigma_{Z.Punkte > Z2.Punkte}(\\
+  & \quad \quad \rho_{Z}(ZehnkampfD)\\
+  & \quad \quad \bowtie_{Z.Disziplin = Z2.Disziplin}\\
+  & \quad \quad \sigma_{Z2.Name = 'Bolt'}\rho_{Z2}(ZehnkampfD)))\\
+  & \div\\
+  & \pi_{Disziplin}(\sigma_{Name = 'Bolt'}(ZehnkampfD))
+\end{align*}
+
+\subsection*{Relationaler Tupelkalkül}
+
+\begin{align*}
+  \{ z.Name \mid & z \in ZehnkampfD\ \land\\
+                 & \forall b \in ZehnkampfD(\\
+                 & \quad b.Name = 'Bolt'\ \Rightarrow\\
+                 & \quad \quad \exists z2 \in ZehnkampfD (\\
+                 & \quad \quad \quad z2.Name = z.Name\ \land\ z2.Disziplin = b.Disziplin\ \land\ z2.Punkte > b.Punkte)) \}
+\end{align*}
+
+\subsection*{Relationaler Domänenkalkül}
+
+\begin{align*}
+  \{ n \mid & [n, \_, \_] \in ZehnkampfD\ \land\\
+            & \forall [n, d, p] \in ZehnkampfD \exists ['Bolt', d, pb] \in ZehnkampfD (p > pb) \}
+\end{align*}
+
+\subsection*{SQL}
+
+\begin{minted}{sql}
+  SELECT DISTINCT z.Name
+  FROM ZehnkampfD z
+  WHERE z.Name NOT IN (
+    SELECT z2.Name
+    FROM ZehnkampfD z2
+    WHERE z2.Punkte <= (
+      SELECT z3.Punkte
+      FROM ZehnkampfD z3
+      WHERE z3.Name = "Bolt"
+      AND z3.Disziplin = z2.Disziplin
+    )
+  )
+\end{minted}
+
+\end{document}
