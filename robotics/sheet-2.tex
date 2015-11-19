@@ -1,0 +1,205 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Robotics, Sheet 2}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+The rotation of the endeffector relative to the ground frame is just the sum of the rotations of all intermediate joints in the $x$-$y$ plane.
+So $\Theta_{tip} = \Theta_{1} + \Theta_{2} + \Theta_{3}$.
+The position is the sum of the rotated arm lengths.
+\begin{align*}
+  \begin{pmatrix}
+    x\\y
+  \end{pmatrix} = & \begin{pmatrix}
+    \cos(\Theta_{1}) & -\sin(\Theta_{1})\\
+    \sin(\Theta_{1}) & \cos(\Theta_{1})
+  \end{pmatrix} \begin{pmatrix}
+    l_{1}\\0
+  \end{pmatrix} + \begin{pmatrix}
+    \cos(\Theta_{1} + \Theta_{2}) & -\sin(\Theta_{1} + \Theta_{2})\\
+    \sin(\Theta_{1} + \Theta_{2}) & \cos(\Theta_{1} + \Theta_{2})
+  \end{pmatrix} \begin{pmatrix}
+    l_{2}\\0
+  \end{pmatrix} + \begin{pmatrix}
+    \cos(\Theta_{1} + \Theta_{2} + \Theta_{3}) & -\sin(\Theta_{1} + \Theta_{2} + \Theta_{3})\\
+    \sin(\Theta_{1} + \Theta_{2} + \Theta_{3}) & \cos(\Theta_{1} + \Theta_{2} + \Theta_{3})
+  \end{pmatrix} \begin{pmatrix}
+    l_{3}\\0
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    \cos(\Theta_{1})l_{1} + \cos(\Theta_{1} + \Theta_{2})l_{2} + \cos(\Theta_{1} + \Theta_{2} + \Theta_{3})l_{3}\\
+    \sin(\Theta_{1})l_{1} + \sin(\Theta_{1} + \Theta_{2})l_{2} + \sin(\Theta_{1} + \Theta_{2} + \Theta_{3})l_{3}
+  \end{pmatrix}
+\end{align*}
+
+\subsection*{Part b)}
+
+\begin{equation*}
+  J(\Theta) = \begin{pmatrix}
+    -s_{1}l_{1} - s_{12}l_{2} - s_{123}l_{3} & -s_{12}l_{2} - s_{123}l_{3} & -s_{123}l_{3}\\
+    c_{1}l_{1} + c_{12}l_{2} + c_{123}l_{3} & c_{12}l_{2} + c_{123}l_{3} & c_{123}l_{3}\\
+    1 & 1 & 1
+  \end{pmatrix}
+\end{equation*}
+
+\subsection*{Part c)}
+
+Just apply the chain rule.
+\begin{equation*}
+  \dot{p}(\Theta, \dot{\Theta}) = J(\Theta) \cdot \dot{\Theta}
+\end{equation*}
+
+\subsection*{Part d)}
+
+\begin{align*}
+  \det(J(\Theta)) & = (-s_{1}l_{1} - s_{12}l_{2} - s_{123}l_{3})(c_{12}l_{2} + c_{123}l_{3}) + (-s_{12}l_{2} - s_{123}l_{3})(c_{123}l_{3}) + (-s_{123}l_{3})(c_{1}l_{1} + c_{12}l_{2} + c_{123}l_{3}) - (c_{12}l_{2} + c_{123}l_{3})(-s_{123}l_{3})\\
+                  & \quad - (c_{123}l_{3})(-s_{1}l_{1} - s_{12}l_{2} - s_{123}l_{3}) - (c_{1}l_{1} + c_{12}l_{2} + c_{123}l_{3})(-s_{12}l_{2} - s_{123}l_{3})\\
+                  & = 0 \Leftrightarrow \det({}^{3}J(\Theta)) = 0
+\end{align*}
+\begin{equation*}
+  {}^{3}J(\Theta) = \begin{pmatrix}
+    & & \\
+    & & \\
+    0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+\subsection*{Part e)}
+
+\section*{Exercise 2}
+
+\begin{align*}
+  J^{T}J = & \begin{pmatrix}
+    l_{1}s_{2} & l_{1}c_{2} + l_{2}\\
+    0 & l_{2}
+  \end{pmatrix} \begin{pmatrix}
+    l_{1}s_{2} & 0\\
+    l_{1}c_{2} + l_{2} & l_{2}
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    \left( l_{1}s_{2} \right)^{2} + \left( l_{1}c_{2} + l_{2} \right)^{2} & l_{1}l_{2}c_{2} + l_{2}^{2}\\
+    l_{1}l_{2}c_{2} + l_{2}^{2} & l_{2}^{2}
+  \end{pmatrix} = \delta I\\
+  & \Leftrightarrow c_{2} = -\frac{l_{2}}{l_{1}} \land \left( l_{1}s_{2} \right)^{2} + \left( l_{1}c_{2} + l_{2} \right)^{2} = l_{2}^{2}
+\end{align*}
+
+Plugging in the first into the second equation gives
+\begin{align*}
+  \left( l_{1}s_{2} \right)^{2} + \left( l_{1}c_{2} + l_{2} \right)^{2} = & \left( l_{1}s_{2} \right)^{2} + \left( -l_{1}\frac{l_{2}}{l_{1}} + l_{2} \right)^{2}\\
+  = & \left( l_{1}s_{2} \right)^{2} = l_{2}^{2} \Leftrightarrow s_{2} \in \{ -\frac{l_{2}}{l_{1}}, \frac{l_{2}}{l_{1}} \}
+\end{align*}
+
+Combining this intermediate result with the first equation gets us to
+\begin{equation*}
+  c_{2} = s_{2} \lor c_{2} = -s_{2} \Rightarrow \theta_{2} \in \{ \left( n - \frac{3}{4} \right)\pi \mid n \in \mathbb{Z} \}
+\end{equation*}
+
+The isotropic configurations are when the manipulator is either rotated $45^{\circ}$ rotation clock-wise or $135^{\circ}$ counter-clockwise, i.e. when it is orthogonal to the previous joint.
+In these configurations the joints move the manipulator in orthogonal directions.
+
+\section*{Exercise 3}
+
+\subsection*{Differentiation}
+
+The gripper position is given by
+\begin{equation*}
+  p(\Theta_{1}, \Theta_{2}) = \begin{pmatrix}
+    \cos(\Theta_{1})l_{1} + \cos(\Theta_{1} + \Theta_{2})l_{2}\\
+    \sin(\Theta_{1})l_{1} + \sin(\Theta_{1} + \Theta_{2})l_{2}
+  \end{pmatrix}
+\end{equation*}
+Then we can compute the Jacobian through differentiation
+\begin{equation*}
+  J = \begin{pmatrix}
+    -s_{1}l_{1} - s_{12}l_{2} & -s_{12}l_{2}\\
+    c_{1}l_{1} + c_{12}l_{2} & c_{12}l_{2}
+  \end{pmatrix}
+\end{equation*}
+
+\subsection*{Transformation}
+
+First we have to determine the rotation matrix from frame $3$ to $0$.
+It is simple in this scenario because the robot only moves in the $x$-$y$ plane.
+\begin{equation*}
+  {}^{0}_{3}R = \begin{pmatrix}
+    \cos(\Theta_{1} + \Theta_{2}) & -\sin(\Theta_{1} + \Theta_{2})\\
+    \sin(\Theta_{1} + \Theta_{2}) & \cos(\Theta_{1} + \Theta_{2})
+  \end{pmatrix}
+\end{equation*}
+\begin{align*}
+  {}^{0}_{3}R{}^{3}J(\Theta) = & \begin{pmatrix}
+    c_{12} & -s_{12}\\
+    s_{12} & c_{12}
+  \end{pmatrix} \begin{pmatrix}
+    s_{2}l_{1} & 0\\
+    c_{2}l_{1} + l_{2} & l_{2}
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    c_{12}s_{2}l_{1} - s_{12}(c_{2}l_{1} + l_{2}) & -s_{12}l_{2}\\
+    s_{12}s_{2}l_{1} + c_{12}(c_{2}l_{1} + l_{2}) & c_{12}l_{2}
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    c_{12}s_{2}l_{1} - s_{12}c_{2}l_{1} - s_{12}l_{2} & -s_{12}l_{2}\\
+    s_{12}s_{2}l_{1} + c_{12}c_{2}l_{1} + c_{12}l_{2} & c_{12}l_{2}
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    (c_{12}s_{2} - s_{12}c_{2})l_{1} - s_{12}l_{2} & -s_{12}l_{2}\\
+    (s_{12}s_{2} + c_{12}c_{2})l_{1} + c_{12}l_{2} & c_{12}l_{2}
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    ((c_{1}c_{2} - s_{1}s_{2})s_{2} - (s_{1}s_{2} + c_{1}c_{2})c_{2})l_{1} - s_{12}l_{2} & -s_{12}l_{2}\\
+    ((s_{1}s_{2} + c_{1}c_{2})s_{2} + (c_{1}c_{2} - s_{1}s_{2})c_{2})l_{1} + c_{12}l_{2} & c_{12}l_{2}
+  \end{pmatrix} = \dots = {}^{0}J(\Theta)
+\end{align*}
+
+\subsection*{Singularities}
+
+\begin{align*}
+  \det({}^{0}J) = -s_{1}c_{12}l_{1}l_{2} - s_{12}c_{12}l_{2}^{2} + s_{12}c_{1}l_{1}l_{2} + s_{12}c_{12}l_{2}^{2} = -s_{1}c_{12}l_{1}l_{2} + s_{12}c_{1}l_{1}l_{2} = (-s_{1}c_{12} + s_{12}c_{1})l_{1}l_{2}
+\end{align*}
+\begin{equation*}
+  (-s_{1}c_{12} + s_{12}c_{1})l_{1}l_{2} = 0 \Leftrightarrow s_{12}c_{1} = s_{1}c_{12}
+\end{equation*}
+
+The Jacobian in frame $3$ has a simpler form and therefore a simpler determinant.
+It also lets us compute the singularities way easier and we get $\Theta_{2} \in \{ 0, \frac{\pi}{2} \}$.
+
+\end{document}
