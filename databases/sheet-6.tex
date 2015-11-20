@@ -1,0 +1,153 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Databases, Sheet 6}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\begin{minted}{sql}
+  WITH bekanntheit (m1, m2, g)
+  AS (
+    SELECT h1.MatrNr, h2.MatrNr, 1
+    FROM hoeren h1
+    INNER JOIN hoeren h2 ON h1.VorlNr = h2.VorlNr
+    WHERE h1.MatrNr != h2.MatrNr
+    UNION ALL
+    SELECT b.m1, h2.MatrNr, 1 + b.g
+    FROM bekanntheit b
+    INNER JOIN hoeren h1 ON h1.MatrNr = b.m2
+    INNER JOIN hoeren h2 ON h2.VorlNr = h1.VorlNr
+    WHERE h2.MatrNr != b.m1
+      AND b.g < (SELECT COUNT(*) FROM Studenten)
+  )
+  SELECT m1, m2, MIN(g) AS grad
+  FROM bekanntheit
+  GROUP BY m1, m2
+  ORDER BY m1, grad DESC, m2
+\end{minted}
+
+\section*{Exercise 2}
+
+\begin{minted}{sql}
+  WITH sws (m, sum)
+  AS (
+    SELECT s.MatrNr, IFNULL(SUM(v.SWS), 0)
+    FROM Studenten s
+    LEFT JOIN hoeren h ON h.MatrNr = s.MatrNr
+    LEFT JOIN Vorlesungen v ON v.VorlNr = h.VorlNr
+    GROUP BY s.MatrNr
+  )
+  SELECT s.*, sws.sum
+  FROM sws
+  INNER JOIN Studenten s ON s.MatrNr = sws.m
+  WHERE sws.sum > (SELECT AVG(sum) FROM sws)
+\end{minted}
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+\begin{minted}{sql}
+  WITH maenner (fak, sum)
+  AS (
+    SELECT FakName, SUM(*)
+    FROM SudentenGF
+    WHERE Geschlecht = "M"
+    GROUP BY FakName
+  )
+  SELECT s.FakName, IFNULL(m.sum, 0) / COUNT(*)
+  FROM StudentenGF s
+  LEFT JOIN manner m ON m.fak = s.FakName
+  GROUP BY s.FakName
+\end{minted}
+
+\subsection*{Part b)}
+
+\begin{minted}{sql}
+  WITH anzahl_vorlesungen (FakName, anzahl)
+  AS (
+    SELECT p.FakName, COUNT(*)
+    FROM ProfessorenF p
+    INNER JOIN Vorlesungen v ON v.gelesenVon = p.PersNr
+    GROUP BY p.FakName
+  )
+  SELECT s.*, COUNT(*) anzahl
+  FROM StudentenGF s
+  INNER JOIN hoeren h ON h.MatrNr = s.MatrNr
+  INNER JOIN Vorlesungen v ON v.VorlNr = h.VorlNr
+  INNER JOIN ProfessorenF p ON p.PersNr = v.gelesenVon
+  LEFT JOIN anzahl_vorlesungen av ON av.FakName = s.FakName
+  WHERE p.FakName = s.FakName
+  GROUP BY (s.MatrNr)
+  HAVING anzahl = av.anzahl
+\end{minted}
+
+\begin{minted}{sql}
+  WITH nichthoerer (MatrNr) AS (
+    SELECT s.MatrNr
+    FROM StudentenGF s
+    JOIN Vorlesungen v
+    INNER JOIN ProfessorenF p ON p.PersNr = v.gelesenVon
+      AND p.FakName = s.FakName
+    WHERE NOT EXISTS (SELECT h.* FROM hoeren h WHERE h.MatrNr = s.MatrNr AND h.VorlNr = v.VorlNr)
+  )
+  SELECT s.*
+  FROM Studenten s
+  LEFT JOIN nichthoerer nh ON nh.MatrNr = s.MatrNr
+  WHERE nh.MatrNr IS NULL
+\end{minted}
+
+\section*{Exercise 4}
+
+\begin{minted}{sql}
+  WITH fruehstens (VorlNr, Titel, Semester) AS (
+    SELECT v.VorlNr, v.Titel, 1
+    FROM Vorlesungen v
+    LEFT JOIN voraussetzen va ON va.Nachfolger = v.VorlNr
+    WHERE va.Vorgaenger IS NULL
+    UNION ALL
+    SELECT v.VorlNr, v.Titel, f.Semester + 1
+    FROM fruehstens f
+    INNER JOIN voraussetzen va ON va.Vorgaenger = f.VorlNr
+    INNER JOIN Vorlesungen v ON v.VorlNr = va.Nachfolger
+  )
+  SELECT DISTINCT *
+  FROM fruehstens
+\end{minted}
+
+\end{document}
