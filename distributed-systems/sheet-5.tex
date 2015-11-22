@@ -1,0 +1,143 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Distributed Systems, Sheet 5}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+A consistency model is a contract of a data store that specifies how writes are made visible between different clients, i.e. in which order and after how long a timespan.
+
+\subsection*{Part b)}
+
+A consistency model is needed to prove correctness of distributed programs.
+
+\subsection*{Part c)}
+
+Data-centric consistency concerns itself with consistency properties observed by multiple clients sharing a data store and sending concurrent read and write requests.
+Client-centric consistency on the other hand is about consistency from the perspective of a single client without consideration of the concurrent actions of other clients.
+
+\subsection*{Part d)}
+
+\subsubsection*{Advantages}
+
+\begin{itemize}
+\item Replication improves read performance because data can be stored closer to the client
+\item Replication guards you against data loss
+\end{itemize}
+
+\subsubsection*{Disadvantages}
+
+\begin{itemize}
+\item Multiple copies have to be kept consistent
+\item You often need to have an additional mechanism to decide who owns a replicated resource
+\end{itemize}
+
+\subsection*{Part e)}
+
+\begin{itemize}
+\item CDNs replicate data to store it geographically close the client to minimize load times
+\item Databases use replication to provide safety against crashes and data-loss
+\end{itemize}
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+Yes, it is because every read returns the most recently written value.
+A possible execution sequence would be $w(x)a\ r(x)a\ w(x)b\ r(x)b$.
+
+\subsection*{Part b)}
+
+It is not linearizable because $r(x)b$ might happen before $w(x)b$ which would therefore have to be $r(x)a$.
+Furthermore it is impossible to be strictly consistent since strict consistency is a stronger requirement than linearizability.
+
+If you only needed one valid sequence, it would be linearizable by the following sequence
+\begin{equation*}
+  w(x)a\ w(x)c\ w(x)b\ r(x)b\ r(x)b
+\end{equation*}
+However it would still not be strictly consistent because $r(x)b$ happens after $w(x)c$ in a global-time sense which is forbidden.
+
+\subsection*{Part c)}
+
+Figure 2.4 is sequentially consistent because all processes see the values of $x$ in the order $a, b, c$ and only after the corresponding writes happened.
+However, it is not linearizable because linearizability postulates that all processes see a value after its write has definitely finished.
+This is contradicted in this case by $P2$ which reads $r(x)b$ after $w(x)c$ happened.
+
+\subsection*{Part d)}
+
+Yes, it is causally consistent since all writes are concurrent and thus different processes reading different values is acceptable.
+It is also sequentially consistent, because we cannot know in which order the processes saw the values.
+Since time is not part of the postulates, it is totally possible that all processes see the values in the order $a, b, c$ but at different times and therefore read these three different values at the same point in time.
+
+\subsection*{Part e)}
+
+Figure 2.6 is causally consistent because the causality between the writes is $a -> b$ and $a -> c$ so reading $b$ and $c$ in different orders is fine as long as no process observes $a$ after $b$ or $c$.
+However, it is not sequentially consistent, because P4 and P5 observe the values in a different order.
+
+\subsection*{Part f)}
+
+It is FIFO consistent with a possible execution sequence of
+\begin{equation*}
+w(x)a\ r(x)a\ r(x)a\ w(x)b\ r(x)b\ r(x)b\ w(x)d\ r(x)d\ w(x)c\ r(x)c
+\end{equation*}
+
+At the same time it also causally consistent, because the causalities are $a \rightarrow b \rightarrow c$ and $a \rightarrow b \rightarrow d$ which is compatible with the previously given execution sequence.
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+I do not see any problems here because the clients always reads the newest value.
+
+\subsection*{Part b)}
+
+The monotonic-write property is not kept up because $w(x2)$ happens before $w(x1)$ and $w(x3)$ happens before $w(x2)$.
+All locations would have to write $w(x1)$ first before anything else and then $w(x2)$ before the client issues $w(x3)$.
+
+\subsection*{Part c)}
+
+Location 3 has not yet noticed $w(x1)$ but answered a subsequent read.
+To be read-your-writes consistent, L3 would have to wait for $w(x1)$ before answering the client's request.
+
+\subsection*{Part d)}
+
+It may be considered writes-follow-reads consistent, because the writing of $w(x3)$ takes place on a more recent value, even though L3 has not yet received $w(x2)$ and is thus not read-your-writes consistent.
+
+\end{document}
