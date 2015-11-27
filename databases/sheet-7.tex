@@ -1,0 +1,184 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Databases, Sheet 7}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+Ein Mensch darf ein mal als Kind an Eltern\_von aber beliebig oft als Mutter oder Vater daran teilnehmen.
+Genau genommen müsste jeder Mensch genau einmal daran teilnehmen, aber das würde zu einer unendlich großen Relation führen und lässt sich mit den genannten Mitteln auch nicht umsetzen.
+
+An der verheiratet-Relation kann jeder Mensch ein oder kein mal teilnehmen pro Seite.
+Wenn man es genau abbilden wollte, duerfte die Summe der Teilnahmen auf der linken oder rechten Seite nur 0 oder 1 sein, aber das lässt sich hier wieder nicht umsetzen.
+
+\begin{minted}{sql}
+  CREATE TABLE Menschen (
+    SozVNR INT NOT NULL PRIMARY KEY,
+    Name Text NOT NULL
+  );
+
+  CREATE TABLE Eltern_von (
+    Kind INT NOT NULL,
+    Mutter INT NOT NULL,
+    Vater INT NOT NULL,
+    UNIQUE(Kind),
+    FOREIGN KEY (Kind) REFERENCES Menschen (SozVNR)
+      ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (Mutter) REFERENCES Menschen (SozVNR)
+      ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (Vater) REFERENCES Menschen (SozVNR)
+      ON UPDATE CASCADE ON DELETE CASCADE
+  );
+
+  CREATE TABLE verheiratet (
+    PartnerA INT NOT NULL,
+    PartnerB INT NOT NULL,
+    UNIQUE(PartnerA),
+    UNIQUE(PartnerB),
+    FOREIGN KEY (PartnerA) REFERENCES Menschen (SozVNR)
+      ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (PartnerB) REFERENCES Menschen (SozVNR)
+      ON UPDATE CASCADE ON DELETE CASCADE
+  );
+\end{minted}
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+If this returns an empty row set, the pair $(A, B)$ has unique values in every row.
+\begin{minted}{sql}
+  SELECT A, B, COUNT(*) AS count
+  FROM R
+  GROUP BY A, B
+  HAVING count > 1
+\end{minted}
+
+\subsection*{Part b)}
+
+If this returns an empty row set, all rows with a specific pair of values $(d, e)$ in the columns $(D, E)$ contain the same value $B = b$ and thus $DE \rightarrow B$.
+\begin{minted}{sql}
+  SELECT D, E, MIN(B) AS min, MAX(B) AS max
+  FROM R
+  GROUP BY D, E
+  HAVING min != max
+\end{minted}
+
+\section*{Exercise 3}
+
+\subsection*{Part 1)}
+
+\begin{itemize}
+\item $\forall \alpha \subset PunkteListe : \forall \beta \subset \alpha : \alpha \rightarrow \beta$
+\item $\{ Name \} \rightarrow \{ Klausursumme, KNote, Bonus, GNote \}$
+\item Und viele mehr. Alleine die erste Regel generiert schon $2^{7}$ FDs nur für $\alpha = PunkteListe$.
+\end{itemize}
+
+\subsection*{Part 2)}
+
+\begin{itemize}
+\item $\{ Name, Aufgabe \}$
+\item $\{ Name, Max, Erzielt \}$
+\end{itemize}
+
+\section*{Exercise 4}
+
+\subsection*{Part a)}
+
+\begin{equation*}
+  H(F, A) = \{ A, B, C, D, E, F \}
+\end{equation*}
+
+\subsection*{Part b)}
+
+\begin{itemize}
+\item $\{ A \}$ offensichtlich
+\item $\{ C \}$ weil $A$ funktional von $C$ abhängt und somit alles
+\item $\{ E \}$ aus dem selben Grund wie $C$
+\item $\{ F \}$ weil $C$ funktional von $F$ abhängt
+\end{itemize}
+
+$B$ und $D$ sind keine Kandidatenschlüssel, weil von ihnen nichts funktional abhängt.
+Von $D$ hängt alles zusammen mit $C$ ab, aber $C$ alleine ist schon Kandidatenschlüssel, also kann $CD$ keiner sein, weil er nicht minimal ist.
+
+\subsection*{Part c)}
+
+\subsubsection*{Linksreduktion}
+
+\begin{itemize}
+\item $A \rightarrow BC$
+\item $C \rightarrow AD$
+\item $C \rightarrow BEF$
+\item $E \rightarrow ABC$
+\item $F \rightarrow CD$
+\end{itemize}
+
+\subsubsection*{Rechtsreduktion}
+
+\begin{itemize}
+\item $A \rightarrow BC$
+\item $C \rightarrow \{  \}$
+\item $C \rightarrow EF$
+\item $E \rightarrow A$
+\item $F \rightarrow CD$
+\end{itemize}
+
+\subsubsection*{Entfernen von leeren Regeln}
+
+\begin{itemize}
+\item $A \rightarrow BC$
+\item $C \rightarrow EF$
+\item $E \rightarrow A$
+\item $F \rightarrow CD$
+\end{itemize}
+
+Vereinigungen sind nicht möglich/nötig.
+
+\subsection*{Part d)}
+
+Zuerst erzeugen wir Schemata für alle FDs in der kanonischen Überdeckung aus Teil c.
+\begin{itemize}
+\item $RA = \{ A, B, C \}$ mit
+\item $RC = \{ C, E, F \}$
+\item $RE = \{ E, A \}$
+\item $RF = \{ F, C, D \}$
+\end{itemize}
+
+Da mehrere dieser Schemata Kandidatenschlüssel enthalten, sind wir fertig.
+
+\end{document}
