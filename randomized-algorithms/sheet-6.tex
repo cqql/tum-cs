@@ -1,0 +1,168 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Randomized Algorithms, Sheet 6}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 6.1}
+
+In the original proof we could cut down the number of remaining cases by $\frac{1}{2}$ with every ``determinized'' circuit because there was one configuration of random bits that gave the correct output for at least $\frac{1}{2}$ of all remaining inputs.
+If you reduce this ratio to $\frac{1}{k}$ for some $k > 2$, you also reduce the lower bound on the portion of remaining circuits that evaluate to $1$ for some configuration of random bits to $\frac{1}{k}$.
+Apart from that the proof stays as is.
+
+We start with at most $2^{n}$ rows in the matrix and every sub-circuit we construct reduces that size by a factor of $\frac{1}{k}$.
+The process terminates as soon as
+\begin{equation*}
+  2^{n} \cdot \left( \frac{1}{k} \right)^{m} < 1
+\end{equation*}
+which is equivalent to
+\begin{equation*}
+  k^{m} > 2^{n} \Leftrightarrow m > \log_{k}\left( 2^{n} \right)
+\end{equation*}
+This means that we will end up with $m$ sub-circuits where $m$ is the smallest integer greater than $\log_{k}\left( 2^{n} \right)$, so $m = \lfloor \log_{k}\left( 2^{n} \right) \rfloor + 1$.
+By the logarithm law of $\log_{a}(b) = \frac{\log_{c}(b)}{\log_{c}(a)}$ this is equal to
+\begin{equation*}
+  \lfloor \log_{k}\left( 2^{n} \right) \rfloor + 1 = \lfloor \frac{\log_{2}(2^{n})}{\log_{2}(k)} \rfloor + 1 = \lfloor \frac{1}{\log_{2}(k)}n \rfloor + 1
+\end{equation*}
+which is still linear in $n$.
+Consequently the size of the whole circuit is also polynomial.
+
+When $P(n)$ is the upper bound of the size of the randomized circuit, the size of deterministic equivalent circuit is bound by
+\begin{equation*}
+  m \cdot P(n) + 1
+\end{equation*}
+because we have $m$ copied circuits and one final $OR$ node to connect them.
+
+\section*{Exercise 6.2}
+
+We can model the table with $n$ seats as a binary vector of length $n$ with $m$ ones and $n - m$ zeros.
+There are $\binom{n}{m}$ different subsets of length $m$ of the $n$ positions in such a binary vector which is therefore also the number of different and equally probable people distributions around the table.
+We define random variables $X_{i}, 1 \le i \le n$ such that $X_{i} = 1$ iff the $i$th bit is $1$.
+You should notice that the $X_{i}$ are not independent.
+\begin{equation*}
+  P[X_{i} = 1] = \frac{m}{n} \qquad P[X_{i} = 1 \mid X_{j} = 1] = \frac{m - 1}{n - 1} \qquad P[X_{i} = 1 \mid X_{j} = 1, X_{k} = 1] = \frac{m - 2}{n - 2}
+\end{equation*}
+On top of these we define random variables $Y_{i}, 1 \le i \le n$ that are $1$ iff the $i$th bit is a $1$ with at least one $0$ in an adjacent position.
+In the following equations all indices are modulo $n$ because the binary vector actually models a circular structure.
+\begin{align*}
+  P[Y_{i} = 1] = & P[X_{i} = 1 \land \lnot (X_{i - 1} = 1 \land X_{i + 1} = 1)]\\
+  = & P[X_{i} = 1] P[\lnot (X_{i - 1} = 1 \land X_{i + 1} = 1) \mid X_{i} = 1]\\
+  = & P[X_{i} = 1] \left( 1 - P[X_{i - 1} = 1 \land X_{i + 1} = 1 \mid X_{i} = 1] \right)\\
+  = & P[X_{i} = 1] \left( 1 - P[X_{i - 1} = 1 \mid X_{i} = 1] P[X_{i + 1} = 1 \mid X_{i - 1} = 1, X_{i = 1} = 1] \right)\\
+  = & \frac{m}{n} \left( 1 - \frac{m - 1}{n - 1} \cdot \frac{m - 2}{n - 2} \right)\\
+  = & \frac{m}{n} \left( 1 - \frac{(m - 1)(m - 2)}{(n - 1)(n - 2)} \right)\\
+  = & \frac{m}{n} \left( 1 - \frac{m^{2} - 3m + 2}{n^{2} - 3n + 2} \right)\\
+  = & \frac{m}{n} \left( \frac{n^{2} - m^{2}- 3n + 3m}{n^{2} - 3n + 2} \right)\\
+  = & \frac{n^{2}m - m^{3}- 3nm + 3m^{2}}{n^{3} - 3n^{2} + 2n}
+\end{align*}
+
+The answer to our initial question is now the expected value of the sum of all $Y_{i}$s.
+\begin{equation*}
+  E[Y] = E\left[ \sum_{i = 1}^{n} Y_{i} \right] = \sum_{i = 1}^{n} E[Y_{i}] = \sum_{i = 1}^{n} \frac{n^{2}m - m^{3}- 3nm + 3m^{2}}{n^{3} - 3n^{2} + 2n} = \frac{n^{2}m - m^{3}- 3nm + 3m^{2}}{n^{2} - 3n + 2}
+\end{equation*}
+
+\section*{Exercise 6.3}
+
+\begin{proof}
+  Let $X_{i}, 1 \le i \le n$ be an indicator variable that is $1$ iff the $i$th bin contains more than $1$ balls.
+  Let $Y_{i}, 1 \le i \le n$ be the number of balls in bin $i$.
+  Then $X$ is $\sum X_{i}$.
+  \begin{align*}
+    E[X] & = E\left[ \sum_{i = 1}^{n} X_{i} \right]\\
+         & = \sum_{i = 1}^{n} E[X_{i}] \\
+         & = \sum_{i = 1}^{n} P[X_{i} = 1] \\
+         & = \sum_{i = 1}^{n} \left( 1 - P[X_{i} = 0] \right) \\
+         & = \sum_{i = 1}^{n} \left( 1 - P[Y_{i} = 0 \lor Y_{i} = 1] \right) \\
+         & = \sum_{i = 1}^{n} \left( 1 - P[Y_{i} = 0] - P[Y_{i} = 1] \right) \\
+         & = \sum_{i = 1}^{n} \left( 1 - \left( \frac{n - 1}{n} \right)^{n} - n \cdot \frac{1}{n} \cdot \left( \frac{n - 1}{n} \right)^{n - 1} \right)\\
+         & = n \left( 1 - \frac{(n - 1)^{n}}{n^{n}} - \frac{n(n - 1)^{n - 1}}{n^{n}} \right)\\
+         & = n \left( 1 - \frac{(n - 1)^{n} + n(n - 1)^{n - 1}}{n^{n}} \right)
+  \end{align*}
+  Now we can rewrite the equation from the exercise
+  \begin{equation*}
+    \frac{E[X]}{n} \ge \frac{1}{c} \Leftrightarrow \frac{1}{c} = 1 - \varepsilon \ge 1 - \frac{(n - 1)^{n} + n(n - 1)^{n - 1}}{n^{n}}
+  \end{equation*}
+  for some $\varepsilon > 0$.
+  Respectively
+  \begin{equation*}
+    \frac{(n - 1)^{n} + n(n - 1)^{n - 1}}{n^{n}} \ge \varepsilon
+  \end{equation*}
+  So let's try some rewriting
+  \begin{align*}
+    \frac{(n - 1)^{n} + n(n - 1)^{n - 1}}{n^{n}} & = \frac{\left( n - 1 + n \right)(n - 1)^{n - 1}}{n^{n}}\\
+                                                 & = \frac{(2n - 1) (n - 1)^{n - 1}}{n^{n}}\\
+                                                 & = \frac{(2n - 1)}{n} \frac{(n - 1)^{n - 1}}{n^{n - 1}}\\
+                                                 & = \left( 2 - \frac{1}{n} \right) \frac{(n - 1)^{n - 1}}{n^{n - 1}}\\
+                                                 & = \left( 2 - \frac{1}{n} \right) \left( \frac{n - 1}{n} \right)^{n - 1}\\
+                                                 & = \left( 2 - \frac{1}{n} \right) \left( 1 + \frac{-1}{n} \right)^{n - 1}\\
+                                                 & \ge \left( 2 - \frac{1}{n} \right) \left( 1 + \frac{-1}{n - 1} \right)^{n - 1}
+  \end{align*}
+  Since limits and products commute, this lower bound tends to
+  \begin{equation*}
+    \lim_{n \rightarrow \infty} \left( 2 - \frac{1}{n} \right) \left( 1 + \frac{-1}{n - 1} \right)^{n - 1} = 2 \cdot \exp(-1)
+  \end{equation*}
+
+  Plugging this into $\frac{1}{c} = 1 - \varepsilon$ yields
+  \begin{equation*}
+    c = \frac{1}{1 - 2 \exp(-1)} \approx 3.7844
+  \end{equation*}
+\end{proof}
+
+\section*{Exercise 6.4}
+
+\begin{proof}
+  Let $X$ be the number of white balls.
+  It is clear that $1 \le X \le n - 1$.
+  We will prove it inductively.
+  As a base case let $n = 2$.
+  Obviously the process terminates in the start configuration with one white and one black ball and therefore the number of white balls in uniformly distributed on the numbers from $1$ to $n - 1 = 1$.
+
+  Now assume an $n \in \mathbb{N}$ such that the hypothesis is true for $n - 1$.
+  Let $X$ be a indicator variable that is $1$ iff the $n$th ball is white and $Y_{i}$ a random variable that assumes the number of white balls among the first $i$ balls as a value.
+  \begin{align*}
+    P[Y_{n} = k] & = P[(Y_{n - 1} = k \land X = 0) \lor (Y_{n - 1} = k - 1 \land X = 1)]\\
+                 & = P[Y_{n - 1} = k \land X = 0] + P[Y_{n - 1} = k - 1 \land X = 1]\\
+                 & = P[Y_{n - 1} = k] P[X = 0 \mid Y_{n - 1} = k] + P[Y_{n - 1} = k - 1] P[X = 1 \mid Y_{n - 1} = k - 1]\\
+                 & = \frac{1}{n - 2} \frac{n - 1 - k}{n - 1} + \frac{1}{n - 2} \frac{k - 1}{n - 1}\\
+                 & = \frac{n - 2}{(n - 2)(n - 1)}\\
+                 & = \frac{1}{n - 1}
+  \end{align*}
+  for $k \in \{ 1, \dots, n - 1 \}$.
+  That means that $Y_{n}$ is uniformly distributed on $\{ 1, \dots, n - 1 \}$.
+\end{proof}
+
+\end{document}
