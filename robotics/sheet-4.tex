@@ -1,0 +1,545 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\DeclareMathOperator{\diff}{\text{d}}
+
+\title{Robotics, Sheet 4}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+We begin by constructing the transformation matrices.
+\begin{equation*}
+  {}_{1}^{0}T = \begin{pmatrix}
+    \cos(\theta_{1}) & -\sin(\theta_{1}) & 0 & 0\\
+    \sin(\theta_{1}) & \cos(\theta_{1}) & 0 & 0\\
+    0 & 0 & 1 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{2}^{1}T = \begin{pmatrix}
+    1 & 0 & 0 & l_{1}\\
+    0 & 0 & 1 & d_{2}\\
+    0 & -1 & 0 & 0\\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+From these we need especially the rotation matrices in normal and transposed orientation.
+\begin{equation*}
+  {}_{1}^{0}R = \begin{pmatrix}
+    \cos(\theta_{1}) & -\sin(\theta_{1}) & 0\\
+    \sin(\theta_{1}) & \cos(\theta_{1}) & 0\\
+    0 & 0 & 1
+  \end{pmatrix}
+  \qquad
+  {}_{0}^{1}R = \begin{pmatrix}
+    \cos(\theta_{1}) & \sin(\theta_{1}) & 0\\
+    -\sin(\theta_{1}) & \cos(\theta_{1}) & 0\\
+    0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}_{2}^{1}R = \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 0 & 1\\
+    0 & -1 & 0
+  \end{pmatrix}
+  \qquad
+  {}_{1}^{2}R = \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 0 & -1\\
+    0 & 1 & 0
+  \end{pmatrix}
+\end{equation*}
+
+Now we do the outward iterations of the Newton-Euler algorithm.
+
+\subsubsection*{Outward Iteration 1}
+
+\begin{equation*}
+  {}^{1}\omega_{1} = {}_{0}^{1}R {}^{0}\omega_{0} + \dot{\theta}_{1} {}^{1}\hat{Z}_{1} = \begin{pmatrix}
+    0\\0\\\dot{\theta}_{1}
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}^{1}\dot{\omega}_{1} = {}^{1}_{0}R {}^{0}\dot{\omega}_{0} + {}^{1}_{0}R {}^{0}\omega_{0} \times \dot{\theta}_{1} {}^{1}\hat{Z}_{1} + \dot{\dot{\theta}}_{1} {}^{1}\hat{Z}_{1} = \begin{pmatrix}
+    0\\0\\\dot{\dot{\theta}}_{1}
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}^{1}\dot{v}_{1} = \begin{pmatrix}
+    g\cos(\theta_{1})\\g\sin(\theta_{1})\\0
+  \end{pmatrix}
+\end{equation*}
+\begin{align*}
+  {}^{1}\dot{v}_{C_{1}} = & {}^{1}\dot{\omega}_{1} \times {}^{1}P_{C_{1}} + {}^{1}\omega_{1} \times \left( {}^{1}\omega_{1} \times {}^{1}P_{C_{1}} \right) + {}^{1}\dot{v}_{1}\\
+  = & \begin{pmatrix}
+    0\\0\\\dot{\dot{\theta}}_{1}
+  \end{pmatrix} \times \begin{pmatrix}
+    \frac{l_{1}}{2}\\0\\0
+  \end{pmatrix} + \begin{pmatrix}
+    0\\0\\\dot{\theta}_{1}
+  \end{pmatrix} \times \left( \begin{pmatrix}
+    0\\0\\\dot{\theta}_{1}
+  \end{pmatrix} \times \begin{pmatrix}
+    \frac{l_{1}}{2}\\0\\0
+  \end{pmatrix} \right) + \begin{pmatrix}
+  g\\0\\0
+\end{pmatrix}\\
+  = & \begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\theta}_{1}^{2} \frac{l_{1}}{2}\\
+    -g\sin(\theta_{1}) + \dot{\dot{\theta}}_{1} \frac{l_{1}}{2}\\
+    0
+  \end{pmatrix}
+\end{align*}
+\begin{equation*}
+  {}^{1}F_{1} = m_{1} {}^{1}\dot{v}_{C_{1}} = m_{1} \begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\theta}_{1}^{2} \frac{l_{1}}{2}\\
+    -g\sin(\theta_{1}) + \dot{\dot{\theta}}_{1} \frac{l_{1}}{2}\\
+    0
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}^{1}N_{1} = \begin{pmatrix}
+    0\\0\\I_{zz1}\dot{\dot{\theta}}_{1}
+  \end{pmatrix}
+\end{equation*}
+
+\subsubsection*{Outward Iteration 2}
+
+\begin{equation*}
+  {}^{2}\omega_{2} = \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 0 & -1\\
+    0 & 1 & 0
+  \end{pmatrix} \begin{pmatrix}
+    0\\0\\\dot{\theta}_{1}
+  \end{pmatrix} = \begin{pmatrix}
+    0\\-\dot{\theta}_{1}\\0
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}^{2}\dot{\omega}_{2} = \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 0 & -1\\
+    0 & 1 & 0
+  \end{pmatrix} \begin{pmatrix}
+    0\\0\\\dot{\dot{\theta}}_{1}
+  \end{pmatrix} = \begin{pmatrix}
+    0\\-\dot{\dot{\theta}}_{1}\\0
+  \end{pmatrix}
+\end{equation*}
+\begin{align*}
+  {}^{2}\dot{v}_{2} = & \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 0 & -1\\
+    0 & 1 & 0
+  \end{pmatrix} \left( \begin{pmatrix}
+    0\\0\\\dot{\dot{\theta}}_{1}
+  \end{pmatrix} \times \begin{pmatrix}
+    l_{1}\\d_{2}\\0
+  \end{pmatrix} + \begin{pmatrix}
+    0\\0\\\dot{\theta}_{1}
+  \end{pmatrix} \times \left( \begin{pmatrix}
+      0\\0\\\dot{\theta}_{1}
+    \end{pmatrix} \times \begin{pmatrix}
+      l_{1}\\d_{2}\\0
+    \end{pmatrix} \right) + \begin{pmatrix}
+    g\cos(\theta_{1})\\-g\sin(\theta_{1})\\0
+  \end{pmatrix} \right) + 2 \begin{pmatrix}
+  0\\-\dot{\theta}_{1}\\0
+\end{pmatrix} \times \begin{pmatrix}
+  0\\0\\\dot{d}_{2}
+\end{pmatrix} + \begin{pmatrix}
+  0\\0\\\dot{\dot{d}}_{2}
+\end{pmatrix}\\
+  = & \begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2}\\
+    0\\
+    -g\sin(\theta_{1}) + \dot{\dot{\theta}}_{1}l_{1} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2}
+  \end{pmatrix}
+\end{align*}
+\begin{align*}
+  {}^{2}v_{C_{2}} = & \begin{pmatrix}
+    0\\-\dot{\dot{\theta}}_{1}\\0
+  \end{pmatrix} \times \begin{pmatrix}
+    0\\0\\l_{2}
+  \end{pmatrix} + \begin{pmatrix}
+    0\\-\dot{\theta}_{1}\\0
+  \end{pmatrix} \times \left( \begin{pmatrix}
+    0\\-\dot{\theta}_{1}\\0
+  \end{pmatrix} \times \begin{pmatrix}
+    0\\0\\l_{2}
+  \end{pmatrix} \right) + \begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2}\\
+    0\\
+    -g\sin(\theta_{1}) + \dot{\dot{\theta}}_{1}l_{1} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2}
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2}\\
+    0\\
+    -g\sin(\theta_{1}) - \dot{\theta}_{1}^{2}l_{2} + \dot{\dot{\theta}}_{1}l_{1} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2}
+  \end{pmatrix}
+\end{align*}
+\begin{equation*}
+  {}^{2}F_{2} = m_{2}\begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2}\\
+    0\\
+    -g\sin(\theta_{1}) - \dot{\theta}_{1}^{2}l_{2} + \dot{\dot{\theta}}_{1}l_{1} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2}
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  {}^{2}N_{2} = \begin{pmatrix}
+    0\\-I_{yy2}\dot{\dot{\theta}}_{2}\\0
+  \end{pmatrix} + \begin{pmatrix}
+    0\\-\dot{\theta}_{1}\\0
+  \end{pmatrix} \times \begin{pmatrix}
+    0\\-I_{yy2}\dot{\theta}_{2}\\0
+  \end{pmatrix} = \begin{pmatrix}
+    0\\
+    -I_{yy2}\dot{\dot{\theta}}_{2}\\
+    0
+  \end{pmatrix}
+\end{equation*}
+
+\subsubsection*{Inward Iteration 1}
+
+\begin{equation*}
+  {}^{2}f_{2} = {}^{2}F_{2} = m_{2}\begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2}\\
+    0\\
+    -g\sin(\theta_{1}) - \dot{\theta}_{1}^{2}l_{2} + \dot{\dot{\theta}}_{1}l_{1} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2}
+  \end{pmatrix}
+\end{equation*}
+\begin{align*}
+  {}^{2}n_{2} = & \begin{pmatrix}
+    0\\
+    -I_{yy2}\dot{\dot{\theta}}_{2}\\
+    0
+  \end{pmatrix} + \begin{pmatrix}
+    0\\0\\l_{2}
+  \end{pmatrix} \times m_{2}\begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2}\\
+    0\\
+    -g\sin(\theta_{1}) - \dot{\theta}_{1}\dot{\theta}_{1}l_{2} + \dot{\dot{\theta}}_{1}l_{2} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2}
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    0\\
+    l_{2}m_{2}\left( g\cos(\theta_{1}) -\dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2} \right) - I_{yy2}\dot{\dot{\theta}}_{2}\\
+    0
+  \end{pmatrix}
+\end{align*}
+\begin{equation*}
+  \tau_{2} = m_{2}\left( -(l_{2} + d_{2})\dot{\theta}_{1}^{2} + \dot{\dot{\theta}}_{1}l_{1} + \dot{\dot{d}}_{2} \right)
+\end{equation*}
+
+\subsubsection*{Inward Iteration 2}
+
+\begin{align*}
+  {}^{1}f_{1} = & \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 0 & 1\\
+    0 & -1 & 0
+  \end{pmatrix} m_{2}\begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2}\\
+    0\\
+    -g\sin(\theta_{1}) - \dot{\theta}_{1}\dot{\theta}_{1}l_{2} + \dot{\dot{\theta}}_{1}l_{2} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2}
+  \end{pmatrix} + m_{1} \begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\theta}_{1}^{2} \frac{l_{1}}{2}\\
+    -g\sin(\theta_{1}) + \dot{\dot{\theta}}_{1} \frac{l_{1}}{2}\\
+    0
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    m_{2}\left( g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2} \right) - m_{1} \left( g\cos(\theta_{1}) + \dot{\theta}_{1}^{2} \frac{l_{1}}{2} \right)\\
+    m_{2}\left( -g\sin(\theta_{1}) - \dot{\theta}_{1}^{2}l_{2} + \dot{\dot{\theta}}_{1}l_{2} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2} \right) + m_{1} \left( -g\sin(\theta_{1}) + \dot{\dot{\theta}}_{1} \frac{l_{1}}{2} \right)\\
+    0
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    m_{2}\left( g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2} \right) - m_{1} \left( g\cos(\theta_{1}) + \dot{\theta}_{1}^{2} \frac{l_{1}}{2} \right)\\
+    m_{2}\left( -g\sin(\theta_{1}) - \dot{\theta}_{1}^{2}l_{2} + \dot{\dot{\theta}}_{1}l_{2} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2} \right) + m_{1} \left( -g\sin(\theta_{1}) + \dot{\dot{\theta}}_{1} \frac{l_{1}}{2} \right)\\
+    0
+  \end{pmatrix}
+\end{align*}
+\begin{align*}
+  {}^{1}n_{1} = & \begin{pmatrix}
+    0\\0\\I_{zz1}\dot{\dot{\theta}}_{1}
+  \end{pmatrix} + \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 0 & 1\\
+    0 & -1 & 0
+  \end{pmatrix} \begin{pmatrix}
+    0\\
+    l_{2}m_{2}\left( g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2} \right) - I_{yy2}\dot{\dot{\theta}}_{2}\\
+    0
+  \end{pmatrix}\\
+  + & \begin{pmatrix}
+    \frac{l_{1}}{2}\\0\\0
+  \end{pmatrix} \times m_{1} \begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\theta}_{1}^{2} \frac{l_{1}}{2}\\
+    -g\sin(\theta_{1}) + \dot{\dot{\theta}}_{1} \frac{l_{1}}{2}\\
+    0
+  \end{pmatrix} + \begin{pmatrix}
+    l_{1}\\d_{2}\\0
+  \end{pmatrix} \times \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 0 & 1\\
+    0 & -1 & 0
+  \end{pmatrix} m_{2}\begin{pmatrix}
+    g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2}\\
+    0\\
+    -g\sin(\theta_{1}) - \dot{\theta}_{1}^{2}l_{2} + \dot{\dot{\theta}}_{1}l_{1} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2}
+  \end{pmatrix}\\
+  = & \begin{pmatrix}
+    \frac{l_{1}^{2}}{4}m_{1}\dot{\dot{\theta}}_{1} + \dots\\
+    0\\
+    \tau_{1}
+  \end{pmatrix}
+\end{align*}
+\begin{align*}
+  \tau_{1} & = I_{zz_{1}}\dot{\dot{\theta}}_{1} + I_{yy2}\dot{\dot{\theta}}_{2} - l_{2}m_{2}\left( g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2} \right) - \frac{l_{1}}{2}m_{1}\left( -g\sin(\theta_{1}) + \dot{\dot{\theta}}_{1} \frac{l_{1}}{2} \right)\\
+           &\ + l_{1}m_{2}\left( -g\sin(\theta_{1}) - \dot{\theta}_{1}^{2}l_{2} + \dot{\dot{\theta}}_{1}l_{2} - \dot{\theta}_{1}^{2}d_{2} + \dot{\dot{d}}_{2} \right) - d_{2}m_{2} \left( g\cos(\theta_{1}) - \dot{\dot{\theta}}_{1}l_{2} - \dot{\dot{\theta}}_{1}d_{2} - \dot{\theta}_{1}^{2}l_{1} - 2\dot{\theta}_{1}\dot{d}_{2} \right)\\
+           & = \left( I_{zz1} + I_{yy2} + (l_{2} + d_{2})^{2}m_{2} - \frac{1}{4}l_{1}^{2}m_{1} - l_{1}^{2}m_{2} \right)\dot{\dot{\theta}}_{1} + l_{1}m_{2}\dot{\dot{d}}_{2}\\
+           &\ + l_{2}m_{2}\dot{\theta}_{1}^{2}l_{1} + l_{2}m_{2}2\dot{\theta}_{1}\dot{d}_{2} - l_{1}m_{2}\dot{\theta}_{1}^{2}(l_{2} + d_{2}) + d_{2}m_{2}\dot{\theta}_{1}^{2}l_{1} + 2d_{2}m_{2}\dot{\theta}_{1}\dot{d}_{2}\\
+           &\ + \left( -l_{2}m_{2}\cos(\theta_{1}) + \frac{1}{2}l_{1}m_{1}\sin(\theta_{1}) - l_{1}m_{2}\sin(\theta_{1}) - d_{2}m_{2}\cos(\theta_{1}) \right)g
+\end{align*}
+
+\subsection*{Part b)}
+
+\begin{equation*}
+  M(\Theta) = \begin{pmatrix}
+    I_{zz1} + I_{yy2} + (l_{2} + d_{2})^{2}m_{2} - \frac{1}{4}l_{1}^{2}m_{1} - l_{1}^{2}m_{2} & l_{1}m_{2}\\
+    l_{1}m_{2} & m_{2}
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  V(\Theta, \dot{\Theta}) = \begin{pmatrix}
+    l_{2}m_{2}\dot{\theta}_{1}^{2}l_{1} + l_{2}m_{2}2\dot{\theta}_{1}\dot{d}_{2} - l_{1}m_{2}\dot{\theta}_{1}^{2}(l_{2} + d_{2}) + d_{2}m_{2}\dot{\theta}_{1}^{2}l_{1} + 2d_{2}m_{2}\dot{\theta}_{1}\dot{d}_{2}\\
+    -m_{2}(l_{2} + d_{2})\dot{\theta}_{1}^{2}
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  G(\Theta) = \begin{pmatrix}
+    g\left( -l_{2}m_{2}\cos(\theta_{1}) + \frac{1}{2}l_{1}m_{1}\sin(\theta_{1}) - l_{1}m_{2}\sin(\theta_{1}) - d_{2}m_{2}\cos(\theta_{1}) \right)\\
+    0
+  \end{pmatrix}
+\end{equation*}
+
+\section*{Exercise 2}
+
+We start with the potential energies because they are easy to compute.
+\begin{equation*}
+  u_{1} = -m_{1} \begin{pmatrix}
+    0 & 0 & -g
+  \end{pmatrix} \begin{pmatrix}
+    0\\0\\d_{1} - l_{1}
+  \end{pmatrix} = m_{1}g(d_{1} - l_{1})
+\end{equation*}
+\begin{equation*}
+  u_{2} = -m_{2} \begin{pmatrix}
+    0 & 0 & -g
+  \end{pmatrix} \begin{pmatrix}
+    \frac{l_{2}}{2}\cos(\theta_{2})\\
+    \frac{l_{2}}{2}\sin(\theta_{2})\\
+    d_{1}
+  \end{pmatrix} = m_{2} d_{1} g
+\end{equation*}
+\begin{equation*}
+  u_{3} = -m_{3} \begin{pmatrix}
+    0 & 0 & -g
+  \end{pmatrix} \begin{pmatrix}
+    l_{2}\cos(\theta_{2}) + \frac{l_{3}}{2}\cos(\theta_{2} + \theta_{3})\\
+    l_{2}\sin(\theta_{2}) + \frac{l_{3}}{2}\sin(\theta_{2} + \theta_{3})\\
+    d_{1}
+  \end{pmatrix} = m_{3} d_{1} g
+\end{equation*}
+
+This gives a total potential energy of
+\begin{equation*}
+  u = \left( m_{1}(d_{1} - l_{1}) + (m_{2} + m_{3})d_{1} \right) g
+\end{equation*}
+
+To compute the kinetic energies we need the cartesian and angular velocities of the center of mass of each link.
+The cartesian velocity can be computed by differentiating the position of the center of mass.
+\begin{equation*}
+  v_{C_{1}} = \begin{pmatrix}
+    0\\
+    0\\
+    \dot{d}_{1}
+  \end{pmatrix}
+  \qquad
+  v_{C_{2}} = \begin{pmatrix}
+    -\frac{l_{2}}{2}\sin(\theta_{2})\dot{\theta}_{2}\\
+    \frac{l_{2}}{2}\cos(\theta_{2})\dot{\theta}_{2}\\
+    \dot{d}_{1}
+  \end{pmatrix}
+  \qquad
+  v_{C_{3}} = \begin{pmatrix}
+    -l_{2}\sin(\theta_{2})\dot{\theta}_{2} - \frac{l_{3}}{2}\sin(\theta_{2} + \theta_{3})(\dot{\theta}_{2} + \dot{\theta}_{3})\\
+    l_{2}\cos(\theta_{2})\dot{\theta}_{2} + \frac{l_{3}}{2}\cos(\theta_{2} + \theta_{3})(\dot{\theta}_{2} + \dot{\theta}_{3})\\
+    \dot{d}_{1}
+  \end{pmatrix}
+\end{equation*}
+
+Lastly we have to compute the angular velocities of the centers of mass.
+\begin{equation*}
+  \omega_{1} = \begin{pmatrix}
+    0\\
+    0\\
+    0
+  \end{pmatrix}
+  \qquad
+  \omega_{2} = \begin{pmatrix}
+    0\\
+    0\\
+    \dot{\theta}_{2}
+  \end{pmatrix}
+  \qquad
+  \omega_{3} = \begin{pmatrix}
+    0\\
+    0\\
+    \dot{\theta}_{2} + \dot{\theta}_{3}
+  \end{pmatrix}
+\end{equation*}
+
+With these we can compute the kinetic energies.
+\begin{equation*}
+  k_{1} = \frac{1}{2} m_{1} \dot{d}_{1}^{2}
+\end{equation*}
+\begin{align*}
+  k_{2} & = \frac{1}{2} m_{2} \left( \frac{l_{2}^{2}}{4} \sin(\theta)^{2} \dot{\theta}_{2}^{2} + \frac{l_{2}^{2}}{4} \cos(\theta_{2})^{2} \dot{\theta}_{2}^{2} + \dot{d}_{1}^{2} \right) + \frac{1}{2} I_{zz2} \dot{\theta}_{2}^{2}\\
+        & = \frac{1}{2} m_{2} \left( \frac{1}{4}l_{2}^{2}\dot{\theta}_{2}^{2} + \dot{d}_{1}^{2} \right) + \frac{1}{2} I_{zz2} \dot{\theta}_{2}^{2} = \frac{1}{8} m_{2}l_{2}^{2}\dot{\theta}_{2}^{2} + \frac{1}{2} m_{2}\dot{d}_{1}^{2} + \frac{1}{2} I_{zz2} \dot{\theta}_{2}^{2}
+\end{align*}
+\begin{align*}
+  k_{3} & = \frac{1}{2} m_{3} \left( \left( -l_{2}\sin(\theta_{2})\dot{\theta}_{2} - \frac{l_{3}}{2}\sin(\theta_{2} + \theta_{3})(\dot{\theta}_{2} + \dot{\theta}_{3}) \right)^{2} + \left( l_{2}\cos(\theta_{2})\dot{\theta}_{2} + \frac{l_{3}}{2}\cos(\theta_{2} + \theta_{3})(\dot{\theta}_{2} + \dot{\theta}_{3}) \right)^{2} + \dot{d}_{1}^{2} \right)\\
+        & \qquad + \frac{1}{2} I_{zz3}(\dot{\theta}_{2} + \dot{\theta}_{3})^{2}\\
+        & = \frac{1}{2} m_{3} \left( l_{2}^{2}\sin(\theta_{2})^{2}\dot{\theta}_{2}^{2} + l_{2}l_{3}\sin(\theta_{2})\sin(\theta_{2} + \theta_{3})\dot{\theta}_{2}(\dot{\theta}_{2} + \dot{\theta}_{3}) + \frac{1}{4}l_{3}^{2}\sin(\theta_{2} + \theta_{3})^{2}(\dot{\theta}_{2} + \dot{\theta}_{3})^{2} \right.\\
+        &\left. \qquad \qquad + l_{2}^{2}\cos(\theta_{2})^{2}\dot{\theta}_{2}^{2} + l_{2}l_{3}\cos(\theta_{2})\cos(\theta_{2} + \theta_{3})\dot{\theta}_{2}(\dot{\theta}_{2} + \dot{\theta}_{3}) + \frac{1}{4}l_{3}^{2}\cos(\theta_{2} + \theta_{3})^{2}(\dot{\theta}_{2} + \dot{\theta}_{3})^{2} + \dot{d}_{1}^{2} \right)\\
+        & \qquad + \frac{1}{2} I_{zz3}(\dot{\theta}_{2} + \dot{\theta}_{3})^{2}\\
+        & = \frac{1}{2}m_{3} \left( \left( \sin(\theta_{2})^{2} + \cos(\theta_{2})^{2} \right)l_{2}^{2}\dot{\theta}_{2}^{2} + \left( \sin(\theta_{2})\sin(\theta_{2} + \theta_{3}) + \cos(\theta_{2})\cos(\theta_{2} + \theta_{3}) \right)l_{2}l_{3}\dot{\theta}_{2}(\dot{\theta}_{2} + \dot{\theta}_{3})\right.\\
+        &\left. \qquad \qquad + \frac{1}{4}\left( \sin(\theta_{2} + \theta_{3})^{2} + \cos(\theta_{2} + \theta_{3})^{2} \right)l_{3}^{2}(\dot{\theta}_{2} + \dot{\theta_{3}})^{2} + \dot{d}_{1}^{2} \right) + \frac{1}{2} I_{zz3}(\dot{\theta}_{2} + \dot{\theta}_{3})^{2}\\
+        & = \frac{1}{2}m_{3} \left( l_{2}^{2}\dot{\theta}_{2}^{2} + \cos(\theta_{3})l_{2}l_{3}\dot{\theta}_{2}(\dot{\theta}_{2} + \dot{\theta}_{3}) + \frac{1}{4}l_{3}^{2}(\dot{\theta}_{2} + \dot{\theta_{3}})^{2} + \dot{d}_{1}^{2} \right) + \frac{1}{2} I_{zz3}(\dot{\theta}_{2} + \dot{\theta}_{3})^{2}\\
+        & = \frac{1}{2}m_{3} \left( l_{2}^{2}\dot{\theta}_{2}^{2} + \cos(\theta_{3})l_{2}l_{3}\dot{\theta}_{2}^{2} + \cos(\theta_{3})l_{2}l_{3}\dot{\theta}_{2}\dot{\theta}_{3} + \frac{1}{4}l_{3}^{2}\dot{\theta}_{2}^{2} + \frac{1}{2}l_{3}^{2}\dot{\theta}_{2}\dot{\theta}_{3} + \frac{1}{4}l_{3}^{2}\dot{\theta}_{3}^{2} + \dot{d}_{1}^{2} \right) + \frac{1}{2} I_{zz3}(\dot{\theta}_{2} + \dot{\theta}_{3})^{2}\\
+        & = \frac{1}{2}m_{3} \left( \left( l_{2}^{2} + \cos(\theta_{3})l_{2}l_{3} + \frac{1}{4}l_{3}^{2} \right)\dot{\theta}_{2}^{2} + \left( \cos(\theta_{3})l_{2}l_{3} + \frac{1}{2}l_{3}^{2} \right)\dot{\theta}_{2}\dot{\theta}_{3} + \frac{1}{4}l_{3}^{2}\dot{\theta}_{3}^{2} + \dot{d}_{1}^{2} \right) + \frac{1}{2} I_{zz3}(\dot{\theta}_{2} + \dot{\theta}_{3})^{2}
+\end{align*}
+
+As a result we get a total kinetic energy of
+\begin{align*}
+  k & = \frac{1}{2} m_{1} \dot{d}_{1}^{2} + \frac{1}{8} m_{2}l_{2}^{2}\dot{\theta}_{2}^{2} + \frac{1}{2} m_{2}\dot{d}_{1}^{2} + \frac{1}{2} I_{zz2} \dot{\theta}_{2}^{2} + \frac{1}{2} I_{zz3}(\dot{\theta}_{2} + \dot{\theta}_{3})^{2}\\
+    &\ + \frac{1}{2}m_{3} \left( \left( l_{2}^{2} + \cos(\theta_{3})l_{2}l_{3} + \frac{1}{4}l_{3}^{2} \right)\dot{\theta}_{2}^{2} + \left( \cos(\theta_{3})l_{2}l_{3} + \frac{1}{2}l_{3}^{2} \right)\dot{\theta}_{2}\dot{\theta}_{3} + \frac{1}{4}l_{3}^{2}\dot{\theta}_{3}^{2} + \dot{d}_{1}^{2} \right)\\
+    & = \frac{1}{2} m_{1} \dot{d}_{1}^{2} + \frac{1}{8} m_{2}l_{2}^{2}\dot{\theta}_{2}^{2} + \frac{1}{2} m_{2}\dot{d}_{1}^{2} + \frac{1}{2} I_{zz2} \dot{\theta}_{2}^{2} + \frac{1}{4}I_{zz3}\dot{\theta}_{2}^{2} + I_{zz3}\dot{\theta}_{2}\dot{\theta}_{3} + \frac{1}{4}I_{zz3}\dot{\theta}_{3}^{2}\\
+    &\ + \frac{1}{2}m_{3}\left( l_{2}^{2} + \cos(\theta_{3})l_{2}l_{3} + \frac{1}{4}l_{3}^{2} \right)\dot{\theta}_{2}^{2} + \frac{1}{2}m_{3}\left( \cos(\theta_{3})l_{2}l_{3} + \frac{1}{2}l_{3}^{2} \right)\dot{\theta}_{2}\dot{\theta}_{3} + \frac{1}{8}m_{3}l_{3}^{2}\dot{\theta}_{3}^{2} + \frac{1}{2}m_{3}\dot{d}_{1}^{2}\\
+    & = \frac{1}{2} \left( (m_{1} + m_{2} + m_{3}) \dot{d}_{1}^{2} + \left( \frac{1}{4}l_{2}^{2}m_{2} + \left( l_{2}^{2} + \cos(\theta_{3})l_{2}l_{3} + \frac{1}{4}l_{3}^{2} \right)m_{3} + I_{zz2} + \frac{1}{2}I_{zz3} \right)\dot{\theta}_{2}^{2}\right.\\
+    &\left. \qquad + \frac{1}{2}\left( \frac{1}{2}m_{3}l_{3}^{2} + I_{zz3} \right)\dot{\theta}_{3}^{2} + \left( \left( \cos(\theta_{3})l_{2} + \frac{1}{2}l_{3} \right)l_{3}m_{3} + I_{zz3} \right)\dot{\theta}_{2}\dot{\theta}_{3} \right)\\
+\end{align*}
+
+To use these in the Lagrangian torque equation we need to compute the derivates with respect to all the link variables.
+\begin{equation*}
+  \frac{\diff u}{\diff \Theta} = \begin{pmatrix}
+    (m_{1} + m_{2} + m_{3})g\\
+    0\\
+    0
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  \frac{\diff k}{\diff \Theta} = \begin{pmatrix}
+    0\\
+    0\\
+    -\frac{1}{2}m_{3}l_{2}l_{3}\sin(\theta_{3})\dot{\theta}_{2}^{2} - \frac{1}{2}l_{2}l_{3}m_{3}\sin(\theta_{3})\dot{\theta}_{2}\dot{\theta}_{3}
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  \frac{\diff k}{\diff \dot{\Theta}} = \begin{pmatrix}
+    (m_{1} + m_{2} + m_{3})\dot{d}_{1}\\
+    \left( \frac{1}{4}l_{2}^{2}m_{2} + \left( l_{2}^{2} + \cos(\theta_{3})l_{2}l_{3} + \frac{1}{4}l_{3}^{2} \right)m_{3} + I_{zz2} + \frac{1}{2}I_{zz3} \right)\dot{\theta}_{2} + \frac{1}{2}\left( \left( \cos(\theta_{3})l_{2} + \frac{1}{2}l_{3} \right)l_{3}m_{3} + I_{zz3} \right)\dot{\theta}_{3}\\
+    \frac{1}{2}\left( \frac{1}{2}m_{3}l_{3}^{2} + I_{zz3} \right)\dot{\theta}_{3} + \frac{1}{2}\left( \left( \cos(\theta_{3})l_{2} + \frac{1}{2}l_{3} \right)l_{3}m_{3} + I_{zz3} \right)\dot{\theta}_{2}
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  \frac{\diff}{\diff t}\frac{\diff k}{\diff \dot{\Theta}} = \begin{pmatrix}
+    (m_{1} + m_{2} + m_{3})\ddot{d}_{1}\\
+    \left( \frac{1}{4}l_{2}^{2}m_{2} + \left( l_{2}^{2} + \cos(\theta_{3})l_{2}l_{3} + \frac{1}{4}l_{3}^{2} \right)m_{3} + I_{zz2} + \frac{1}{2}I_{zz3} \right)\ddot{\theta}_{2} - l_{2}l_{3}m_{3}\sin(\theta_{3})\dot{\theta}_{2}\dot{\theta}_{3}\\
+    + \frac{1}{2}\left( \left( \cos(\theta_{3})l_{2} + \frac{1}{2}l_{3} \right)l_{3}m_{3} + I_{zz3} \right)\ddot{\theta}_{3} - \frac{1}{2}l_{2}l_{3}m_{3}\sin(\theta_{3})\dot{\theta}_{3}^{2}\\
+    \frac{1}{2}\left( \frac{1}{2}m_{3}l_{3}^{2} + I_{zz3} \right)\ddot{\theta}_{3} + \frac{1}{2}\left( \left( \cos(\theta_{3})l_{2} + \frac{1}{2}l_{3} \right)l_{3}m_{3} + I_{zz3} \right)\ddot{\theta}_{2} - \frac{1}{2}\sin(\theta_{3})l_{2}l_{3}m_{3}\dot{\theta}_{2}\dot{\theta}_{3}
+  \end{pmatrix}
+\end{equation*}
+
+Finally we can plug everything into the Lagrangian equation and solve for $\tau$.
+\begin{equation*}
+  \tau = \begin{pmatrix}
+    (m_{1} + m_{2} + m_{3})\ddot{d}_{1} + (m_{1} + m_{2} + m_{3})g\\
+    \left( \frac{1}{4}l_{2}^{2}m_{2} + \left( l_{2}^{2} + \cos(\theta_{3})l_{2}l_{3} + \frac{1}{4}l_{3}^{2} \right)m_{3} + I_{zz2} + \frac{1}{2}I_{zz3} \right)\ddot{\theta}_{2} - l_{2}l_{3}m_{3}\sin(\theta_{3})\dot{\theta}_{2}\dot{\theta}_{3}\\
+    + \frac{1}{2}\left( \left( \cos(\theta_{3})l_{2} + \frac{1}{2}l_{3} \right)l_{3}m_{3} + I_{zz3} \right)\ddot{\theta}_{3} - \frac{1}{2}l_{2}l_{3}m_{3}\sin(\theta_{3})\dot{\theta}_{3}^{2}\\
+    \frac{1}{2}\left( \frac{1}{2}m_{3}l_{3}^{2} + I_{zz3} \right)\ddot{\theta}_{3} + \frac{1}{2}\left( \left( \cos(\theta_{3})l_{2} + \frac{1}{2}l_{3} \right)l_{3}m_{3} + I_{zz3} \right)\ddot{\theta}_{2} + \left( -\frac{1}{2}\sin(\theta_{3})l_{2}l_{3}m_{3} + \frac{1}{2}l_{2}l_{3}m_{3}\sin(\theta_{3}) \right) \dot{\theta}_{2}\dot{\theta}_{3} + \frac{1}{2}m_{3}l_{2}l_{3}\sin(\theta_{3})\dot{\theta}_{2}^{2}
+  \end{pmatrix}
+\end{equation*}
+
+To rewrite this into MBCG-form we have to collect terms.
+\begin{equation*}
+  M = \begin{pmatrix}
+    m_{1} + m_{2} + m_{3} & 0 & 0\\
+    0 & \left( \frac{1}{4}l_{2}^{2}m_{2} + \left( l_{2}^{2} + \cos(\theta_{3})l_{2}l_{3} + \frac{1}{4}l_{3}^{2} \right)m_{3} + I_{zz2} + \frac{1}{2}I_{zz3} \right) & \frac{1}{2}\left( \left( \cos(\theta_{3})l_{2} + \frac{1}{2}l_{3} \right)l_{3}m_{3} + I_{zz3} \right)\\
+    0 & \frac{1}{2}\left( \left( \cos(\theta_{3})l_{2} + \frac{1}{2}l_{3} \right)l_{3}m_{3} + I_{zz3} \right) & \frac{1}{2}\left( \frac{1}{2}m_{3}l_{3}^{2} + I_{zz3} \right)
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  B = \begin{pmatrix}
+    0 & 0 & 0\\
+    0 & 0 & -l_{2}l_{3}m_{3}\sin(\theta_{3})\\
+    0 & 0 & 0
+  \end{pmatrix}
+\end{equation*}
+The last entry of $B$ seems to be non-zero but it actually sums up to zero.
+\begin{equation*}
+  C = \begin{pmatrix}
+    0 & 0 & 0\\
+    0 & 0 & -\frac{1}{2}l_{2}l_{3}m_{3}\sin(\theta_{3})\\
+    0 & \frac{1}{2}m_{3}l_{2}l_{3}\sin(\theta_{3}) & 0
+  \end{pmatrix}
+\end{equation*}
+\begin{equation*}
+  G = \begin{pmatrix}
+    (m_{1} + m_{2} + m_{3})g\\
+    0\\
+    0
+  \end{pmatrix}
+\end{equation*}
+
+\end{document}
