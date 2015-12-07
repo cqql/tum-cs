@@ -1,0 +1,156 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Databases, Sheet 8}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+Nein, $Fc$ ist nicht eindeutig.
+Man betrachte eine Relation mit den Spalten $(a, b, c)$ und den funktionalen Abhängigkeiten $a \rightarrow (a, b)$ und $c \rightarrow (b, c)$.
+Zwei verschiedene kanonische Überdeckungen dieser Abhängigkeiten sind $(a \rightarrow a, c \rightarrow (b, c))$ und $(a \rightarrow (a, b), c \rightarrow c)$.
+
+\section*{Exercise 2}
+
+\subsection*{FD für MaxSumme}
+
+Da der Wert von MaxSumme in jeder Zeile gleich ist, ist MaxSumme funktional von jeder Spalte abhängig.
+Modellmäßig sinnig wäre z.B. die FD $Name \rightarrow MaxSumme$.
+
+\subsection*{Kanonische Überdeckung}
+
+\subsubsection*{Linksreduktion}
+
+Keine FD kann linksreduziert werden.
+
+\subsubsection*{Rechtsreduktion}
+
+Die einzigmögliche Rechtsreduktion ist
+\begin{equation*}
+  \{ Name \} \rightarrow \{ ErzieltSumme, Bonus \}
+\end{equation*}
+also das Streichen von $GNote$.
+
+\subsubsection*{Streichen leerer FDs}
+
+Es gibt keine.
+
+\subsubsection*{Zusammenfassen}
+
+Die einzigen FDs, die zusammengefasst werden können, sind $\{ Name \} \rightarrow \{ ErzieltSumme, Bonus \}$ und $\{ Name \} \rightarrow \{ MaxSumme \}$ zu $\{ Name \} \rightarrow \{ ErzieltSumme, MaxSumme, Bonus \}$.
+
+\subsection*{Synthesealgorithmus}
+
+% BEGIN RECEIVE ORGTBL exercise-2-schemata
+\begin{tabular}{ll}
+Schema & FDs\\
+\hline
+$\{ KNote, Bonus, GNote \}$ & $\{ KNote, Bonus \} \rightarrow \{ GNote \}$\\
+$\{ Aufgabe, Max \}$ & $\{ Aufgabe \} \rightarrow \{ Max \}$\\
+$\{ ErzieltSumme, KNote \}$ & $\{ ErzieltSumme \} \rightarrow \{ KNote \}$\\
+$\{ Name, Aufgabe, Erzielt \}$ & $\{ Name, Aufgabe \} \rightarrow \{ Erzielt \}$\\
+$\{ Name, ErzieltSumme, MaxSumme, Bonus \}$ & $\{ Name \} \rightarrow \{ ErzieltSumme, MaxSumme, Bonus \}\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-schemata
+\begin{comment}
+#+ORGTBL: SEND exercise-2-schemata orgtbl-to-latex :splice nil :skip 0 :raw t
+| Schema                                      | FDs                                                         |
+|---------------------------------------------+-------------------------------------------------------------|
+| $\{ KNote, Bonus, GNote \}$                 | $\{ KNote, Bonus \} \rightarrow \{ GNote \}$                |
+| $\{ Aufgabe, Max \}$                        | $\{ Aufgabe \} \rightarrow \{ Max \}$                       |
+| $\{ ErzieltSumme, KNote \}$                 | $\{ ErzieltSumme \} \rightarrow \{ KNote \}$                |
+| $\{ Name, Aufgabe, Erzielt \}$              | $\{ Name, Aufgabe \} \rightarrow \{ Erzielt \}$             |
+| $\{ Name, ErzieltSumme, MaxSumme, Bonus \}$ | $\{ Name \} \rightarrow \{ ErzieltSumme, MaxSumme, Bonus \} |
+\end{comment}
+
+\section*{Exercise 3}
+
+\subsection*{Kanonische Überdeckung}
+
+\subsubsection*{Linksreduktion}
+
+Grundsätzlich kann man nur FDs mit mehr als einer Variablen reduzieren.
+Wir reduzieren $DE \rightarrow B$ zu $E \rightarrow B$.
+
+\subsubsection*{Rechtsreduktion}
+
+% BEGIN RECEIVE ORGTBL exercise-3-reductions
+\begin{tabular}{ll}
+FD & Reduziert\\
+\hline
+$DE \rightarrow B$ & $DE \rightarrow \emptyset$\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-3-reductions
+\begin{comment}
+#+ORGTBL: SEND exercise-3-reductions orgtbl-to-latex :splice nil :skip 0 :raw t
+| FD                 | Reduziert                  |
+|--------------------+----------------------------|
+| $DE \rightarrow B$ | $DE \rightarrow \emptyset$ |
+\end{comment}
+
+\subsubsection*{Entfernen von leeren FDs}
+
+Die FD wird dann auch direkt entfernt.
+
+\subsubsection*{Zusammenfassen}
+
+Man kann die FDs von $A$ zusammenfassen zu $A \rightarrow BCDE$.
+
+\subsection*{Schemata}
+
+% BEGIN RECEIVE ORGTBL exercise-3-schemata
+\begin{tabular}{ll}
+Schema & FDs\\
+\hline
+ & \\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-3-schemata
+\begin{comment}
+#+ORGTBL: SEND exercise-3-schemata orgtbl-to-latex :splice nil :skip 0
+| Schema  | FDs                  |
+|---------+----------------------|
+| $ABCDE$ | $A \rightarrow BCDE$ |
+| $AF$    | $F \rightarrow A$    |
+| $BEF$   | $E \rightarrow BF$   |
+| $AC$    | $C \rightarrow A$    |
+\end{comment}
+
+Die letzte Relation kann gelöscht werden, weil sie vollständig in der ersten enthalten ist.
+
+Man braucht auch keine weitere Relation, weil $AF$ ein Kandidatenschlüssel ist und es eine Relation gibt, die $AF$ enthält.
+
+\end{document}
