@@ -1,0 +1,147 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\DeclareMathOperator{\E}{E}
+\DeclareMathOperator{\Var}{Var}
+
+\title{Randomized Algorithms, Sheet 7}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 7.1}
+
+It is not explicitly stated here but I will assume that the algorithm is deterministic.
+If it was not, the worst-case run time might not be defined since the run time of randomized algorithms can take on arbitrarily large values.
+
+First we notice that this algorithm has to have a finite worst-case run time.
+If there was a case with infinite run time and a non-zero probability, the expected run time would be undefined.
+There are $2^{n}$ inputs of equal probability $\frac{1}{2^{n}}$.
+Since the algorithm is assumed to be deterministic, we can map each input to a run time.
+As a consequence each run time has a probability weight of $0$ or at least $\frac{1}{2^{n}}$.
+From this follows that the run time cannot be so high that Markov's inequality bounds the tail probability to a value less than $\frac{1}{2^{n}}$.
+
+Let $X$ be the run time of the algorithm.
+Markov's inequality tells us that
+\begin{equation*}
+  P[X \ge t] \le \frac{E[X]}{t}
+\end{equation*}
+
+This bound is less than $\frac{1}{2^{n}}$ for
+\begin{equation*}
+  \frac{E[X]}{t} < \frac{1}{2^{n}} \Leftrightarrow t > 2^{n}E[X]
+\end{equation*}
+
+As a result there are no inputs on which the algorithm has a run time of more than $2^{n}E[X]$.
+Hence the specific algorithm is in $\mathcal{O}(2^{n}n^{2})$.
+
+\section*{Exercise 7.2}
+
+\subsection*{Part a)}
+
+\begin{proof}
+  \begin{align*}
+    P[X - \mu_{X} \ge t\sigma_{X}] = & P[X \ge t\sigma_{X} + \mu_{X}]\\
+    \le & \frac{\mu_{X}}{t\sigma_{X} + \mu_{X}}\\
+    = & \frac{\mu_{X}}{t\sqrt{\mu_{X^{2}} - \mu_{X}^{2}} + \mu_{X}}\\
+    = & \frac{1}{t\sqrt{\frac{\mu_{X^{2}} - \mu_{X}^{2}}{\mu_{X}^{2}}} + 1}\\
+    = & \frac{1}{1 + t\sqrt{\frac{\mu_{X^{2}}}{\mu_{X}^{2}} - 1}}\\
+  \end{align*}
+\end{proof}
+
+\subsection*{Part b)}
+
+\begin{proof}
+  \begin{align*}
+    P[|X - \mu_{X}| \ge t\sigma_{X}] = & P[X - \mu_{X} \ge t\sigma_{X}] + P[-(X - \mu_{X}) \ge t\sigma_{X}]\\
+    = & P[X - \mu_{X} \ge t\sigma_{X}] + P[(-X) - (-\mu_{X}) \ge t\sigma_{-X}]\\
+    \le & \frac{1}{1 + t^{2}} + \frac{1}{1 + t^{2}} = \frac{2}{1 + t^{2}}
+  \end{align*}
+\end{proof}
+
+\subsection*{Part c)}
+
+\begin{equation*}
+  \frac{2}{1 + t^{2}} < \frac{1}{t^{2}} \Leftrightarrow \frac{2t^{2}}{1 + t^{2}} < 1 \Leftrightarrow \frac{2}{\frac{1}{t^{2}} + 1} < 1 \Leftrightarrow 2 < \frac{1}{t^{2}} + 1 \Leftrightarrow 1 < \frac{1}{t^{2}} \Leftrightarrow t^{2} < 1 \Leftrightarrow t < 1
+\end{equation*}
+
+\section*{Exercise 7.3}
+
+Chebyshev's inequality is directly applicable here.
+\begin{equation*}
+  P\left[ |Y - \E[Y]| \ge t \right] \le \frac{\Var[Y]}{t^{2}}
+\end{equation*}
+The actual difficulty is the determination of $\Var[Y]$.
+
+As a preparative result we compute $P[Y_{i} = 1]$.
+\begin{align*}
+  P[Y_{i} = 1] = P[X_{j} \oplus X_{k} = 1] = \frac{1}{2}
+\end{align*}
+
+Regarding the variance our first observation is that the $Y_{i}$ are pairwise independent.
+Two variables $Y_{i}$ and $Y_{j}$ share at most one $X_{p}$.
+If they share none, they are obviously independent because they are functions of two inputs and all inputs are independent.
+Regarding the case of one shared variable suppose that $Y_{i} = X_{o} \oplus X_{p}$ and $Y_{j} = X_{p} \oplus X_{q}$.
+\begin{align*}
+  P[Y_{i} = 1 \land Y_{j} = 1] = & P[X_{o} \ne X_{p} \land X_{p} \ne X_{q}]\\
+  = & P[X_{p} \ne X_{q}]P[X_{o} \ne X_{p} \mid X_{p} \ne X_{q}]\\
+  \intertext{because the $X_{a}$ are independent}
+  = & P[X_{o} \ne X_{p}]P[X_{p} \ne X_{q}]\\
+  = & P[Y_{i} = 1]P[Y_{j} = 1]
+\end{align*}
+and similarly for the other values.
+
+Therefore the variance of $Y$ is
+\begin{equation*}
+  \Var[Y] = \Var\left[ \sum_{i} Y_{i} \right] = \sum_{i} \Var[Y_{i}]
+\end{equation*}
+
+Next we examine $\Var[Y_{i}]$.
+\begin{equation*}
+  \Var[Y_{i}] = \E[Y_{i}^{2}] - (\E[Y])^{2} = \frac{1}{2} - \left( \frac{1}{2} \right)^{2} = \frac{1}{4}
+\end{equation*}
+which results in an overall variance of
+\begin{equation*}
+  \Var[Y] = \frac{m}{4}
+\end{equation*}
+
+Plugging this into Chebyshev's inequality we get an upper bound of
+\begin{equation*}
+  P\left[ |Y - \E[Y]| \ge t \right] \le \frac{m}{4t^{2}} = \frac{n(n - 1)}{8t^{2}}
+\end{equation*}
+
+\section*{Exercise 7.4}
+
+\end{document}
