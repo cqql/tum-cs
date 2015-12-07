@@ -1,0 +1,260 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Distributed Systems, Sheet 7}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+A proxy is a server that forwards incoming requests in some manner.
+A reverse proxy is the special case of a proxy that accepts requests from the outside and then forwards them to a predefined set of servers.
+They are used for example for load balancing of web applications.
+
+\subsection*{Part b)}
+
+A proxy can serve as a cache and thus reduce communication with the proxied servers.
+This is mostly used to proxy and cache web pages.
+
+A reverse proxy can decide where to forward the request and is therefore often the right place to implement load-balancing.
+
+\subsection*{Part c)}
+
+\section*{Exercise 2}
+
+Some requirements that I can think of are
+\begin{itemize}
+\item All caches have to agree what the current version of some cached data is
+\item Content should be spread as evenly as possible across the caches
+\item If a cache goes up or down, only little data should have to be moved
+\end{itemize}
+
+Traditional hashing violates the last requirement because it may remap a lot of data when the number of caches changes.
+
+\subsection*{Part a)}
+
+% BEGIN RECEIVE ORGTBL exercise-2-a
+\begin{tabular}{rl}
+Cache & Side IDs\\
+\hline
+0 & 2, 5, 8\\
+1 & 0, 3, 6, 9\\
+2 & 1, 4, 7\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-a
+\begin{comment}
+#+ORGTBL: SEND exercise-2-a orgtbl-to-latex :splice nil :skip 0
+| Cache | Site IDs    |
+|-------+------------|
+|     0 | 2, 5, 8    |
+|     1 | 0, 3, 6, 9 |
+|     2 | 1, 4, 7    |
+\end{comment}
+
+\subsection*{Part b)}
+
+% BEGIN RECEIVE ORGTBL exercise-2-b
+\begin{tabular}{rl}
+Cache & Site IDs\\
+\hline
+0 & 0, 4, 8\\
+1 & 3, 7\\
+2 & 2, 6\\
+3 & 1, 5, 9\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-b
+\begin{comment}
+#+ORGTBL: SEND exercise-2-b orgtbl-to-latex :splice nil :skip 0
+| Cache | Site IDs |
+|-------+----------|
+|     0 | 0, 4, 8  |
+|     1 | 3, 7     |
+|     2 | 2, 6     |
+|     3 | 1, 5, 9  |
+\end{comment}
+
+% BEGIN RECEIVE ORGTBL exercise-2-b-moved
+\begin{tabular}{rl}
+Site & Moved?\\
+\hline
+0 & Y\\
+1 & Y\\
+2 & Y\\
+3 & N\\
+4 & Y\\
+5 & Y\\
+6 & Y\\
+7 & Y\\
+8 & N\\
+9 & Y\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-b-moved
+\begin{comment}
+#+ORGTBL: SEND exercise-2-b-moved orgtbl-to-latex :splice nil :skip 0
+| Site | Moved? |
+|------+--------|
+|    0 | Y      |
+|    1 | Y      |
+|    2 | Y      |
+|    3 | N      |
+|    4 | Y      |
+|    5 | Y      |
+|    6 | Y      |
+|    7 | Y      |
+|    8 | N      |
+|    9 | Y      |
+\end{comment}
+
+So $80\%$ of the pages had to be moved.
+
+\subsection*{Part c)}
+
+% BEGIN RECEIVE ORGTBL exercise-2-c
+\begin{tabular}{rl}
+Cache & Site IDs\\
+\hline
+0 & 5, 8\\
+1 & 0, 2, 3, 4, 6, 7, 9\\
+2 & 1\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-c
+\begin{comment}
+#+ORGTBL: SEND exercise-2-c orgtbl-to-latex :splice nil :skip 0
+| Cache | Site IDs            |
+|-------+---------------------|
+|     0 | 5, 8                |
+|     1 | 0, 2, 3, 4, 6, 7, 9 |
+|     2 | 1                   |
+\end{comment}
+
+\subsection*{Part d)}
+
+% BEGIN RECEIVE ORGTBL exercise-2-d
+\begin{tabular}{rl}
+Cache & Site IDs\\
+\hline
+0 & 5, 8\\
+1 & 0, 3, 6, 7\\
+2 & 1\\
+3 & 2, 4, 9\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-d
+\begin{comment}
+#+ORGTBL: SEND exercise-2-d orgtbl-to-latex :splice nil :skip 0
+| Cache | Site IDs   |
+|-------+------------|
+|     0 | 5, 8       |
+|     1 | 0, 3, 6, 7 |
+|     2 | 1          |
+|     3 | 2, 4, 9    |
+\end{comment}
+
+This time only $3 = 30\%$ of the sites were moved.
+
+\subsection*{Part e)}
+
+The mean loads in tasks c and d are
+\begin{equation*}
+  \bar{X}_{c} = \frac{10}{3} \approx 3.3 \qquad \bar{X}_{d} = \frac{10}{4} = 2.5
+\end{equation*}
+
+With these we can compute the standard deviations.
+\begin{equation*}
+  S_{c} = \sqrt{\frac{1}{2} \left( \left(\frac{4}{3}\right)^{2} + \left(\frac{11}{3}\right)^{2} + \left(\frac{7}{3}\right)^{2} \right)} = \sqrt{\frac{1}{2} \frac{16 + 121 + 49}{9}} = \sqrt{\frac{93}{9}} = \frac{\sqrt{93}}{3} \approx 3.2
+\end{equation*}
+\begin{equation*}
+  S_{d} = \sqrt{\frac{1}{3} \left( 0.5^{2} + 1.5^{2} + 1.5^{2} + 0.5^{2} \right)} = \sqrt{\frac{5}{3}} \approx 1.3
+\end{equation*}
+
+Adding the extra cache reduced the standard deviation and thus improved the load of all caches.
+
+\subsection*{Part f)}
+
+First we sort the virtual caches by their hash values
+% BEGIN RECEIVE ORGTBL exercise-2-f-sorted
+\begin{tabular}{lr}
+Hash & Virtual Cache\\
+\hline
+17D1 & 0-2\\
+1FA3 & 2-1\\
+5CBC & 1-1\\
+8074 & 1-2\\
+8010 & 2-2\\
+8B02 & 0-1\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-f-sorted
+\begin{comment}
+#+ORGTBL: SEND exercise-2-f-sorted orgtbl-to-latex :splice nil :skip 0 :raw t
+| Hash | Virtual Cache |
+|------+---------------|
+| 17D1 |           0-2 |
+| 1FA3 |           2-1 |
+| 5CBC |           1-1 |
+| 8074 |           1-2 |
+| 8010 |           2-2 |
+| 8B02 |           0-1 |
+\end{comment}
+
+% BEGIN RECEIVE ORGTBL exercise-2-f
+\begin{tabular}{rl}
+Cache & Site IDs\\
+\hline
+0 & 0, 1, 3, 5, 6, 9\\
+1 & 4\\
+2 & 2, 7, 8\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-f
+\begin{comment}
+#+ORGTBL: SEND exercise-2-f orgtbl-to-latex :splice nil :skip 0
+| Cache | Site IDs         |
+|-------+------------------|
+|     0 | 0, 1, 3, 5, 6, 9 |
+|     1 | 4                |
+|     2 | 2, 7, 8          |
+\end{comment}
+
+The mean load is $\frac{10}{3} \approx 3.3$.
+The standard deviation is
+\begin{equation*}
+  S = \sqrt{\frac{1}{2} \left( \left(\frac{8}{3}\right)^{2} + \left( \frac{7}{3} \right)^{2} + \left( \frac{1}{3} \right)^{2} \right)} = \sqrt{\frac{1}{2} \frac{64 + 49 + 1}{9}} = \sqrt{\frac{57}{9}} = \frac{\sqrt{57}}{3} \approx 2.52
+\end{equation*}
+
+The distribution is about as good or bad as the original one and a lot worse than the one with four caches because the hash values are spread so unevenly.
+Almost all the hash space is covered by cache 0.
+
+\end{document}
