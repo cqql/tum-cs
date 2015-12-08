@@ -1,0 +1,160 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Randomized Algorithms, Sheet 8}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 8.1}
+
+\begin{proof}
+  \begin{equation*}
+    P[X \ne 0] = P[X \ge 1] = \sum_{k = 1}^{\infty} P[X = k]
+  \end{equation*}
+  \begin{equation*}
+    E[X^{2}] = \sum_{k = 0}^{\infty} k^{2} P[X = k] = \sum_{k = 1}^{\infty} k^{2} P[X = k]
+  \end{equation*}
+  \begin{align*}
+    E[X]^{2} & = \left( \sum_{k = 0}^{\infty} k P[X = k] \right)^{2}\\
+             & \le \sum_{k = 1} \left( k P[X = k] \right)^{2}\\
+             & = \sum_{k = 1} k^{2} P[X = k]^{2}\\
+             & = \sum_{k = 1} k^{2} P[X = k] \cdot P[X = k]\\
+             & \le \sum_{k = 1} k^{2} P[X = k] \cdot \left( \sum_{k = 1}^{\infty} P[X = k] \right)\\
+             & = \sum_{k = 1} k^{2} P[X = k] \cdot P[X \ne 0]\\
+             & = E[X^{2}] P[X \ne 0]
+  \end{align*}
+  Rewriting this inequality gives us the first inequality
+  \begin{equation*}
+    \frac{E[X]^{2}}{E[X^{2}]} \le P[X \ne 0]
+  \end{equation*}
+
+  Next we prove the second inequality.
+  \begin{equation*}
+    P[X \ne 0] = P[X \ge 1] = \sum_{k = 1}^{\infty} P[X = k] \le \sum_{k = 0}^{\infty} k \cdot P[X = k] = E[X]
+  \end{equation*}
+\end{proof}
+
+\section*{Exercise 8.2}
+
+\begin{proof}
+  \begin{align*}
+    P\left[ |Y - \mu_{Y}| > t \sqrt[k]{\mu_{Y}^{k}} \right] \le & P\left[ |Y - \mu_{Y}| \ge t \sqrt[k]{\mu_{Y}^{k}} \right]\\
+    = & P\left[ (|Y - \mu_{Y}|)^{k} \ge t^{k}\mu_{Y}^{k} \right]\\
+    \le & \frac{E[(|Y - \mu_{Y}|)^{k}]}{t^{k}\mu_{Y}^{k}}\\
+    = & \frac{E[(|Y - \mu_{Y}|)^{k}]}{t^{k} E[(Y - \mu_{Y})^{k}]}\\
+    \intertext{because $k$ is even and $(|X|)^{2} = X^{2}$}
+    = & \frac{E[(Y - \mu_{Y})^{k}]}{t^{k} E[(Y - \mu_{Y})^{k}]} \le \frac{1}{t^{k}}
+  \end{align*}
+\end{proof}
+
+\section*{Exercise 8.3}
+
+Let $X$ be the number of balls in some bin.
+$X$ is binomially distributed with a success probability of $\frac{1}{n}$ and $m$ trials and therefore has an expected value of $E[X] = \frac{m}{n}$ and a variance of $Var[X] = m \frac{1}{n}\frac{n - 1}{n} = \frac{m(n - 1)}{n^{2}}$.
+
+\subsection*{Markov's inequality}
+
+\begin{equation*}
+  P[X \ge k] \le \frac{E[X]}{k} = \frac{m}{nk}
+\end{equation*}
+
+\subsection*{Chebyshev's inequality}
+
+\begin{equation*}
+  P\left[ X \ge k \right] = P\left[ X - \frac{m}{n} \ge k - \frac{m}{n} \right] \le P\left[ |X - \frac{m}{n}| \ge k - \frac{m}{n} \right] \le \frac{Var[X]}{\left( k - \frac{m}{n} \right)^{2}} = \frac{\frac{m(n - 1)}{n^{2}}}{\frac{(nk - m)^{2}}{n^{2}}} = \frac{m(n - 1)}{(nk - m)^{2}}
+\end{equation*}
+
+Note that this bound is only valid when $k - \frac{m}{n} > 0 \Leftrightarrow k > E[X]$.
+Then again Markov's inequality is not that useful either for $k \le E[X]$ because the bound evaluates to something $\ge 1$.
+
+\subsection*{Comparison}
+
+For $m = n$ the bounds evaluate to $\frac{n}{nk} = \frac{1}{k}$ and $\frac{n(n - 1)}{n^{2}(k - 1)^{2}} = \frac{n - 1}{n(k - 1)^{2}}$.
+\begin{align*}
+  & \frac{n - 1}{n(k - 1)^{2}} < \frac{1}{k}\\
+  \Leftrightarrow & \frac{n - 1}{n} < \frac{(k - 1)^{2}}{k}\\
+  \Leftrightarrow & \frac{n - 1}{n} < \frac{k^{2} - 2k + 1}{k} = k - 2 + \frac{1}{k}\\
+  \Leftrightarrow & k + \frac{1}{k} - \frac{n - 1}{n} - 2 > 0\\
+  \Leftrightarrow & k^{2} + 1 - \frac{k(n - 1)}{n} - 2k > 0\\
+  \Leftrightarrow & 0 < nk^{2} + n - k(n - 1) - 2kn = nk^{2} - (3n - 1)k + n
+\end{align*}
+
+The righthand side is a polynomial in $k$ with the roots $\frac{3n - 1}{2n} + \sqrt{\left( \frac{3n - 1}{2n} \right)^{2} - 1}$ and $\frac{3n - 1}{2n} - \sqrt{\left( \frac{3n - 1}{2n} \right)^{2} - 1}$.
+The leading coefficient is positive, hence the polynomial evaluates to a positive value for $k$ outside of the interval enclosed by the roots.
+Furthermore we have the requirement that $k > E[X] = 1$ and
+\begin{equation*}
+  \frac{3n - 1}{2n} + \sqrt{\left( \frac{3n - 1}{2n} \right)^{2} - 1} < \frac{3}{2} - \sqrt{\left( \frac{3}{2} \right)^{2} - 1} = \frac{3}{2} - \frac{\sqrt{5}}{4} < 1
+\end{equation*}
+This means that the lefthand values of $k$ are invalid values regarding our problem.
+Finally we get that Chebyshev's bound is tighter than Markov's for $k > \frac{3n - 1}{2n} + \sqrt{\left( \frac{3n - 1}{2n} \right)^{2} - 1}$.
+
+\section*{Exercise 8.4}
+
+The number of boxes we need to buy is still geometrically distributed but with a success probability depending on $k$.
+If you already have $i$ of $n$ coupons and the store offers you $k$ different ones, the probability that at least one of the $k$ is not in your collection is the counter probability to the event that all $k$ coupons are already part of your collection, so $1 - \prod_{j = 0}^{k - 1} \frac{i - j}{n - j} = 1 - \frac{(n - k)!i!}{n!(i - k)!} = \frac{n!(i - k)! - (n - k)!i!}{n!(i - k)!}$.
+The reasoning behind this formula is that the first coupon has a probability of $\frac{i}{n}$ to be one of the $i$ coupons in your collection, the second one, that is different from the first one, has a probability of $\frac{i - 1}{n - 1}$ and so forth.
+Let $X$ be the number of trials until all coupons have been collected.
+Then $X = \sum_{i = 0}^{n - 1} X_{i}$ where $X_{i}$ is the number of trials until coupon $i + 1$ has been collected when you already have $i$ coupons.
+As argued in the first few sentences $X_{i}$ is geometrically distributed with success probability $1 - \prod_{j = 0}^{k - 1} \frac{i - j}{n - j}$.
+In order to be able to write this a bit more concisely I will introduce some new notation here.
+Define $n^{\downarrow k}$ as $n \cdot (n - 1) \dots (n - k + 1)$.
+For example $3^{\downarrow 5}$ is $3 \cdot 2 \cdot 1 \cdot 0 \cdot (-1) = 0$.
+With these we can rewrite the success probability of $X_{i}$ as $1 - \frac{i^{\downarrow k}}{n^{\downarrow k}} = \frac{n^{\downarrow k} - i^{\downarrow k}}{n^{\downarrow k}}$ and also give the mean $E[X_{i}] = \frac{1}{p} = \frac{n^{\downarrow k}}{n^{\downarrow k} - i^{\downarrow k}}$ and variance $Var[X_{i}] = \frac{1 - p}{p^{2}} = \frac{\frac{i^{\downarrow k}}{n^{\downarrow k}}}{\left( \frac{n^{\downarrow k} - i^{\downarrow k}}{n^{\downarrow k}} \right)^{2}} = \frac{n^{\downarrow k}i^{\downarrow k}}{\left( n^{\downarrow k} - i^{\downarrow k} \right)^{2}}$.
+
+Now we can compute the expected value of $X$.
+\begin{align*}
+  E[X] & = E\left[ \sum_{i = 0}^{n - 1} X_{i} \right]\\
+       & = \sum_{i = 0}^{n - 1} E\left[ X_{i} \right]\\
+       & = \sum_{i = 0}^{n - 1} \frac{n^{\downarrow k}}{n^{\downarrow k} - i^{\downarrow k}}\\
+       & = n^{\downarrow k} \sum_{i = 0}^{n - 1} \frac{1}{n^{\downarrow k} - i^{\downarrow k}}
+\end{align*}
+
+Because of the independence of the $X_{i}$ we can determine the variance of $X$ in the same way.
+\begin{align*}
+  Var[X] & = Var\left[ \sum_{i = 0}^{n - 1} X_{i} \right]\\
+         & = \sum_{i = 0}^{n - 1} Var\left[ X_{i} \right]\\
+         & = \sum_{i = 0}^{n - 1} \frac{n^{\downarrow k}i^{\downarrow k}}{\left( n^{\downarrow k} - i^{\downarrow k} \right)^{2}}\\
+         & = n^{\downarrow k} \sum_{i = 0}^{n - 1} \frac{i^{\downarrow k}}{\left( n^{\downarrow k} - i^{\downarrow k} \right)^{2}}
+\end{align*}
+
+Finally we examine the tail probability on the number of coupons $X$.
+\begin{align*}
+  P[X \ge E[X] + c] & = P[X - E[X] \ge c]\\
+                    & = P[|X - E[X]| \ge c]\\
+                    & \le \frac{Var[X]}{c^{2}}
+\end{align*}
+
+\end{document}
