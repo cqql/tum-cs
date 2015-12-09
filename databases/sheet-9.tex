@@ -1,0 +1,230 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Databases, Sheet 9}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{1. Normalform}
+
+\begin{equation*}
+  R = (A, B, C) \qquad F = \{ A \rightarrow C \}
+\end{equation*}
+
+$AB$ ist Kandidatenschlüssel, aber $C$ ist nicht voll funktional abhängig von $AB$.
+
+\subsection*{2. Normalform}
+
+\begin{equation*}
+  R = (A, B, C) \qquad F = \{ A \rightarrow ABC, B \rightarrow C \}
+\end{equation*}
+
+$C$ hängt funktional von $B$ ab, aber $C$ ist weder Teil eines Kandidatenschlüssels, noch Teil der Schlüssel, noch ist $B$ in Superschlüssel.
+$R$ ist in zweiter Normalform, weil $A$ der einzige Kandidatenschlüssel ist und sowohl $B$ als auch $C$ funktional von $A$ abhängen.
+
+\subsection*{3. Normalform}
+
+\begin{equation*}
+  R = (A, B, C) \qquad F = \{ B \rightarrow C \}
+\end{equation*}
+
+Es ist in dritter Normalform, weil $B$ in dem Kandidatenschlüssel $AB$ enthalten ist.
+Es ist aber nicht in BCNF, weil $B$ gleichzeitig weder Superschlüssel ist, noch ist $B \rightarrow C$ trivial.
+
+\subsection*{BC-Normalform}
+
+\begin{equation*}
+  R = (A, B, C) \qquad F = \{ A \rightarrow \rightarrow B \}
+\end{equation*}
+
+Das ist in dritter Normalform, weil es keine nichttrivialen funktionalen Abhängigkeiten gibt.
+Es verletzt jedoch die BCNF, da $A$ nicht Superschlüssel und die MVD nicht trivial ist.
+
+\subsection*{4. Normalform}
+
+\begin{equation*}
+  R = (A) \qquad F = \{  \}
+\end{equation*}
+
+Diese Relation ist in jeder Normalform.
+
+\section*{Exercise 2}
+
+\begin{equation*}
+  R_{1} = (A, B, C) \qquad F_{1} = \{ AB \rightarrow C \}
+\end{equation*}
+\begin{equation*}
+  R_{2} = (A, B, D) \qquad F_{2} = \{ AD \rightarrow B, AB \rightarrow D \}
+\end{equation*}
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+\begin{minted}{sql}
+  INSERT INTO kinder_fahrraeder (person, kind_name, kind_alter, fahrrad_typ, fahrrad_farbe)
+  SELECT DISTINCT person, "Laura", 0, fahrrad_typ, fahrrad_farbe
+  FROM kinder_fahrraeder
+  WHERE person = "Thomas"
+\end{minted}
+
+\subsection*{Part b)}
+
+\begin{equation*}
+  |\{ c | [a, \_, c] \in R \}|
+\end{equation*}
+Also eines für jeden Wert von $c$, der mit $a$ verbunden ist.
+
+\subsection*{Part c)}
+
+Dann muss er auch seine Kinder verkaufen.
+
+\subsection*{Part d)}
+
+\begin{minted}{sql}
+  CREATE TABLE kinder (
+    person,
+    kind_name,
+    kind_alter
+  );
+
+  CREATE TABLE fahrraeder (
+    person,
+    fahrrad_typ,
+    fahrrad_farbe
+  );
+\end{minted}
+
+\subsection*{Part e)}
+
+\begin{minted}{sql}
+  SELECT *
+  FROM kf
+  WHERE EXISTS (
+    SELECT *
+    FROM kf2
+    WHERE NOT EXISTS (
+      SELECT *
+      FROM kf3
+      WHERE kf3.kind_name = kf.kind_name
+        AND kf3.kind_alter = kf.kind_alter
+        AND kf3.fahrrad_typ = kf2.fahrrad_typ
+        AND kf3.fahrrad_farbe = kf2.fahrrad_farbe
+        AND kf3.person = kf.person
+    ) AND kf2.person = kf.person
+  )
+\end{minted}
+Also wir wählen alle Kinder, für die es ein Fahrrad gibt, sodass keine Zeile existiert, die Kind und Fahrrad verknüpft.
+Wenn das Abfrageergebnis leer ist, ist die MVD $person \rightarrow \rightarrow \{ kind-name, kind-alter \}$ erfüllt, weil es dann für jedes Kind und jedes Fahrrad eine Zeile gibt, die beide verbindet.
+
+Leicht umgeschrieben für die andere MVD sieht die Abfrage folgendermaßen aus.
+\begin{minted}{sql}
+  SELECT *
+  FROM kf
+  WHERE EXISTS (
+    SELECT *
+    FROM kf2
+    WHERE NOT EXISTS (
+      SELECT *
+      FROM kf3
+      WHERE kf3.kind_name = kf2.kind_name
+        AND kf3.kind_alter = kf2.kind_alter
+        AND kf3.fahrrad_typ = kf.fahrrad_typ
+        AND kf3.fahrrad_farbe = kf.fahrrad_farbe
+        AND kf3.person = kf.person
+    ) AND kf2.person = kf.person
+  )
+\end{minted}
+Hier schauen wir nun, ob jedes Fahrrad mit jedem Kind verbunden ist.
+
+\section*{Exercise 4}
+
+\begin{equation*}
+  F = \{ TicketID \rightarrow Festival, Festival \rightarrow \rightarrow TicketID, Festival \rightarrow \rightarrow Band, TicketID \rightarrow Festival \}
+\end{equation*}
+
+Man kann den Dekompositionsalgorithmus anwenden und die Relation in die vierte Normalform bringen.
+
+\begin{equation*}
+  R_{1} = (Festival, TicketID) \qquad F_{1} = \{ TicketID \rightarrow Festival \}
+\end{equation*}
+\begin{equation*}
+  R_{2} = (Festival, Band) \qquad F_{2} = \{  \}
+\end{equation*}
+
+\section*{Exercise 5}
+
+\subsection*{Part a)}
+
+RAID5, weil es blockweise gestripet ist und die Paritätsinformationen verteilt sind.
+
+\subsection*{Part b)}
+
+Ein Verlust von einer Festplatte ist abgesichert, weil die Informationen aus den anderen Blöcken und den Paritätsinformationen wiederhergestellt werden können.
+Ab zwei Ausfällen tritt Datenverlust auf, unabhängig von $n$.
+
+\subsection*{Part c)}
+
+Ja, z.B. indem man es mit einem RAID1 verbindet und ganze Blöcke spiegelt.
+
+\subsection*{Part d)}
+
+Man kann Blöcke einer Datei von mehreren Festplatten parallel lesen und dadurch erhöhte Leseperformanz erreichen.
+
+\subsection*{Part e)}
+
+% BEGIN RECEIVE ORGTBL exercise-5-e
+\begin{tabular}{lr}
+Block & Inhalt\\
+\hline
+C & 1000\\
+P(DF) & 0101\\
+H & 1110\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-5-e
+\begin{comment}
+#+ORGTBL: SEND exercise-5-e orgtbl-to-latex :splice nil :skip 0
+| Block | Inhalt |
+|-------+--------|
+| C     |   1000 |
+| P(DF) |   0101 |
+| H     |   1110 |
+\end{comment}
+
+
+\end{document}
