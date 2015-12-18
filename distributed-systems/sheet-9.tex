@@ -1,0 +1,152 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Distributed Systems, Sheet 9}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+MapReduce is an algorithm framework for distributed computation that also gives you fault-tolerance and load-balancing.
+
+\subsection*{Part b)}
+
+Both RPC and MPI are more low-level constructs for distributed computing than map-reduce.
+With them you have to take care of things like load balancing yourself but they are a better fit for computations that need some communication between the distributed tasks, e.g. fluid simulations.
+
+\subsection*{Part c)}
+
+\begin{itemize}
+\item Distributed Computing
+\item Exploits locality of data
+\item Fault Tolerance
+\item Load Balancing
+\end{itemize}
+
+\subsection*{Part d)}
+
+\begin{itemize}
+\item Split
+\item Map
+\item Group by key
+\item Reduce
+\end{itemize}
+
+\subsection*{Part e)}
+
+The more passes an algorithm has to make over the data, the worse of a fit is map-reduce because for each pass you have to shuffle the data between mappers and reducers.
+Many machine learning algorithms fit this description for example EM.
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\begin{minted}{python}
+  Map: Split file into (word, count) pairs
+  Input: File
+  Output: (list (word . 1))
+
+  Reduce: Sum all the counts
+  Input: (word (list counts))
+  Output: (word . (sum counts))
+\end{minted}
+
+\subsection*{Part b)}
+
+\begin{minted}{python}
+  Map: Split file into lines and create a pair of filename and 1 for every match
+  Input: File
+  Output: (list (file . 1))
+
+  Reduce: Just return the keys (filenames)
+  Input: (file . (list 1))
+  Output: filename
+\end{minted}
+
+\subsection*{Part c)}
+
+The sorting step sorts the words for us.
+
+\begin{minted}{python}
+  Map: Read values and return then one by one
+  Input: File
+  Output: (list (word . 1))
+
+  Reduce: Return the key
+  Input: (word . 1)
+  Output: word
+\end{minted}
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+\begin{description}
+\item[Driver] The driver repeats the map-reduce procedure until it converges
+\item[Mapper] Each mapper reads the list of all cluster centers and for each point returns a pair of its assigned cluster ID and the point itself
+\item[Combiner] The combiner computes for every cluster center the mean of all assigned points and also the number of points that were used to build the mean
+\item[Reducer] The reducer again computes the weighted mean of the precomputed means
+\end{description}
+
+After each iteration you get a file with updated cluster centers.
+
+\subsection*{Part b)}
+
+K-means is a multipass algorithm which is in general bad for MapReduce.
+In each iteration every map worker has to read in the point files even though they did not change.
+
+\section*{Exercise 4}
+
+\begin{minted}{python}
+  # Mapping yields
+  15 -> [(3, 15), (5, 15)]
+  21 -> [(3, 21), (7, 21)]
+  24 -> [(2, 24), (3, 24)]
+  30 -> [(2, 30), (3, 30), (5, 30)]
+  49 -> [(7, 49)]
+
+  # Grouping yields
+  [(2, [24, 30]), (3, [15, 21, 24, 30]), (5, [15, 30]), (7, [21, 49])]
+
+  # Reducing yields
+  [(2, 54), (3, 90), (5, 45), (7, 70)]
+\end{minted}
+
+The answer is a).
+
+\end{document}
