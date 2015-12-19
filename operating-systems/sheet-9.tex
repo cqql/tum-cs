@@ -1,0 +1,210 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Operating Systems, Sheet 9}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part 1.1)}
+
+Der physikalische Speicher wird komplett genutzt, wenn er vollständig mit Seiten gefüllt werden kann.
+Die ist genau der Fall, wenn die Größe des Speichers durch die Größe der Seite teilbar ist.
+Da $256 = 2^{8}$, sind dies also genau die $2$er-Potenzen bis $2^{8}$.
+
+\begin{itemize}
+\item 1
+\item 2
+\item 4
+\item 8
+\item 16
+\item 32
+\item 64
+\item 128
+\item 256
+\end{itemize}
+
+\subsection*{Part 1.2)}
+
+Es gibt $2^{7} = 128$ Seiten, von denen $8 = 2^{3}$ gleichzeitig im Speicher sein können.
+Um das System zu betreiben, braucht man mindestens ausreichend Speicher, um die Seitentabelle speichern zu können.
+Wenn wir eine einebige Seitentabelle annehmen, ist diese $128 \cdot K$ wobei $K$ die Größe eines Seitendeskriptors ist.
+Wenn man dazu noch möchte, dass theoretisch der gesamte virtuelle Adressraum benutzt kann, braucht man zusätzlich noch $2^{12} - 8 \cdot 2^{5} + 2^{5}$ Byte, damit man alle Seiten auslagern kann, die nicht in den Speicher passen plus eine Seite zum Zwischenspeichern, während des Austauschens von Seiten.
+
+\subsection*{Part 1.3)}
+
+Da $32 = 2^{5}$, braucht man $5$ Bit, um alle Adressen innerhalb einer Seite adressieren zu können.
+Dementsprechend entfallen die restlichen $7$ Bit auf die Seitennummer.
+
+\section*{Exercise 2}
+
+\subsection*{Part 2.1)}
+
+% BEGIN RECEIVE ORGTBL exercise-2-1
+\begin{tabular}{llll}
+Adresse / Seite & 4KB & 8KB & 16KB\\
+\hline
+16 Bit & $2^{4}$ & $2^{3}$ & $2^{2}$\\
+32 Bit & $2^{20}$ & $2^{19}$ & $2^{18}$\\
+64 Bit & $2^{52}$ & $2^{51}$ & $2^{50}$\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-1
+\begin{comment}
+#+ORGTBL: SEND exercise-2-1 orgtbl-to-latex :splice nil :skip 0 :raw t
+| Adresse / Seite | 4KB      | 8KB      | 16KB     |
+|-----------------+----------+----------+----------|
+| 16 Bit          | $2^{4}$  | $2^{3}$  | $2^{2}$  |
+| 32 Bit          | $2^{20}$ | $2^{19}$ | $2^{18}$ |
+| 64 Bit          | $2^{52}$ | $2^{51}$ | $2^{50}$ |
+\end{comment}
+
+\subsection*{Part 2.2)}
+
+% BEGIN RECEIVE ORGTBL exercise-2-2
+\begin{tabular}{lrrrr}
+Seitengröße & Bits Seitennummer & Bits Seitenoffset & Bits Kachelnummber & Bits Kacheloffset\\
+\hline
+1 KB & 22 & 10 & 14 & 10\\
+2 KB & 21 & 11 & 13 & 11\\
+4 KB & 20 & 12 & 12 & 12\\
+8 KB & 19 & 13 & 11 & 13\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2-2
+\begin{comment}
+#+ORGTBL: SEND exercise-2-2 orgtbl-to-latex :splice nil :skip 0 :raw t
+| Seitengröße | Bits Seitennummer | Bits Seitenoffset | Bits Kachelnummber | Bits Kacheloffset |
+|-------------+-------------------+-------------------+--------------------+-------------------|
+| 1 KB        |                22 |                10 |                 14 |                10 |
+| 2 KB        |                21 |                11 |                 13 |                11 |
+| 4 KB        |                20 |                12 |                 12 |                12 |
+| 8 KB        |                19 |                13 |                 11 |                13 |
+\end{comment}
+
+\subsection*{Part 2.3)}
+
+Man muss so viele Bits wählen, dass jede Kachel eindeutig adressiert werden kann.
+Wenn man die ersten Bits nutzt, werden alle Seiten, deren Adressen die ersten $k$ Bits teilen, in die selbe Kachel geladen.
+Analog für die mittleren und letzen Bits der Seitennummer.
+Da Programme generell eine räumliche Lokalität an den Tag legen, würden sich sehr viele Seitennummern die ersten Bits teilen, wenn man die ersten Bits nutzen würde.
+Der Großteil des Programms würde wohl auf dieselbe Kachel abgebildet werden, was zu vielen Seitenfehlern führen würde.
+Deshalb empfiehlt es sich, die letzten Bits zu nutzen, um die Seiten in auf möglichst viele Kacheln zu verteilen.
+
+\section*{Exercise 3}
+
+\subsection*{Part 3.1)}
+
+\begin{description}
+\item[Blockoffset] Offset innerhalb eines Cache-Blocks (hier 2 Bit)
+\item[Mengenindex] Index des Sets in welchem ein Block gecacht wird (hier 3 Bit)
+\item[Tag] Eindeutiger Identifier unter allen Reihen, die in das selbe Set gecacht werden (hier 8 Bit)
+\end{description}
+
+\subsection*{Part 3.2)}
+
+\begin{equation*}
+  0E34_{16} = 0111000110100_{2}
+\end{equation*}
+\begin{equation*}
+  CO = 0 \qquad CT = 10001101_{2} = AD_{16} \qquad CI = 011_{2} = 3_{10}
+\end{equation*}
+
+Es gibt einen Cache-Miss, weil in Menge $3$ keine Reihe mit Tag $AD$ gespeichert ist.
+Der zurückgegebene Wert ist der, der an der entsprechenden Stelle im Speicher gelesen wird, nachdem die Reihe in den Cache geladen wurde.
+
+\subsection*{Part 3.3)}
+
+\begin{equation*}
+  0DD5_{16} = 0110111010101_{2}
+\end{equation*}
+\begin{equation*}
+  CI = 011_{2} = 3 \qquad CT = 01110101_{2} = 76_{16} \qquad CT = 01_{2} = 1_{10}
+\end{equation*}
+
+Es gibt wieder einen Cache-Miss.
+
+\subsection*{Part 3.4)}
+
+\subsubsection*{Frage 1}
+
+Mit Lokalität meint man, dass Programme meistens Befehle ausführen und auf Daten zugreifen, die in bestimmter Hinsicht nah zusammen liegen.
+
+\begin{description}
+\item[Räumliche Lokalität] Daten und Programmteile, die der Prozessor braucht, sind in nah zusammenliegenden Adressen gespeichert
+\item[Zeitliche Lokalität] Zugriffe auf einen Daten- oder Programmabschnitt liegen zeitlich nah zusammen
+\end{description}
+
+\subsubsection*{Frage 2}
+
+\emph{Aliasing} bedeutet, dass die selben physischen Speicherzellen an verschiedenen Orten im Cache liegen können, was zu Konsistenzproblemen führen kann.
+
+\subsubsection*{Frage 3}
+
+Der \emph{Critical Stride} ist die Gesamtgröße des Caches.
+Dies heißt so, weil Adressen, die ein Vielfaches vom CS auseinander liegen auf dieselbe Cache-Zeile abgebildet werden.
+In ausreichend großen Arrays kann dies vorkommen und bedeutet, dass Cache-Zeilen sehr oft neu geladen werden müssen.
+
+\section*{Exercise 4}
+
+\subsection*{Part 4.1)}
+
+Es bleiben $32 - 9 - 11 = 14$ Bit für den Seitenoffset.
+Also sind die Seiten $2^{14}$ Byte bzw. 16 KB groß.
+
+\subsection*{Part 4.2)}
+
+Es gibt $2^{32 - 14} = 2^{9 + 11} = 2^{18}$ Seiten.
+
+\subsection*{Part 4.3)}
+
+Die obere Seitentabelle wäre $2^{9} \cdot 4 = 2^{11}$ Byte bzw. 8 KB groß.
+Wenn dann jede der $2^{9}$ Unterseitentabellen realisiert ist, kommen dazu nochmal $2^{9} \cdot 2^{11} \cdot 4 = 2^{20}$ Byte bzw. 1 MB.
+
+\section*{Exercise 5}
+
+\inputminted{c}{sheet-9/main.c}
+
+\begin{minted}{shell}
+  # ./main
+  Elapsed time creating a random matrix: 0.241544 seconds
+  row-wise 0.059603 seconds -> 8390022.909666
+  column-wise 0.207783 seconds -> 8390022.909670
+  random 0.087708 seconds -> 2479967.500000
+\end{minted}
+
+Row-wise is the fastest, column-wise the slowest and random is somewhere in between.
+
+\end{document}
