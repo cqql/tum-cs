@@ -1,0 +1,94 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Packet Success Probability}
+\author{Marten Lienen, Julius Michaelis}
+
+\begin{document}
+
+\maketitle
+
+\section{Model}
+
+A dataflow is a sequence of packets $p_{1}, p_{2}, \dots$ sent at times $t_{1}, t_{2}, \dots$ from a source $S$ to a destination $D$.
+However the data transport medium is unreliable so that packets can go missing.
+We track this with a sequence of random variables $P_{1}, P_{2}, \dots$ that are defined to be $1$ if $p_{i}$ was successfully delivered and $0$ otherwise.
+This means that each of these sending procedures $P_{i}$ is a Poisson trial with success probability $s_{i}$.
+The $s_{i}$ are then again random variables on the real interval $[0, 1]$.
+We call them packet success probabilities because they describe the probability that a packet transfer is successful at time $t_{i}$.
+
+A reasonable choice to model the probability distribution of the $s_{i}$ would be a Beta distribution with parameters $\alpha_{i} \ge 1$ and $\beta_{i} \ge 1$.
+This distribution can model a uniform distribution on $[0, 1]$ as well as a smooth, unimodal distribution.
+
+\section{Updating the model}
+
+Whenever you register a packet loss, you add $1$ to the $\beta$ parameter of the current prior.
+When a packet is received, you add $1$ to the $\alpha$ parameter of the current prior instead.
+
+\section{Trust Function Model}
+
+Say the last point of measurement was $t_{i}$ and we want to predict the distribution of the success probability $s'$ at time $t_{i} + t'$.
+In the trust function model we still believe in the latest measurement, but we might believe less so depending on the time $t'$ that has passed.
+This degree of trust is captured in a trust function $T(t) : \mathbb{R}_{\ge 0} \rightarrow [0, 1]$, where a value of $1$ means that you believe the old data completely while a value of $0$ means that you do not trust it at all.
+Some reasonable things to expect from a trust function are
+\begin{itemize}
+\item $T(0) = 1$ because you should believe in your measurements
+\end{itemize}
+
+\subsection{$T = 0$}
+
+\subsection{$T = 1$}
+
+\subsection{$T(t) = \exp(-t)$}
+
+\section{Linux}
+
+At least some of linux's wireless drivers use exponential moving average.
+
+\begin{minted}{c}
+  static void atmel_smooth_qual(struct atmel_private *priv)
+  {
+    unsigned long time_diff = (jiffies - priv->last_qual) / HZ;
+    while (time_diff--) {
+      priv->last_qual += HZ;
+      priv->wstats.qual.qual = priv->wstats.qual.qual / 2;
+      priv->wstats.qual.qual +=
+        priv->beacons_this_sec * priv->beacon_period * (priv->wstats.qual.level + 100) / 4000;
+      priv->beacons_this_sec = 0;
+    }
+    priv->wstats.qual.updated |= IW_QUAL_QUAL_UPDATED;
+    priv->wstats.qual.updated &= ~IW_QUAL_QUAL_INVALID;
+  }
+\end{minted}
+
+\end{document}
