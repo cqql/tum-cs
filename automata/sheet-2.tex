@@ -1,0 +1,174 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Automata and Formal Languages, Sheet 2}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 2.1}
+
+\subsection*{Part a)}
+
+\begin{proof}
+  Let $L \subseteq \Sigma_{1}^{*}$ be regular.
+  So there is a DFA $A = (Q, \Sigma_{1}, \delta_{B}, q_{0}, F)$ that accepts $L$.
+  Then construct a new DFA $B = (Q, \Sigma_{2}, \delta_{B}, q_{0}, F)$ such that
+  $\delta_{B}(q, )$
+  \begin{equation*}
+    \delta_{B} =
+  \end{equation*}
+  It remains to show that $B$ accepts $h(L)$.
+
+  Let $w \in \Sigma_{1}^{*}$ and $w' = h(w) \in \Sigma_{2}^{*}$.
+  Then $w = w_{1} \dots w_{n}$ and $$.
+\end{proof}
+
+\subsection*{Part b)}
+
+\subsection*{Part c)}
+
+\subsection*{Part d)}
+
+\section*{Exercise 2.2}
+
+\subsection*{$(ab + ba)^{*}$}
+
+\begin{align*}
+  L^{\epsilon} & = (ab + ba)^{*}\\
+  L^{a} & = b(ab + ba)^{*}\\
+  L^{b} & = a(ab + ba)^{*}\\
+  L^{aa} & = \emptyset
+\end{align*}
+
+\subsection*{$(aa)^{*}$}
+
+\begin{align*}
+  L^{\epsilon} & = (aa)^{*}\\
+  L^{a} & = a(aa)^{*}\\
+  L^{b} & = \emptyset
+\end{align*}
+
+\subsection*{$\{ a^{n}b^{n}c^{n} \mid n \ge 0 \}$}
+
+\begin{align*}
+  L^{a^{k}} & = \{ a^{n - k}b^{n + k}c^{n + k} \mid n \ge 0 \} \forall k \ge 0\\
+  L^{a^{k}b^{j}} & = b^{k - j}c^{k} \forall k \ge 1, j < k\\
+  L^{a^{k}b^{k}c^{j}} & = c^{k - j} \forall k \ge 1, j < k\\
+  L^{abb} & = \emptyset
+\end{align*}
+
+\section*{Exercise 2.3}
+
+\subsection*{Part a)}
+
+\subsubsection*{$(ab + ba)^{*}$}
+
+\begin{align*}
+  {}^{bb}L & = \emptyset\\
+  {}^{a}L & = (ab + ba)^{*}b\\
+  {}^{b}L & = (ab + ba)^{*}a\\
+  {}^{\epsilon}L & = (ab + ba)^{*}
+\end{align*}
+
+\subsubsection*{$(aa)^{*}$}
+
+\begin{align*}
+  {}^{\epsilon}L & = (aa)^{*}\\
+  {}^{a}L & = (aa)^{*}a\\
+  {}^{b}L & = \emptyset
+\end{align*}
+
+\subsection*{Part b)}
+
+\begin{proof}
+
+\end{proof}
+
+\subsection*{Part c)}
+
+\section*{Exercise 2.4}
+
+\subsection*{Part a)}
+
+Let $L = U(S)$ for some $S \subseteq \mathbb{N}$ and $T = L^{U(n)}$ for some $n \in \mathbb{N}$.
+\begin{equation*}
+  T = \{ U(m) \mid m + n \in S \}
+\end{equation*}
+
+Let $L = B(S)$ for some $S \subseteq \mathbb{N}$ and $T = L^{U(n)}$ for some $n \in \mathbb{N}$.
+\begin{equation*}
+  T = \{ B(m) \mid B^{-1}(B(n) B(m)) \in S \} = \{ B(m) \mid n \cdot 2^{\lceil\log_{2}(m)\rceil} + m \in S \}
+\end{equation*}
+
+\subsection*{Part b)}
+
+\begin{proof}
+  Let $S = \{ 2^{n} \mid n \in \mathbb{N}_{0} \}$.
+  Then the binary respectively unary encodings of $S$ are $B(S) = \{ 10^{n} \mid n \in \mathbb{N}_{0} \}$ respectively $U(S) = \{ \bullet^{2^{n}} \mid n \in \mathbb{N}_{0} \}$.
+  Obviously $B(S)$ only has 3 residuals for $\epsilon$, $1$ and $0$.
+  $U(S)$ on the other hand has infinitely many residuals:
+  Let $P = U(S)^{\bullet^{2^{p}}}$ and $Q = U(S)^{\bullet^{2^{q}}}$ be two residuals of $U(S)$ for any $p, q \in \mathbb{N}_{0}$ with $p < q$.
+  Then $\bullet^{2^{p}} \in P$ because $2^{p} + 2^{p} = 2^{p + 1}$, but $\bullet^{2^{p}} \not\in Q$ because $2^{p} + 2^{q} = 2^{p}(1 + 2^{q - p})$ which is not a power of two because $(1 + 2^{q - p})$ is uneven since $q > p \Leftrightarrow q - p > 0$.
+  Therefore $U(S)$ is not regular but $B(S)$ is.
+\end{proof}
+
+\subsection*{Part c)}
+
+\begin{proof}
+  Let $S \subseteq \mathbb{N}$ such that $U(S)$ is regular.
+  Hence there are only finitely many residuals with prefixes $u_{1}, \dots, u_{n}$.
+  That means that for every $s \in S$ there is an $s + u_{j} \in S$ for some $j \in \{ 1, \dots, n \}$.
+\end{proof}
+
+\section*{Exercise 2.5}
+
+\section*{Exercise 2.6}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+\subsection*{Part c)}
+
+\subsection*{Part d)}
+
+\subsection*{Part e)}
+
+\subsection*{Part f)}
+
+\subsection*{Part g)}
+
+\end{document}
