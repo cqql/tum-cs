@@ -1,0 +1,87 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Randomized Algorithms, Sheet 11}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 11.1}
+
+\begin{proof}
+  Let $c$ be a node that can be written as the concatenation of two identical halves $c_{1}c_{1}$.
+  There are $2^{\frac{n}{2}} = \sqrt{2^{n}} = \sqrt{N}$ nodes with addresses of the form $c_{1}d$ because there are $2^{\frac{n}{2}}$ bit strings $d$ of length $\frac{n}{2}$.
+  All of these will send their packet to $dc_{1}$.
+  The bit-fixing algorithm will route these packets over $c$ because after fixing the first $\frac{n}{2}$ bits, they arrive at $c_{1}c_{1}$.
+  Therefore the last packet needs at least $\sqrt{N}$ rounds to pass this point.
+\end{proof}
+
+\section*{Exercise 11.2}
+
+\begin{proof}
+  Consider the permutation from exercise 1.
+  In this case a packet is routed over $0_{n}$ iff at some intermediate step all its bits are zero, i.e. iff it does not have a $1$ that need not be fixed and all of its ones are fixed to zeros before any of its zeros are fixed to ones.
+
+  Let $c$ be a random node and $c_{1}c_{2}$ its decomposition into two bitstrings of length $\frac{n}{2}$.
+  The packet sent from $c$ does not have a $1$ that need not be fixed iff $c_{1}$ and $c_{2}$ do not have a $1$ at a common position $i$.
+  Denote this event by $A$.
+  \begin{equation*}
+    P[A] = \prod_{i = 1}^{\frac{n}{2}} \left( 1 - \frac{1}{2} \cdot \frac{1}{2} \right) = \left( \frac{3}{4} \right)^{\frac{n}{2}}
+  \end{equation*}
+
+  Now let $c$ be such a packet, i.e. a packet in which every $1$ has to be fixed.
+  What is the probability that all of its ones are fixed to zeros before any of its zeros are fixed to ones?
+  Let $B$ denote this event, $p$ be the number of ones in $c$ and $q$ the total number of positions that need to be fixed.
+  So the first $p$ fixes have to be from the positions where $c$ has ones.
+  \begin{equation*}
+    P[B | A, p, q] = \prod_{i = 1}^{p} \frac{p - (i - 1)}{q} = \frac{1}{q^{p}} \cdot p! \ge \frac{n!}{n^{n}}
+  \end{equation*}
+\end{proof}
+
+\section*{Exercise 11.3}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+\section*{Exercise 11.4}
+
+We just round the values to the nearest integer where we round up for $\hat{x}_{i0}$ values and down for $\hat{x}_{i1}$ values.
+Using this procedure you get $\bar{x}_{ij} \le 2\hat{x}_{ij}$ and from this it follows that
+\begin{equation*}
+  w_{s} = \sum_{i \in T_{b0}} \bar{x}_{i0} + \sum_{i \in T_{b1}} \bar{x}_{i1} \le \sum_{i \in T_{b0}} 2\hat{x}_{i0} + \sum_{i \in T_{b1}} 2\hat{x}_{i1} \le 2\hat{w} \le 2w_{0}
+\end{equation*}
+
+\end{document}
