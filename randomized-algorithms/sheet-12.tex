@@ -1,0 +1,126 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Randomized Algorithms, Sheet 12}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 12.1}
+
+\subsection*{Part a)}
+
+\begin{proof}
+  Color all edges uniformly at random.
+  For $i \in \{ 1, \dots, \binom{n}{4} \}$ let $A_{i}$ be an indicator variable for the event that the $i$th 4-node clique is monochromatic.
+  Then $P(A_{i} = 1) = \left( \frac{1}{2} \right)^{\binom{4}{2} - 1} = \left( \frac{1}{2} \right)^{5}$ because the $\binom{4}{2} - 1$ remaining edges have to be of the same color as some arbitrarily chosen first edge in the 4-node clique.
+  Let $A = \sum_{i} A_{i}$.
+  \begin{equation*}
+    E[A] = \sum_{i = 1}^{\binom{n}{4}} A_{i} = \sum_{i = 1}^{\binom{n}{4}} 2^{-5} = \binom{n}{4}\left( \frac{1}{2} \right)^{5}
+  \end{equation*}
+  Since the expected value of the total number of monochromatic $K_{4}$ cliques is $E[A]$ there has to be an assignment such that the total number is at most $E[A]$.
+\end{proof}
+
+\subsection*{Part b)}
+
+Sample a random coloring by coloring each edge uniformly at random.
+Then count the number of monochromatic $K_{4}$ cliques and repeat if the number is larger than $\binom{n}{4}\left( \frac{1}{2} \right)^{5}$.
+
+Sampling takes $O\left( \binom{n}{2} \right) = O(\frac{n!}{2(n - 2)!}) = O\left(n(n - 1)\right)$ steps.
+Checking the property takes $O\left( \binom{4}{2} \cdot \binom{n}{4} \right) = O\left( \frac{n!}{4! (n - 4)!} \right) = O\left( n(n - 1)(n - 2)(n - 3) \right)$ steps.
+Therefore the run time is polynomial in $n$ as long as we only iterate a number of times polynomial in $n$.
+
+The probability that a random coloring has at most $\binom{n}{4}\left( \frac{1}{2} \right)^{5}$ $K_{4}$ cliques is
+\begin{align*}
+  p & =
+\end{align*}
+
+The number of iterations of the constructed algorithm follows a geometric distribution with success probability $p$ and therefore takes an expected number of $\frac{1}{p}$ iterations which is polynomial in $n$.
+As a result the expected running time of the whole algorithm is also polynomial in $n$ as argued in the beginning.
+
+\section*{Exercise 12.2}
+
+\subsection*{Part a)}
+
+Assign each literal the value true or false uniformly at random.
+Repeat until the generated assignment satifies at least $m(1 - 2^{-k})$ clauses.
+
+In any iteration the probability that a certain clause $i$ is not satisfied is $\left( \frac{1}{2} \right)^{k}$ because all terms of the disjunction have to be false.
+Therefore the probability that an assignment does not satisfy at least $\lceil m(1 - 2^{-k}) \rceil$ clauses is
+\begin{equation*}
+  p =
+\end{equation*}
+
+\subsection*{Part b)}
+
+Let $x_{i}$ be the assigned value for the literals $i = 1, \dots, k$.
+Then the expected value of a random assignment is
+\begin{equation*}
+  E[X \mid x_{1}, \dots, x_{i - 1}] = \frac{1}{2} E[X \mid x_{1}, \dots, x_{i - 1}, x_{i} = true] + \frac{1}{2} E[X \mid x_{1}, \dots, x_{i - 1}, x_{i} = false]
+\end{equation*}
+Using the same argument about the maximum of both options as in the lecture, we can only increase the number of satisfied clauses by fixing $x_{i}$ to the value with the greater expected number of satisfied clauses.
+The two expected value terms only differ by the number of not already satisfied clauses satisfied by setting $x_{i}$ to true respectively false.
+
+In the end the derandomized algorithm picks the variables in an arbitrary order and assigns them the value that satisfies more of the clauses that have not already been satisfied.
+
+\section*{Exercise 12.3}
+
+\subsection*{Part a)}
+
+\begin{proof}
+  Let $i, j \in S(\sigma)$ such that there exists a vertex $(i, j) \in E$.
+  Then $i, j \in \sigma$ and either $i$ precedes $j$ or $j$ precedes $i$.
+  Both cases are a contradiction to the construction of $S(\sigma)$.
+\end{proof}
+
+\subsection*{Part b)}
+
+Select $\sigma$ uniformly at random from all permutations of the vertices.
+Let $A_{i}$ be an indicator variable for the event that $i \in S(\sigma)$.
+\begin{equation*}
+  P[A_{i} = 1] = \frac{1}{d_{i} + 1}
+\end{equation*}
+because the order of vertex $i$ and its $d_{i}$ neighbors in $\sigma$ is a permutation, again sampled uniformly at random, of length $d_{i} + 1$ and $A_{i}$ is $1$ iff $i$ is in the first position, i.e. in $\frac{d_{i}!}{(d_{i} + 1)!} = \frac{1}{d_{i} + 1}$ of the possible permutations.
+
+\subsection*{Part c)}
+
+\begin{proof}
+  For $\sigma$ sampled as in part b the expected cardinality of $S(\sigma)$ is $\sum_{i = 1}^{n} \frac{1}{d_{i} + 1}$.
+  Hence, there has to be an independent set of size at least $\sum_{i = 1}^{n} \frac{1}{d_{i} + 1}$.
+\end{proof}
+
+\section*{Exercise 12.4}
+
+\end{document}
