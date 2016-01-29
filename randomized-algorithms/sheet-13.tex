@@ -1,0 +1,131 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Randomized Algorithms, Sheet 13}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 13.1}
+
+\begin{proof}
+  Sample a random 2-coloring of $K_{n}$.
+  $K_{n}$ contains at most $\binom{n}{k}$ $K_{k}$ cliques which are monochromatic with a probability of $\left( \frac{1}{2} \right)^{\binom{k}{2} - 1} = 2^{1 - \binom{k}{2}}$ because all edges in such a clique, which there are $\binom{k}{2}$ of, have to have the same color as an arbitrarily chosen first edge.
+  Consequently the expected number of monochromatic $K_{k}$ cliques in $K_{n}$ is
+  \begin{equation*}
+    \binom{n}{k} 2^{1 - \binom{k}{2}}
+  \end{equation*}
+  By removing one node from all those cliques you get a graph with an expected number of nodes of
+  \begin{equation*}
+    n - \binom{n}{k} 2^{1 - \binom{k}{2}}
+  \end{equation*}
+  This modified graph does not contain any complete cliques of size at least $k$ because all of them would have had size at least $k$ in the original graph.
+  And complete cliques of size $k' \ge k$ in the original graph are made of $\binom{k'}{k}$ complete cliques of size $k$ which were all destroyed.
+
+  Therefore there exist 2-colorings for graphs of size at least $\lceil x \rceil$  without any $K_{k}$ cliques by the expectation argument.
+  You can get a 2-coloring for a graph of size $\lceil x \rceil$ from this by just removing further nodes as necessary.
+\end{proof}
+
+\section*{Exercise 13.2}
+
+\begin{proof}
+  Let $S \subset V$ where $v \in S$ with probability $p$ for all $v \in V$.
+  Then add one $v' \in e$ to $S$ for each $e \in E$ for which $e \cap S = \emptyset$.
+  Then $S$ is a dominating set because $e \cap S \ne \emptyset\ \forall e \in E$.
+  Let $A_{i}, 1 \le i \le m$ be an indicator variable for the event that a node is added for edge $i$.
+  Then $P[A_{i} = 1] = (1 - p)^{r}$ because that is the probability that none of the $r$ nodes in the $i$th edge were selected initially.
+  \begin{equation*}
+    E[|S|] = np + \sum_{i = 1}^{m} A_{i} = np + (1 - p)^{r}m
+  \end{equation*}
+  because we initially select $np$ nodes and then add a node for each edge with probability $(1 - p)^{r}$.
+
+  By the expectation argument there is a dominating set of size at most $np + (1 - p)^{r}m$.
+\end{proof}
+
+\section*{Exercise 13.3}
+
+\begin{proof}
+  Assume that $key(x) < key(y)$ and thus, $x$ is obviously the left child of $y$.
+  Now assume that there is another node $z$ with $key(x) < key(z) < key(y)$.
+  From the search tree property follows that $z$ has to be in the right subtree of $x$ or the first common ancestor or be an ancestor of $x$ and in the left subtree of $y$ or the first common ancestor or be an ancestor of $y$.
+  But $x$ has no subtrees because it is a leaf, and $y$'s left subtree is $x \ne z$.
+  Furthermore $z$ cannot be a direct ancestor of $x$ and $y$ at the same time because we would need either $key(z) > key(y)$ or $key(z) < key(x)$.
+  Finally note that the first common ancestor of $x$ and $z$ respectively $y$ and $z$ is the same as the first common ancestor of $x$, $y$ and $z$, because $x$ and $y$ share their ancestors save for $y$ as an ancestor of $x$.
+  But $z$ cannot be in the left \emph{and} right subtree of the first common ancestor at the same time.
+  Therefore no such $z$ can exist.
+
+  The other claim is easily shown in the same way.
+\end{proof}
+
+\section*{Exercise 13.4}
+
+\begin{proof}
+  We will use a Chernoff bound for the first part.
+  As suggested in the hint we have $depth(x_{m}) = \sum_{\substack{i = 1\\i \ne m}}^{n} X_{i,m}$.
+  Therefore the moment generating function is
+  \begin{align*}
+    M(t) & = E[\exp(t \cdot depth(x_{m}))]\\
+         & = \exp(t \cdot E[depth(x_{m})])\\
+         & = \exp(t \cdot (H_{m} + H_{n - m + 1} - 1))
+  \end{align*}
+
+  \begin{align*}
+    P[depth(x_{m}) \le 7(H_{m} + H_{n - m + 1} - 1)] & = 1 - P[depth(x_{m}) > 7(H_{m} + H_{n - m + 1} - 1)]\\
+                                                     & = 1 - P[e^{t \cdot depth(x_{m})} > e^{7t(H_{m} + H_{n - m + 1} - 1)}]\\
+                                                     & \ge 1 - \frac{E[e^{t \cdot depth(x_{m})}]}{e^{7t(H_{m} + H_{n - m + 1} - 1)}}\\
+                                                     & = 1 - \frac{\exp(t \cdot (H_{m} + H_{n - m + 1} - 1))}{e^{7t(H_{m} + H_{n - m + 1} - 1)}}\\
+                                                     & = 1 - \frac{1}{e^{6t(H_{m} + H_{n - m + 1} - 1)}}
+  \end{align*}
+  Plug in $t = \frac{\log(n)}{H_{m} + H_{n - m + 1} - 1}$ and you get
+  \begin{equation*}
+    P[depth(x_{m}) \le 7(H_{m} + H_{n - m + 1} - 1)] \ge 1 - \left( \frac{1}{n} \right)^{6}
+  \end{equation*}
+
+  \begin{align*}
+    P\left[ \bigcup_{i = 1}^{n} depth(x_{i}) > 7(H_{m} + H_{n - m + 1} - 1) \right] & \le \sum_{i = 1}^{n} P[depth(x_{i}) > 7(H_{m} + H_{n - m + 1} - 1)]\\
+    & = \sum_{i = 1}^{n} \left( 1 - P[depth(x_{i}) \le 7(H_{m} + H_{n - m + 1} - 1)] \right)\\
+    & \le \sum_{i = 1}^{n} \left( 1 - \left( 1 - \left( \frac{1}{n} \right)^{6} \right) \right)\\
+                                                                                    & = \sum_{i = 1}^{n} \left( \frac{1}{n} \right)^{6} = \frac{1}{n^{5}}
+  \end{align*}
+
+  From this follows that
+  \begin{align*}
+    P\left[ \bigcap_{i = 1}^{n} depth(x_{i}) \le 7(H_{m} + H_{n - m + 1} - 1) \right] & = 1 - P\left[ \bigcup_{i = 1}^{n} depth(x_{i}) > 7(H_{m} + H_{n - m + 1} - 1) \right]\\
+                                                                                      & = 1 - \frac{1}{n^{5}}
+  \end{align*}
+  i.e. the probability that the depth of all nodes is in $O(\log n)$ goes to $1$ with the fifth power of $n$.
+\end{proof}
+
+\end{document}
