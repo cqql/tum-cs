@@ -1,0 +1,134 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Distributed Systems, Sheet 10}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+In the worst case you need to make $n - 1$ hops, if the key falls in the key range of the predecessor.
+If you also store a link to the predecessor, you need at most $\lfloor \frac{n}{2} \rfloor$ hops in case the key belongs to a node on the other side of the ring.
+
+When a peer joins the ring you need to update the successor of the predecessor of the new peer and also the predecessor of the successor if we store predecessors too.
+Additionally keys have to be transferred from the successor to the joined key.
+
+Before leaving we have to do the inverse and update the successor/predecessor links again and transfer the keys back to the successor of the leaving node.
+
+\subsection*{Part b)}
+
+The distance between the node $i$ and position of the key is upper bounded by $2^{m}$.
+Then we can take at most $\lceil\frac{2^{m}}{\lceil \sqrt{2^{m}} \rceil}\rceil$ jumps of length $\sqrt{2^{m}}$ to zone in on the target and then at most $\lceil \sqrt{2^{m}} \rceil$ further steps of length $1$ for fine-tuning.
+This results in an upper bound of $2 \lceil \sqrt{2^{m}} \rceil$ jumps.
+
+When a node joins the ring, you have to update at most $n$ skip pointers because all $n$ nodes could be right next to each other so that their skip pointers all point to the same node.
+If you then place the new node ``in front'', all nodes have to update their skip pointers.
+
+\subsection*{Part c)}
+
+\begin{tabular}{c|c}
+  Distance & Node\\
+  \hline
+  1 & $N_{6}$\\
+  2 & $N_{6}$\\
+  4 & $N_{10}$\\
+  8 & $N_{15}$\\
+  16 & $N_{22}$
+\end{tabular}
+
+No, that is impossible because there are 9 peers but the finger table only has length $m = 5$.
+
+\subsection*{Part d)}
+
+No, because there are other nodes between the ones in the finger table.
+
+If the key is managed by the current node, you have found it.
+Otherwise forward the request to the node in the node's fingertable that is closest to the position of the key but still in front of it.
+If there is no such position, the key has to be managed by the next node, so forward the request to the next node.
+
+Considering the example of looking up $K_{16}$ you first go to $K_{15}$ because $K_{16}$ is $13$ steps away from node $N_{3}$ and the largest distance smaller than $13$ in $N_{3}$'s finger table is $8$ which points to $K_{15}$.
+Then $K_{15}$ looks in its fingertable for a distance of at most $1$ and forwards the request to $K_{17}$.
+Then $K_{17}$ responds.
+
+\subsection*{Part e)}
+
+$N_{24}$ has to receive the keys from $N_{27}$ and all nodes that are less than half of the circle in front of $N_{24}$ have to potentially update their fingertables.
+
+So $N_{10}$, $N_{15}$, $N_{17}$ and $N_{22}$ have to update their fingertables which costs up to $4 \cdot m$ requests because there are $4$ nodes and each fingertable has $m$ entries.
+
+\subsection*{Part f)}
+
+Move keys from $N_{0}$ to $N_{3}$ and update fingertables.
+In particular you need to update the first three fingers of $N_{27}$, the fourth one of $N_{22}$ and the fifth of $N_{15}$.
+
+You need ot update the fingertables of possibly all nodes and each one has $m$ entries.
+So the operation requires at most $O(nm)$ lookups.
+
+\subsection*{Part g)}
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\begin{minted}{python}
+  nearest = None
+  distance = None
+
+  for n in neighbours:
+      dist = 0
+
+      for j in range(1, d):
+          dist = dist + (y[j] - (n.xmax[j] - n.xmin[j]) / 2 - n.xmin[j])**2
+
+      if distance is None or dist < distance:
+          nearest = n
+          distance = dist
+
+  forward(nearest, request)
+\end{minted}
+
+The request is forwarded at most $n$ times and at each step you have to compute the distance of all $2d$ neighbours to the target, which takes $d$ steps.
+So it is in $O(nd^{2})$.
+
+\subsection*{Part b)}
+
+\subsection*{Part c)}
+
+We split $P_{2}$ vertically and then all peers that will then be neighbours of $P_{4}$ have to update their neighbour set.
+
+\end{document}
