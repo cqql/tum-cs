@@ -1,0 +1,212 @@
+#+TITLE: List of Topics for Randomized Algorithms
+#+AUTHOR: Marten Lienen
+
+* Notes
+
+** Distributions
+
+*** Poisson Trial
+
+PDF(X = 1): p
+E[X]: p
+Var[X]: p * (1 - p)
+MGF: (1 - p + p * e^t) <= e^(p * (e^t - 1))
+
+*** X = Sum of Poisson Trials
+
+MGF[X] <= e^((e^t - 1) * mu)
+
+*** Binomial
+
+PDF(k): ncr(n, k) * p^k * (1 - p)^(n - k)
+E[X]: n * p
+Var[X]: n * p * (1 - p)
+MGF: (1 - p + p * e^t)^n
+
+*** Geometric
+
+PDF(k): (1 - p)^(k - 1) * p
+E[X]: 1 / p
+Var[X]: (1 - p) / p^2
+MGF: (p * e^t) / (1 - (1 - p) * e^t) for t < -log(1 - p)
+
+*** X = Sum of Geometric
+
+Var[X] <= n^2 * pi^2 / 6
+
+** Utilities
+
+*** Exponential Function
+
+**** lim_{n -> inf} (1 + x / n)^n
+
+(1 + x / n)^n <= e^x
+
+**** sum_{n = 0 to inf} x^n / n!
+
+1 + x <= e^x
+
+*** Rewrite Rules
+
+P[|X| >= a] = P[X >= a] + P[X <= -a]
+
+E[X] = sum_{i < x} i * P[X = i] + sum{i >= x} i * P[X = i]
+
+** Complexity Classes
+
+*** P
+
+Solvable in polynomial time
+
+*** NP
+
+Verifiable in polynomial time (There is a witness of polynomial size with which
+a solution can be verified in polynomial time)
+
+*** EXP/NEXP
+
+Similar to P/NP with exponential time
+
+*** co-X
+
+All problems such that the complement is in X
+
+*** RP (Randomized Polynomial Time)
+
+x in L => P[A accepts x] >= 1/2
+x not in L => P[A accepts x] = 0
+
+*** co-RP
+
+x in L => P[A accepts x] = 1
+x not in L => P[A accepts x] <= 1/2
+
+*** ZPP (Zero-Error Probabilistic Polynomial Time)
+
+Las-Vegas algorithms running in expected polynomial time
+ZPP = RP \cap co-RP
+
+*** PP (Probabilistic Polynomial Time)
+
+Two-sided monte carlo algorithms running in polynomial time
+
+x in L => P[A accepts x] > 1/2
+x not in L => P[A accepts x] < 1/2
+
+*** BPP (Bounded-Error Probabilistic Polynomial Time)
+
+PP with better bounds
+
+x in L => P[A accepts x] >= 3/4
+x not in L => P[A accepts x] <= 1/4
+
+** Minimax
+
+*** von Neumann's Theorem
+
+max_p min_q p^T M q = min_q max_p p^T M q
+M = payoff matrix
+
+*** Loomi's Theorem
+
+max_p min_j p^T M e_j = min_q max_i e_i^T M q
+
+*** Yao's Minimax Principle
+
+min_A E[C(I_p, A)] <= max_I E[C(I, A_q)]
+
+** Markov's Inequality
+
+P[X >= t] <= E[X] / t
+
+** Chebyshev's Inequality
+
+P[|X - E[X]| >= k] <= Var[X] / k^2
+
+** Chernoff Bounds
+
+*** General
+
+P[X >= a] <= E[exp(t * X)] / exp(t * a) for all t > 0
+P[X <= a] <= E[exp(t * X)] / exp(t * a) for all t < 0
+
+P[|X - mu| >= delta * mu] <= 2 * e^(-mu * delta^2 / 3)
+
+*** For X = sum_{i = 1 to n} X_i of Poisson trials
+
+**** for any delta > 0
+
+P[X >= (1 + delta)mu] < (exp(delta) / (1 + delta)^(1 + delta))^mu
+
+**** for 0 < delta <= 1
+
+P[X >= (1 + delta)mu] <= exp(-mu * delta^2 / 3)
+
+**** for R >= 6mu
+
+P[X >= R] <= 2^(-R)
+
+**** for 0 < delta < 1
+
+P[X <= (1 - delta)mu] <= (e^(-delta) / (1 - delta)^(1 - delta))^mu
+
+**** for 0 < delta < 1
+
+P[X <= (1 - delta)mu] <= e^(-mu * delta^2 / 2)
+
+** Treaps
+
+Find, insert, delete in O(log n)
+
+For any node x of rank k:
+
+*** Depth
+
+E[depth(x)] = H_k + H_{n - k + 1} - 1
+
+*** Spines
+
+E[R_x] = 1 - 1 / k
+E[L_x] = 1 - 1 / (n - k + 1)
+
+* Basic Results
+** Randomized Quicksort [MR3-7]
+** Min-Cut [MR7-9]
+** Binary Planar Partitions [MR10-14]
+** Verifying Matrix Multiplication [MU8-10]
+** Probabilistic Recurrence [MR15-16]
+** Complexity Classes [MR16-23]
+* Game-Theoretic Techniques
+** Game Tree Evaluation [MR28-30]
+** von Neumann's Minimax Theorem [MR31-33]
+** Yao's Technique [MR34-35]
+** Lower Bound for Game Tree Evaluation [MR36-37]
+** Randomness and Non-Uniformity [MR38-40]
+* Moments and Deviations
+** Occupancy Problems [MR43-45]
+** Bucket Sort [MU94]
+** Markov's Inequality [MR46]
+** Chebyshev's Inequality [MR47]
+** Median Algorithm [MU52-57]
+** Two-Point-Sampling [MR51-53]
+** Coupon Collector's Problem (!) [MU32-34,50-52]
+** Stable Marriage Problem [MR53-57]
+* Chernoff Bounds
+** Moment Generating Functions [MU61-63]
+** Deriving Chernoff Bounds [MU63]
+*** Bounds for Poisson Trials [MU63-67]
+*** Coin Flips [MU67]
+*** Parameter Estimation [MU67-68]
+** Better bounds for some special case [MU69-71]
+** Set Balancing [MU71-72]
+** Packet Routing on the Hypercube [MU72-78]
+** A Wiring Problem [MR79-82]
+* The Probabilistic Method
+** Basic Counting Argument [MU126-128]
+** Expectation Argument [MU128-130]
+** Derandomization [MU131-132]
+** Sample and Modify [MU133-134]
+* Data Structures
+** Treaps [MR201-208]
+** Universal Hashing [MR216-221]
+** Perfect Hashing (-)
