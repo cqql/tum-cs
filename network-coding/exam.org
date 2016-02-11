@@ -1,0 +1,148 @@
+#+TITLE: List of Topics for Network Coding
+#+AUTHOR: Marten Lienen
+
+* Notes
+
+** Maximum Achievable Data Rate
+
+Shannon-Hartley theorem
+
+r_max = B * log_2(1 + 10^(SNR_dB / 10))
+      = B * log_2(1 + 10^((antenna signal - antenna noise) / 10))
+
+** Estimated Optimal Transmission Count
+
+d_ij = 1 / (1 - prod_{k < i} epsilon_ik) * (1 + sum_{k < i} (d_kj (1 - epsilon_ik) prod_{l < k} epsilon_il))
+
+** Finite Field (Galois Field)
+
+p prime, n in N. F_q set with |F_q| = p^n. <F, +, *> is a finite field if
+- <F, +> is a commutative group
+- <F \ {0}, *> is a commutative group
+- * is distributive over +
+
+Z_q is only a finite field (with modulo) if n = 1, i.e. q = p
+
+** Binary Extension Fields
+
+F_q[x] = { sum_{i = 0 to n - 1} a_i x^i | a_i in F_2 }
+where q = 2^n
+
+** Geometric Series
+
+sum_{k = 0 to n - 1} r^k = (1 - r^n) / (1 - r)
+
+** Lossy non-hypergraph model
+
+Lossy wired networks, no broadcast model
+Resource share per arc
+
+*** Arc capacities
+
+z_k = tau_k * (1 - epsilon_k)
+
+*** Flow boundo
+
+x <= z
+
+*** Maximum s-t flow
+
+max r s.t. Mx = rd_st
+x >= 0
+x <= z
+z in Z = arc capacity region
+
+** Lossless hypergraph model
+
+Models broadcasts as hyperarcs
+Resource share per node
+
+*** Hyperarc capacity
+
+z_j = tau_tail(j)
+
+*** Flow bound
+
+Nx <= z
+
+*** Cut values
+
+v(S) = sum_{hyperarc j crossing cut S} z_j
+
+** Lossy hypergraph model
+
+Models broadcasts as hyperarcs and allows for losses
+
+*** Hyperarc-arc incidence matrix
+
+N = (N_jk) = 1 if k in A_j
+
+*** Hyperarc-hyperarc incidence matrix
+
+Q = (Q_ij) = 1 if A_i cap A_j not empty
+
+*** Hyperarc capacity
+
+z_j = tau_tail(j) * (prod_{k in A_j} (1 - epsilon_k)) * (prod_{k in N_tail(j) setminus A_j} epsilon_k)
+
+*** Broadcast capacity
+
+y_j = tau_tail(j) (1 - prod_{k in A_j} epsilon_k)
+
+*** Flow bound with hyperarc and broadcast capacity region
+
+Nx <= Qz = y
+
+*** Cut values
+
+N = set of nodes
+v(S) = sum_{hyperarc j from S _only_ into N setminus S} y_j
+
+*** maximum s-t flow
+
+max r s.t. Mx = rd_st
+x >= 0
+Nx <= y
+y in Y = Broadcast capacity region
+
+* Link Quality Estimation
+
+** Moving Average
+
+** Exponentially Weighted Moving Average (EWMA)
+
+* Metrics
+
+** Hop Count
+
+** Estimated Transmission Count
+
+** Estimated Optimal Transmission Count
+
+* Networks as Graphs
+
+** Graphs
+
+** Single Commodity Flows
+
+** Flow Problems
+
+** Multicommodity Flow Problems
+
+* Multicast
+
+** Store-Forward Multicast
+
+** Multicast Trees
+
+** Network Coding
+
+* Wireless Packet Networks
+
+** Graph Model
+
+** Hypergraphs
+
+** Lossless Hypergraph Model
+
+** Lossy Hypergraph Model
