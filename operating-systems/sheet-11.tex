@@ -1,0 +1,87 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Operating Systems, Sheet 11}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part 1)}
+
+\begin{equation*}
+  (10 + 12 + 2 + 18 + 38 + 34 + 32) * 6ms = 876ms
+\end{equation*}
+
+\subsection*{Part 2)}
+
+Reihenfolge
+\begin{equation*}
+  20, 22, 10, 6, 2, 38, 40
+\end{equation*}
+
+Dauer
+\begin{equation*}
+  (0 + 2 + 12 + 4 + 4 + 36 + 2) * 6ms = 360ms
+\end{equation*}
+
+\subsection*{Part 3)}
+
+Reihenfolge
+\begin{equation*}
+  20, 22, 38, 40, 10, 6, 2
+\end{equation*}
+
+Dauer
+\begin{equation*}
+  (0 + 2 + 16 + 2 + 30 + 4 + 4) * 6ms = 348ms
+\end{equation*}
+
+\section*{Exercise 3}
+
+\subsection*{Part 1)}
+
+\subsection*{Part 2)}
+
+\section*{Exercise 4}
+
+\subsection*{Part 1)}
+
+\subsection*{Part 2)}
+
+\section*{Exercise 5}
+
+\end{document}
