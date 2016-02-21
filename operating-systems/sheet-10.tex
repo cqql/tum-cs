@@ -1,0 +1,407 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Operating Systems, Sheet 10}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part 1)}
+
+\begin{tabular}{c|c|c|c|c}
+  Seite & Kachel & Ladezeit & R-Bit & M-Bit\\\hline
+  0 & 0 & 110 & 1 & 0\\
+  1 & 1 & 120 & 0 & 1\\
+  2 & 2 & 115 & 0 & 1\\
+  3 & - & 130 & 0 & 0\\
+  4 & - & - & 0 & 0\\
+  5 & 7 & 150 & 0 & 1\\
+  6 & - & - & 0 & 0\\
+  7 & 4 & 160 & 0 & 1\\
+  8 & - & - & 0 & 0\\
+  9 & - & 132 & 0 & 0\\
+  10 & 3 & 170 & 0 & 1\\
+  11 & - & 101 & 0 & 0\\
+  12 & 5 & 100 & 1 & 0\\
+  13 & 6 & 102 & 1 & 0
+\end{tabular}
+
+\subsection*{Part 2)}
+
+\subsubsection*{Question 1}
+
+256 Kbyte, weil die 64 Kbyte in 8 Kacheln aufgeteilt sind und somit 32 Seiten $32 * 8$ KByte groß sein müssen.
+Also ist die höchste, virtuelle Adresse $256 \cdot 2^{10} - 1 = 2^{18} - 1 = 262143$.
+
+\subsubsection*{Question 2}
+
+Die physische Adresse muss $\log_{2}(64 \cdot  2^{10}) = 16$ Bit und die virtuelle Adresse $\log_{2}(256 \cdot 2^{10}) = 18$ Bit lang sein.
+
+\subsubsection*{Question 3}
+
+\begin{description}
+\item[(a)] Byte $8192$ ist das erste Byte der zweiten Kachel und somit der Seite $1$.
+  Also wurde die Adresse $1 \cdot 8192 + 0 = 8192$ verwendet.
+\item[(b)] Die vierte Kachel speichert gerade Seite $11$.
+  Also wurde das Byte $11 \cdot 8192 + 565 = 90677$ angesprochen.
+\end{description}
+
+\subsubsection*{Question 4}
+
+\begin{description}
+\item[73868] $73868 = 9 \cdot 8192 + 140$.
+  Also wird Seite $9$ angesprochen, die in Kachel 7 liegt.
+  Somit ist die Hauptspeicheradresse $7 \cdot 8192 + 149 = 57484$.
+\item[90113] $90113 = 11 \cdot 8192 + 1$.
+  Seite $11$, Offset $1$ in Kachel $4$.
+  Hauptspeicheradresse $4 \cdot 8192 + 1 = 32769$.
+\item[42871] $42871 = 5 \cdot 8192 + 1911$.
+  Seite $5$, Offset $1911$.
+  Das gibt einen Page-Fault, weil Seite $5$ nicht geladen ist.
+  Bei einer FIFO-Strategie würde Seite $12$ entladen und Seite $5$ in Kachel $5$ gespeichert werden, was zu einer Hauptspeicheradresse von $42871$ führen würde.
+\end{description}
+
+\section*{Exercise 2}
+
+\begin{description}
+\item[first-fit] Use the first fitting space from the beginning
+\item[next-fit] Use the first fitting space starting from the position where last search ended
+\item[best-fit] Use the space that fits and wastes the least space
+\item[worst-fit] Use the biggest available space
+\end{description}
+
+\section*{Exercise 3}
+
+\subsection*{first fit}
+
+\begin{tabular}{c|c}
+  Anforderung & Ergebnis\\\hline
+  30 kB & (30) - 70 - 400 - 250 - 200 - 50\\
+  60 kB & (30) - (60) - 10 - 400 - 250 - 200 - 50\\
+  120 kB & (30) - (60) - 10 - (120) - 280 - 250 - 200 - 50\\
+  20 kB & (30) - (60) - 10 - (120) - (20) - 260 - 250 - 200 - 50\\
+  100 kB & (30) - (60) - 10 - (120) - (20) - (100) - 160 - 250 - 200 - 50\\
+  250 kB & (30) - (60) - 10 - (120) - (20) - (100) - 160 - (250) - 200 - 50
+\end{tabular}
+
+\subsection*{next fit}
+
+\begin{tabular}{c|c}
+  Anforderung & Ergebnis\\\hline
+  30 kB & (30) - 70 - 400 - 250 - 200 - 50\\
+  60 kB & (30) - (60) - 10 - 400 - 250 - 200 - 50\\
+  120 kB & (30) - (60) - 10 - (120) - 280 - 250 - 200 - 50\\
+  20 kB & (30) - (60) - 10 - (120) - (20) - 260 - 250 - 200 - 50\\
+  100 kB & (30) - (60) - 10 - (120) - (20) - (100) - 160 - 250 - 200 - 50\\
+  250 kB & (30) - (60) - 10 - (120) - (20) - (100) - 160 - (250) - 200 - 50
+\end{tabular}
+
+\subsection*{best fit}
+
+\begin{tabular}{c|c}
+  Anforderung & Ergebnis\\\hline
+  30 kB & 100 - 400 - 250 - 200 - (30) - 20\\
+  60 kB & (60) - 40 - 400 - 250 - 200 - (30) - 20\\
+  120 kB & (60) - 40 - 400 - 250 - (120) - 80 - (30) - 20\\
+  20 kB & (60) - 40 - 400 - 250 - (120) - 80 - (30) - (20)\\
+  100 kB & (60) - 40 - 400 - (100) - 150 - (120) - 80 - (30) - (20)\\
+  250 kB & (60) - 40 - (250) - 150 - (100) - 150 - (120) - 80 - (30) - (20)
+\end{tabular}
+
+\subsection*{worst fit}
+
+\begin{tabular}{c|c}
+  Anforderung & Ergebnis\\\hline
+  30 kB & 100 - (30) - 370 - 250 - 200 - 50\\
+  60 kB & 100 - (30) - (60) - 310 - 250 - 200 - 50\\
+  120 kB & 100 - (30) - (60) - (120) - 190 - 250 - 200 - 50\\
+  20 kB & 100 - (30) - (60) - (120) - 190 - (20) - 230 - 200 - 50\\
+  100 kB & 100 - (30) - (60) - (120) - 190 - (20) - (100) - 130 - 200 - 50\\
+  250 kB & Fehler bzw. Defragmentierung notwendig
+\end{tabular}
+
+\section*{Exercise 4}
+
+\subsection*{Part 1)}
+
+\subsubsection*{FIFO}
+
+\begin{tabular}{c|c|c|c|c|c}
+  Zugriff & $f_{1}$ & $f_{2}$ & $f_{3}$ & $f_{4}$ & Page Fault?\\\hline
+  1 & 1 & - & - & - & 0\\
+  3 & 1 & 3 & - & - & 0\\
+  5 & 1 & 3 & 5 & - & 0\\
+  4 & 1 & 3 & 5 & 4 & 0\\
+  2 & 2 & 3 & 5 & 4 & 1\\
+  4 & 2 & 3 & 5 & 4 & 1\\
+  3 & 2 & 3 & 5 & 4 & 1\\
+  2 & 2 & 3 & 5 & 4 & 1\\
+  1 & 2 & 1 & 5 & 4 & 2\\
+  0 & 2 & 1 & 0 & 4 & 3\\
+  5 & 2 & 1 & 0 & 5 & 4\\
+  3 & 3 & 1 & 0 & 5 & 5\\
+  5 & 3 & 1 & 0 & 5 & 5\\
+  0 & 3 & 1 & 0 & 5 & 5\\
+  4 & 3 & 4 & 0 & 5 & 6\\
+  3 & 3 & 4 & 0 & 5 & 6\\
+  5 & 3 & 4 & 0 & 5 & 6\\
+  4 & 3 & 4 & 0 & 5 & 6\\
+  3 & 3 & 4 & 0 & 5 & 6\\
+  2 & 3 & 4 & 2 & 5 & 7\\
+  1 & 3 & 4 & 2 & 1 & 8\\
+  3 & 3 & 4 & 2 & 1 & 8\\
+  4 & 3 & 4 & 2 & 1 & 8\\
+  5 & 5 & 4 & 2 & 1 & 9 + 4 (vom Anfang)
+\end{tabular}
+
+\subsubsection*{LIFO}
+
+\begin{tabular}{c|c|c|c|c|c}
+  Zugriff & $f_{1}$ & $f_{2}$ & $f_{3}$ & $f_{4}$ & Page Fault?\\\hline
+  1 & 1 & - & - & - & 1\\
+  3 & 1 & 3 & - & - & 2\\
+  5 & 1 & 3 & 5 & - & 3\\
+  4 & 1 & 3 & 5 & 4 & 4\\
+  2 & 1 & 3 & 5 & 2 & 5\\
+  4 & 1 & 3 & 5 & 4 & 6\\
+  3 & 1 & 3 & 5 & 4 & 6\\
+  2 & 1 & 3 & 5 & 2 & 7\\
+  1 & 1 & 3 & 5 & 2 & 7\\
+  0 & 1 & 3 & 5 & 0 & 8\\
+  5 & 1 & 3 & 5 & 0 & 8\\
+  3 & 1 & 3 & 5 & 0 & 8\\
+  5 & 1 & 3 & 5 & 0 & 8\\
+  0 & 1 & 3 & 5 & 0 & 8\\
+  4 & 1 & 3 & 5 & 4 & 9\\
+  3 & 1 & 3 & 5 & 4 & 9\\
+  5 & 1 & 3 & 5 & 4 & 9\\
+  4 & 1 & 3 & 5 & 4 & 9\\
+  3 & 1 & 3 & 5 & 4 & 9\\
+  2 & 1 & 3 & 5 & 2 & 10\\
+  1 & 1 & 3 & 5 & 2 & 10\\
+  3 & 1 & 3 & 5 & 2 & 10\\
+  4 & 1 & 3 & 5 & 4 & 11\\
+  5 & 1 & 3 & 5 & 4 & 11
+\end{tabular}
+
+\subsubsection*{LRU}
+
+\begin{tabular}{c|c|c|c|c|c}
+  Zugriff & $f_{1}$ & $f_{2}$ & $f_{3}$ & $f_{4}$ & Page Fault?\\\hline
+  1 & 1 & - & - & - & 1\\
+  3 & 1 & 3 & - & - & 2\\
+  5 & 1 & 3 & 5 & - & 3\\
+  4 & 1 & 3 & 5 & 4 & 4\\
+  2 & 2 & 3 & 5 & 4 & 5\\
+  4 & 2 & 3 & 5 & 4 & 5\\
+  3 & 2 & 3 & 5 & 4 & 5\\
+  2 & 2 & 3 & 5 & 4 & 5\\
+  1 & 2 & 3 & 1 & 4 & 6\\
+  0 & 2 & 3 & 1 & 0 & 7\\
+  5 & 2 & 5 & 1 & 0 & 8\\
+  3 & 3 & 5 & 1 & 0 & 9\\
+  5 & 3 & 5 & 1 & 0 & 9\\
+  0 & 3 & 5 & 1 & 0 & 9\\
+  4 & 3 & 5 & 4 & 0 & 10\\
+  3 & 3 & 5 & 4 & 0 & 10\\
+  5 & 3 & 5 & 4 & 0 & 10\\
+  4 & 3 & 5 & 4 & 0 & 10\\
+  3 & 3 & 5 & 4 & 0 & 10\\
+  2 & 3 & 5 & 4 & 2 & 11\\
+  1 & 3 & 1 & 4 & 2 & 12\\
+  3 & 3 & 1 & 4 & 2 & 12\\
+  4 & 3 & 1 & 4 & 2 & 12\\
+  5 & 3 & 1 & 4 & 5 & 13
+\end{tabular}
+
+\subsubsection*{LFU}
+
+\begin{tabular}{c|c|c|c|c|c|c}
+  Zugriff & $f_{1}$ & $f_{2}$ & $f_{3}$ & $f_{4}$ & Page Fault? & Frequencies\\\hline
+  1 & 1 & - & - & - & 1 & 0-1-0-0-0-0\\
+  3 & 1 & 3 & - & - & 2 & 0-1-0-1-0-0\\
+  5 & 1 & 3 & 5 & - & 3 & 0-1-0-1-0-1\\
+  4 & 1 & 3 & 5 & 4 & 4 & 0-1-0-1-1-1\\
+  2 & 2 & 3 & 5 & 4 & 5 & 0-1-1-1-1-1\\
+  4 & 2 & 3 & 5 & 4 & 5 & 0-1-1-1-2-1\\
+  3 & 2 & 3 & 5 & 4 & 5 & 0-1-1-2-2-1\\
+  2 & 2 & 3 & 5 & 4 & 5 & 0-1-2-2-2-1\\
+  1 & 2 & 3 & 1 & 4 & 6 & 0-2-2-2-2-1\\
+  0 & 2 & 3 & 0 & 4 & 7 & 1-2-2-2-2-1\\
+  5 & 2 & 3 & 5 & 4 & 8 & 1-2-2-2-2-2\\
+  3 & 2 & 3 & 5 & 4 & 8 & 1-2-2-3-2-2\\
+  5 & 2 & 3 & 5 & 4 & 8 & 1-2-2-3-2-3\\
+  0 & 0 & 3 & 5 & 4 & 9 & 2-2-2-3-2-3\\
+  4 & 0 & 3 & 5 & 4 & 9 & 2-2-2-3-3-3\\
+  3 & 0 & 3 & 5 & 4 & 9 & 2-2-2-4-3-3\\
+  5 & 0 & 3 & 5 & 4 & 9 & 2-2-2-4-3-4\\
+  4 & 0 & 3 & 5 & 4 & 9 & 2-2-2-4-4-4\\
+  3 & 0 & 3 & 5 & 4 & 9 & 2-2-2-5-4-4\\
+  2 & 2 & 3 & 5 & 4 & 10 & 2-2-3-5-4-4\\
+  1 & 1 & 3 & 5 & 4 & 11 & 2-3-3-5-4-4\\
+  3 & 1 & 3 & 5 & 4 & 11 & 2-3-3-6-4-4\\
+  4 & 1 & 3 & 5 & 4 & 11 & 2-3-3-6-5-4\\
+  5 & 1 & 3 & 5 & 4 & 11 & 2-3-3-6-5-5
+\end{tabular}
+
+\subsection*{Part 2)}
+
+\subsubsection*{FIFO}
+
+\begin{tabular}{c|c|c|c|c|c|c}
+  Zugriff & $f_{1}$ & $f_{2}$ & $f_{3}$ & $f_{4}$ & $f_{5}$ & Page Fault?\\\hline
+  1 & 1 & - & - & - & - & 1\\
+  3 & 1 & 3 & - & - & - & 2\\
+  5 & 1 & 3 & 5 & - & - & 3\\
+  4 & 1 & 3 & 5 & 4 & - & 4\\
+  2 & 1 & 3 & 5 & 4 & 2 & 5\\
+  4 & 1 & 3 & 5 & 4 & 2 & 5\\
+  3 & 1 & 3 & 5 & 4 & 2 & 5\\
+  2 & 1 & 3 & 5 & 4 & 2 & 5\\
+  1 & 1 & 3 & 5 & 4 & 2 & 5\\
+  0 & 0 & 3 & 5 & 4 & 2 & 6\\
+  5 & 0 & 3 & 5 & 4 & 2 & 6\\
+  3 & 0 & 3 & 5 & 4 & 2 & 6\\
+  5 & 0 & 3 & 5 & 4 & 2 & 6\\
+  0 & 0 & 3 & 5 & 4 & 2 & 6\\
+  4 & 0 & 3 & 5 & 4 & 2 & 6\\
+  3 & 0 & 3 & 5 & 4 & 2 & 6\\
+  5 & 0 & 3 & 5 & 4 & 2 & 6\\
+  4 & 0 & 3 & 5 & 4 & 2 & 6\\
+  3 & 0 & 3 & 5 & 4 & 2 & 6\\
+  2 & 0 & 3 & 5 & 4 & 2 & 6\\
+  1 & 0 & 1 & 5 & 4 & 2 & 7\\
+  3 & 0 & 1 & 3 & 4 & 2 & 8\\
+  4 & 0 & 1 & 3 & 4 & 2 & 8\\
+  5 & 0 & 1 & 3 & 5 & 2 & 9
+\end{tabular}
+
+\subsubsection*{LIFO}
+
+\begin{tabular}{c|c|c|c|c|c|c}
+  Zugriff & $f_{1}$ & $f_{2}$ & $f_{3}$ & $f_{4}$ & $f_{5}$ & Page Fault?\\\hline
+  1 & 1 & - & - & - & - & 1\\
+  3 & 1 & 3 & - & - & - & 2\\
+  5 & 1 & 3 & 5 & - & - & 3\\
+  4 & 1 & 3 & 5 & 4 & - & 4\\
+  2 & 1 & 3 & 5 & 4 & 2 & 5\\
+  4 & 1 & 3 & 5 & 4 & 2 & 5\\
+  3 & 1 & 3 & 5 & 4 & 2 & 5\\
+  2 & 1 & 3 & 5 & 4 & 2 & 5\\
+  1 & 1 & 3 & 5 & 4 & 2 & 5\\
+  0 & 1 & 3 & 5 & 4 & 0 & 6\\
+  5 & 1 & 3 & 5 & 4 & 0 & 6\\
+  3 & 1 & 3 & 5 & 4 & 0 & 6\\
+  5 & 1 & 3 & 5 & 4 & 0 & 6\\
+  0 & 1 & 3 & 5 & 4 & 0 & 6\\
+  4 & 1 & 3 & 5 & 4 & 0 & 6\\
+  3 & 1 & 3 & 5 & 4 & 0 & 6\\
+  5 & 1 & 3 & 5 & 4 & 0 & 6\\
+  4 & 1 & 3 & 5 & 4 & 0 & 6\\
+  3 & 1 & 3 & 5 & 4 & 0 & 6\\
+  2 & 1 & 3 & 5 & 4 & 2 & 7\\
+  1 & 1 & 3 & 5 & 4 & 2 & 7\\
+  3 & 1 & 3 & 5 & 4 & 2 & 7\\
+  4 & 1 & 3 & 5 & 4 & 2 & 7\\
+  5 & 1 & 3 & 5 & 4 & 2 & 7\\
+\end{tabular}
+
+\subsubsection*{LRU}
+
+\begin{tabular}{c|c|c|c|c|c|c}
+  Zugriff & $f_{1}$ & $f_{2}$ & $f_{3}$ & $f_{4}$ & $f_{5}$ & Page Fault?\\\hline
+  1 & 1 & - & - & - & - & 1\\
+  3 & 1 & 3 & - & - & - & 2\\
+  5 & 1 & 3 & 5 & - & - & 3\\
+  4 & 1 & 3 & 5 & 4 & - & 4\\
+  2 & 1 & 3 & 5 & 4 & 2 & 5\\
+  4 & 1 & 3 & 5 & 4 & 2 & 5\\
+  3 & 1 & 3 & 5 & 4 & 2 & 5\\
+  2 & 1 & 3 & 5 & 4 & 2 & 5\\
+  1 & 1 & 3 & 5 & 4 & 2 & 5\\
+  0 & 1 & 3 & 0 & 4 & 2 & 6\\
+  5 & 1 & 3 & 0 & 5 & 2 & 7\\
+  3 & 1 & 3 & 0 & 5 & 2 & 7\\
+  5 & 1 & 3 & 0 & 5 & 2 & 7\\
+  0 & 1 & 3 & 0 & 5 & 2 & 7\\
+  4 & 1 & 3 & 0 & 5 & 4 & 8\\
+  3 & 1 & 3 & 0 & 5 & 4 & 8\\
+  5 & 1 & 3 & 0 & 5 & 4 & 8\\
+  4 & 1 & 3 & 0 & 5 & 4 & 8\\
+  3 & 1 & 3 & 0 & 5 & 4 & 8\\
+  2 & 2 & 3 & 0 & 5 & 4 & 9\\
+  1 & 2 & 3 & 1 & 5 & 4 & 10\\
+  3 & 2 & 3 & 1 & 5 & 4 & 10\\
+  4 & 2 & 3 & 1 & 5 & 4 & 10\\
+  5 & 2 & 3 & 1 & 5 & 4 & 10
+\end{tabular}
+
+\subsubsection*{LFU}
+
+\begin{tabular}{c|c|c|c|c|c|c|c}
+  Zugriff & $f_{1}$ & $f_{2}$ & $f_{3}$ & $f_{4}$ & $f_{5}$ & Page Fault? & Frequencies\\\hline
+  1 & 1 & - & - & - & - & 1 & 0-1-0-0-0-0\\
+  3 & 1 & 3 & - & - & - & 2 & 0-1-0-1-0-0\\
+  5 & 1 & 3 & 5 & - & - & 3 & 0-1-0-1-0-1\\
+  4 & 1 & 3 & 5 & 4 & - & 4 & 0-1-0-1-1-1\\
+  2 & 1 & 3 & 5 & 4 & 2 & 5 & 0-1-1-1-1-1\\
+  4 & 1 & 3 & 5 & 4 & 2 & 5 & 0-1-1-1-2-1\\
+  3 & 1 & 3 & 5 & 4 & 2 & 5 & 0-1-1-2-2-1\\
+  2 & 1 & 3 & 5 & 4 & 2 & 5 & 0-1-2-2-2-1\\
+  1 & 1 & 3 & 5 & 4 & 2 & 5 & 0-2-2-2-2-1\\
+  0 & 1 & 3 & 0 & 4 & 2 & 6 & 1-2-2-2-2-1\\
+  5 & 1 & 3 & 5 & 4 & 2 & 7 & 1-2-2-2-2-2\\
+  3 & 1 & 3 & 5 & 4 & 2 & 7 & 1-2-2-2-2-2\\
+  5 & 1 & 3 & 5 & 4 & 2 & 7 & 1-2-2-2-2-2\\
+  0 & 0 & 3 & 5 & 4 & 2 & 8 & 2-2-2-2-2-2\\
+  4 & 0 & 3 & 5 & 4 & 2 & 8 & 2-2-2-2-3-2\\
+  3 & 0 & 3 & 5 & 4 & 2 & 8 & 2-2-2-3-3-2\\
+  5 & 0 & 3 & 5 & 4 & 2 & 8 & 2-2-2-3-3-3\\
+  4 & 0 & 3 & 5 & 4 & 2 & 8 & 2-2-2-3-4-3\\
+  3 & 0 & 3 & 5 & 4 & 2 & 8 & 2-2-2-4-4-3\\
+  2 & 0 & 3 & 5 & 4 & 2 & 8 & 2-2-3-4-4-3\\
+  1 & 1 & 3 & 5 & 4 & 2 & 9 & 2-3-3-4-4-3\\
+  3 & 1 & 3 & 5 & 4 & 2 & 9 & 2-3-3-5-4-3\\
+  4 & 1 & 3 & 5 & 4 & 2 & 9 & 2-3-3-5-5-3\\
+  5 & 1 & 3 & 5 & 4 & 2 & 9 & 2-3-3-5-5-4
+\end{tabular}
+
+\subsection*{Part 3)}
+
+Die Anzahl der Page Faults sollte mit steigender Kachelanzahl sinken.
+
+\end{document}
