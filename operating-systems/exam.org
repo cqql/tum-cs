@@ -1,0 +1,12 @@
+#+TITLE: Operating Systems Notes
+
+* Petri-Netze
+* Semaphore
+* Arten von Verklemmung
+** Dead-Lock
+** Starvation
+* Verklemmungsvermeidung
+* Verklemmungserkennung
+* Scheduling
+* Seiten/Kacheln
+* Segmente
