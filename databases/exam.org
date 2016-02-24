@@ -1,0 +1,30 @@
+#+TITLE: Databases Exam Notes
+* ER-Diagramme / Relationales Schema
+** Funktionen / Partielle Funktionen
+* Joins
+* Relationenalgebra
+* Tupelkalkül
+* Domänenkalkül
+* SQL
+* Normalformen
+** Funktionale Abhängigkeiten
+** Kandidatenschlüssel
+** Attributhülle
+** Kanonische Überdeckung
+** Synthesealgorithmus
+** Dekompositionsalgorithmus
+** Multi-Valued Dependencies
+* RAID
+* Datenstrukturen
+** B(,*,+)-Bäume
+** Erweiterbare Hashtabelle
+** R-Bäume
+* Query-Optimierung
+** Kanonische Übersetzung
+** Optimierungstechniken
+* Join
+** Hash-Join
+** Nested-Loop
+** Sort/Merge
+* Logging
+** Write-Ahead-Log
