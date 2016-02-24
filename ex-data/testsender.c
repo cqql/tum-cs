@@ -144,6 +144,13 @@ static struct argp_option options[] = {
 		.flags  = 0,
 		.doc	= "Exit after reaching sequence number 'c'"
 	},
+	{
+		.name   = "bu",
+		.key	= 'u',
+		.arg    = "BU",
+		.flags  = 0,
+		.doc	= "Only make the first u frames be beacons, send the rest at maximum rate."
+	},
 	{NULL}
 };
 
@@ -164,6 +171,7 @@ static struct config {
 	u64 freq;
 	int freq1;
 	float beaconrate;
+	size_t beaconuntil;
 	size_t addll;
 	size_t maxseq;
 	struct {
@@ -269,6 +277,9 @@ parse_opt(int key, char *arg, struct argp_state *state)
 	case 'c':
 		config->maxseq = atol(arg);
 		break;
+	case 'u':
+		config->beaconuntil = atol(arg);
+		break;
 	case ARGP_KEY_ARG:
 		switch (state->arg_num) {
 		case FIX_ARG_IF:
@@ -351,7 +362,7 @@ static void radh(moep_dev_t dev, moep_frame_t frame)
 	if(pll >= sizeof(struct frinfo)) {
 		size_t addl = pll - sizeof(struct frinfo);
 		struct timespec tmp;
-		clock_gettime(CLOCK_REALTIME, &tmp);
+		clock_gettime(CLOCK_MONOTONIC, &tmp);
 		printf("%"PRIu64"-%"PRIu64" %"PRIu64"-%"PRIu64" %zd %"PRIu64"\n", is->sec, is->nsec, tmp.tv_sec, tmp.tv_nsec, addl, is->seq);
 	}
 
@@ -390,7 +401,7 @@ static void send_beacon()
 	size_t pll = sizeof(struct frinfo) + cfg.addll;
 	struct frinfo *is = malloc(pll);
 	struct timespec tmp;
-	clock_gettime(CLOCK_REALTIME, &tmp);
+	clock_gettime(CLOCK_MONOTONIC, &tmp);
 	is->sec = tmp.tv_sec;
 	is->nsec = tmp.tv_nsec;
 	is->seq = seq++;
@@ -407,6 +418,7 @@ static void send_beacon()
 	if (moep_dev_tx(rad, frame)) {
 		fprintf(stderr, "ptmbeacon: error: failed to send frame\n");
 	}
+	//printf("Faia!\n");
 
 	moep_frame_destroy(frame);
 	free(is);
@@ -428,7 +440,8 @@ static int run()
 
 	interval.tv_sec = 1/cfg.beaconrate;
 	interval.tv_nsec = ((int)(1e9/cfg.beaconrate))%1000000000;
-	fprintf(stderr, "firing at %"PRIu64"-%"PRIu64".\n", interval.tv_sec, interval.tv_nsec);
+	if (cfg.beaconrate > 1e-9)
+		fprintf(stderr, "baconing at %"PRIu64"-%"PRIu64".\n", interval.tv_sec, interval.tv_nsec);
 
 	sigfillset(&blockset);
 	if (sigprocmask(SIG_SETMASK, &blockset, &oldset)) {
@@ -442,7 +455,8 @@ static int run()
 		FD_ZERO(&ior);
 		FD_SET(tx_event, &ior);
 
-		clock_gettime(CLOCK_REALTIME, &timeout);
+		if (cfg.beaconrate < 1e9)
+			clock_gettime(CLOCK_MONOTONIC, &timeout);
 		if (moep_select(tx_event + 1, &ior, NULL, NULL, NULL, &oldset) < 0) {
 			if (errno != EINTR) {
 				fprintf(stderr, "ptmbeacon: error: %s\n", strerror(errno));
@@ -460,16 +474,18 @@ static int run()
 		if(seq == cfg.maxseq)
 			break;
 
-		clock_gettime(CLOCK_REALTIME, &tmp);
-		timespecsub(&timeout, &tmp);
-		while (timeout.tv_sec < 0)
-			timespecadd(&timeout, &interval);
-		if (moep_select(0, NULL, NULL, NULL, &timeout, &oldset) < 0) {
-			if (errno != EINTR) {
-				fprintf(stderr, "ptmbeacon: error: %s\n", strerror(errno));
-				free(cfg.hwaddr);
-				moep_dev_close(rad);
-				return -1;
+		if (cfg.beaconrate < 1e9 && ((seq-1) <= cfg.beaconuntil || cfg.beaconuntil == -1)) {
+			clock_gettime(CLOCK_MONOTONIC, &tmp);
+			timespecsub(&timeout, &tmp);
+			while (timeout.tv_sec < 0)
+				timespecadd(&timeout, &interval);
+			if (moep_select(0, NULL, NULL, NULL, &timeout, &oldset) < 0) {
+				if (errno != EINTR) {
+					fprintf(stderr, "ptmbeacon: error: %s\n", strerror(errno));
+					free(cfg.hwaddr);
+					moep_dev_close(rad);
+					return -1;
+				}
 			}
 		}
 	}
@@ -500,6 +516,8 @@ int main(int argc, char **argv)
 	cfg.beaconrate = 20;
 	cfg.mtu = 1500;
 	cfg.moep_chan_width = MOEP80211_CHAN_WIDTH_20_NOHT;
+	cfg.maxseq = -1;
+	cfg.beaconuntil = -1;
 	argp_parse(&argp, argc, argv, 0, 0, &cfg);
 
 	if (!(tap = moep_dev_ieee8023_tap_open(cfg.hwaddr, &cfg.ip, 24,
