@@ -86,16 +86,25 @@ Some reasonable things to expect from a trust function are
 
 \section{Predicting Redundancy}
 
+Let $P \sim Beta(\alpha, \beta)$ be the current estimate for the packet success probability.
+Then the amount of redundant packets necessary to send $n$ packets depending on $P$ is $X \mid P \sim NB(n, P)$ where $NB$ is the negative binomial distribution.
+However, there is also a distribution for the joint distribution of $P$ and $X \mid P$ called the beta negative binomial distribution, so that
 \begin{equation*}
-  P \sim Beta(\alpha, \beta)
+  X \sim BNB(n, \alpha, \beta)
 \end{equation*}
+So $X$ is the number of redundant packets necessary to have $n$ successful transmissions when the packet success probability is beta distributed with parameters $\alpha$ and $\beta$ and therefore $X$ has support on $\mathbb{N}_{0}$.
+In the end we are interested in the number of redundant packets $k$ that we have to send so that the destination receives $n$ packets with a probability of least some lower bound $p_{0}$.
+More formally we are interested in a $k \in \mathbb{N}_{0}$ such that
 \begin{equation*}
-  X \sim NB(n, P)
+  P[X \le k] = CDF_{X}(k) \ge p_{0} \Leftrightarrow k = CDF_{X}^{-1}(p_{0})
 \end{equation*}
+Unfortunately there are neither closed-form expressions for the cumulative distribution function of a beta negative binomial distribution nor its inverse, so we have to resort to a simple summation over the PMF.
 \begin{align*}
-  P[X > k] & = \int_{0}^{1} P[X > k \mid P = p] \cdot P[P = p]\ dp\\
-           & = \int_{0}^{1} I_{p}(k + 1, n) \cdot \frac{1}{B(\alpha, \beta)} p^{\alpha - 1}(1 - p)^{\beta - 1}\ dp\\
-           & = \int_{0}^{1} \frac{B(p; k + 1, n)}{B(k + 1, n)} \cdot \frac{1}{B(\alpha, \beta)} p^{\alpha - 1}(1 - p)^{\beta - 1}\ dp\\
+  CDF_{X}^{-1}(p_{0}) & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} P[X = i] \ge p_{0} \right)\\
+                      & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} \frac{\Gamma(n + i)}{i! \Gamma(n)} \frac{B(\alpha + n, \beta + i)}{B(\alpha, \beta)} \ge p_{0} \right)\\
+                      & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} \frac{\Gamma(n + i)}{i! \Gamma(n)} B(\alpha + n, \beta + i) \ge p_{0} \cdot B(\alpha, \beta) \right)\\
+                      & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} \frac{\Gamma(n + i)}{i! \Gamma(n)} \frac{\Gamma(\alpha + n) \Gamma(\beta + i)}{\Gamma(\alpha + \beta + n + i)} \ge p_{0} \cdot \frac{\Gamma(\alpha) \Gamma(\beta)}{\Gamma(\alpha + \beta)} \right)\\
+                      & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} \frac{(n + i)!}{i! n!} \frac{\Gamma(\alpha + n) \Gamma(\beta + i)}{\Gamma(\alpha + \beta + n + i)} \ge p_{0} \cdot \frac{\Gamma(\alpha) \Gamma(\beta)}{\Gamma(\alpha + \beta)} \right)\\
 \end{align*}
 
 \section{Linux}
