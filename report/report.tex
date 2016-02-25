@@ -31,7 +31,7 @@
 % Do not indent paragraphs
 \usepackage{parskip}
 
-\title{Packet Success Probability}
+\title{Predicting Lost Packets}
 \author{Marten Lienen, Julius Michaelis}
 
 \begin{document}
@@ -70,6 +70,20 @@ Some reasonable things to expect from a trust function are
 \subsection{$T = 1$}
 
 \subsection{$T(t) = \exp(-t)$}
+
+\section{Predicting Redundancy}
+
+\begin{equation*}
+  P \sim Beta(\alpha, \beta)
+\end{equation*}
+\begin{equation*}
+  X \sim NB(n, P)
+\end{equation*}
+\begin{align*}
+  P[X > k] & = \int_{0}^{1} P[X > k \mid P = p] \cdot P[P = p]\ dp\\
+           & = \int_{0}^{1} I_{p}(k + 1, n) \cdot \frac{1}{B(\alpha, \beta)} p^{\alpha - 1}(1 - p)^{\beta - 1}\ dp\\
+           & = \int_{0}^{1} \frac{B(p; k + 1, n)}{B(k + 1, n)} \cdot \frac{1}{B(\alpha, \beta)} p^{\alpha - 1}(1 - p)^{\beta - 1}\ dp\\
+\end{align*}
 
 \section{Linux}
 
