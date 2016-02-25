@@ -38,6 +38,19 @@
 
 \maketitle
 
+\section{The Problem}
+
+In network coding you group packets in generations of $n$ packets and send random linear combinations of them to your communication partners.
+We know that the network is lossy -- the wireless network in particular -- and with this technique network coding already accounts for it because it does not matter which packets the destination receives as long as it receives $n$ packets at all, save for occasionally occuring combinations that are linearly dependent on previous packets.
+So the sender has to keep sending random linear combinations until it receives $n$ ACKs.
+This effort could be diminished if you knew in before how many packets would get lost and could inject a proportionate amount of redundancy into the network right from the beginning.
+
+Our contributions to this problem are
+\begin{itemize}
+\item a model for estimation of the packet success probility distribution instead of only its mean
+\item a formula to derive a number $n'$ of redundant packets to inject so that the destination receives $n$ packets with a certain probability
+\end{itemize}
+
 \section{Model}
 
 A dataflow is a sequence of packets $p_{1}, p_{2}, \dots$ sent at times $t_{1}, t_{2}, \dots$ from a source $S$ to a destination $D$.
