@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+
+import argparse
+
+import matplotlib.pyplot as pp
+import numpy as np
+
+from distribution import BetaNegativeBinomial
+
+parser = argparse.ArgumentParser(
+    description="Plot the Contour of a Beta-Negative-Binomial Distribution")
+parser.add_argument("-n", type=int, default=64, help="Number of packets")
+parser.add_argument("-p",
+                    "--p0",
+                    type=float,
+                    default=0.9,
+                    help="Minimum success probability")
+parser.add_argument("--alpha-min",
+                    type=int,
+                    default=1,
+                    help="Minimum alpha parameter (inclusive)")
+parser.add_argument("--alpha-max",
+                    type=int,
+                    default=64,
+                    help="Maximum alpha parameter (inclusive)")
+parser.add_argument("--beta-min",
+                    type=int,
+                    default=1,
+                    help="Minimum beta parameter (inclusive)")
+parser.add_argument("--beta-max",
+                    type=int,
+                    default=64,
+                    help="Maximum beta parameter (inclusive)")
+parser.add_argument("--exact",
+                    action="store_const",
+                    const=True,
+                    default=False,
+                    help="Use the exact inverse CDF")
+
+arguments = parser.parse_args()
+
+n = arguments.n
+p0 = arguments.p0
+a_min = arguments.alpha_min
+a_max = arguments.alpha_max
+b_min = arguments.beta_min
+b_max = arguments.beta_max
+
+X, Y = np.meshgrid(np.arange(a_min, a_max + 1), np.arange(b_min, b_max + 1))
+Z = np.ndarray(X.shape)
+for y in range(Z.shape[0]):
+    for x in range(Z.shape[1]):
+        if arguments.exact:
+            Z[y, x] = BetaNegativeBinomial(n, X[y, x], Y[y, x]).iCDF(p0)
+        else:
+            Z[y, x] = BetaNegativeBinomial(n, X[y, x], Y[y, x]).iCDFapprox(p0)
+
+
+pp.xlabel(r"$\alpha$-Parameter")
+pp.ylabel(r"$\beta$-Parameter")
+pp.imshow(Z,
+          cmap="viridis",
+          extent=(a_min, a_max, b_min, b_max),
+          origin="lower")
+cb = pp.colorbar()
+cb.set_label("Redundancy")
+contours = [10 * i for i in range(int(n * 4 / 10))]
+contour = pp.contour(X, Y, Z, contours)
+pp.clabel(contour, inline=1, fontsize=10, fmt="%1.0f")
+pp.show()
