@@ -30,7 +30,7 @@ else:
     beta = 1 / arguments.mean - 1
 
 n = arguments.n
-kmax = 300
+kmax = 500
 p0 = arguments.p0
 rvs = [BetaNegativeBinomial(n, k * alpha, k * beta) for k in range(1, kmax)]
 

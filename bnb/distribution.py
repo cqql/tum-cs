@@ -45,15 +45,17 @@ class BetaNegativeBinomial:
         ab = alpha + beta
         an = alpha + n
 
-        bound = p0 * sqrt(ab / alpha / beta) * pow(
-            ab, alpha * (log(alpha, ab) - 1) + beta * (log(beta, ab) - 1))
+        bound = p0 * sqrt(ab * an / alpha / beta)
         upperbound = 4 * n
 
         while S < bound and k < upperbound:
             bi = beta + k
-            anbi = alpha + n + beta + k
-            P = t * sqrt(anbi / an / bi) * pow(
-                anbi, an * (log(an, anbi) - 1) + bi * (log(bi, anbi) - 1))
+            anbi = an + bi
+
+            P = t * pow(an * ab / anbi / alpha, alpha) * pow(
+                an / anbi,
+                n) * pow(bi * ab / anbi / beta, beta) * pow(bi / anbi, k - 0.5)
+
             S += P
             k += 1
             t *= (n + k - 1) / (k)
