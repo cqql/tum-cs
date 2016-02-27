@@ -5,3 +5,7 @@ _region_.tex
 *.pdf
 *.synctex.gz
 _minted-*
+
+# Python artifacts
+*.pyc
+*.pyo
