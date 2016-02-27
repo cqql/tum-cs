@@ -6,7 +6,7 @@ import matplotlib.pyplot as pp
 import numpy as np
 import scipy.stats as sps
 
-from distribution import BetaNegativeBinomial
+from bnb import BetaNegativeBinomial
 
 parser = argparse.ArgumentParser(description="Plot the converging redundancy")
 parser.add_argument("-n", type=int, default=64, help="Number of packets")

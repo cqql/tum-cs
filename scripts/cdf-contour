@@ -5,7 +5,7 @@ import argparse
 import matplotlib.pyplot as pp
 import numpy as np
 
-from distribution import BetaNegativeBinomial
+from bnb import BetaNegativeBinomial
 
 parser = argparse.ArgumentParser(
     description="Plot the Contour of a Beta-Negative-Binomial Distribution")

@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
 import math
-from argparse import ArgumentParser
 from fractions import Fraction
 
-import matplotlib.pyplot as pp
 import numpy as np
 import scipy.stats as stats
 
@@ -20,6 +18,10 @@ class Timer:
                            choices=["const", "exp"],
                            default="exp",
                            help="Type of timer to use")
+
+        ConstantStepTimer.add_arguments(parser)
+        ExponentialTimer.add_arguments(parser)
+        ExperimentTimer.add_arguments(parser)
 
     @staticmethod
     def from_arguments(arguments):
@@ -122,6 +124,10 @@ class RateFunction:
                            default="const",
                            help="Type of rate function to use")
 
+        ConstantRateFunction.add_arguments(parser)
+        SineRateFunction.add_arguments(parser)
+        UnknownRateFunction.add_arguments(parser)
+
     @staticmethod
     def from_arguments(arguments):
         if arguments.experiment:
@@ -205,6 +211,10 @@ class Generator:
                            choices=["const", "sampling"],
                            default="sampling",
                            help="Type of generator to use")
+
+        ConstantRecvLossGenerator.add_arguments(parser)
+        SamplingGenerator.add_arguments(parser)
+        ExperimentGenerator.add_arguments(parser)
 
     @staticmethod
     def from_arguments(arguments):
@@ -303,6 +313,9 @@ class Estimator:
                            choices=["trust", "exp-mean"],
                            default="trust",
                            help="Type of estimator")
+
+        ExpWindowMeanEstimator.add_arguments(parser)
+        TrustFunctionEstimator.add_arguments(parser)
 
     @staticmethod
     def from_arguments(arguments):
@@ -435,273 +448,70 @@ class TrustFunctionEstimator(Estimator):
             return stats.beta(alpha, beta)
 
 
-class Plotter:
+class Simulation:
     @staticmethod
     def add_arguments(parser):
-        group = parser.add_argument_group("Plotter")
-        group.add_argument("-p",
-                           "--plotter",
-                           choices=["explore"],
-                           default="explore",
-                           help="Plotter to visualize results")
-        group.add_argument(
-            "--plot-out",
-            help="File to plot into (show interactively if none)")
-        group.add_argument("--plot-verbose", help="Plot extra information")
-        group.add_argument("--plot-x-in",
+        group = parser.add_argument_group("Simulation")
+        group.add_argument("--sampling-rate",
                            type=float,
-                           help="Size of plot in x direction in inches")
-        group.add_argument("--plot-y-in",
+                           default=100,
+                           help="How often to sample per second")
+        group.add_argument("--start",
                            type=float,
-                           help="Size of plot in y direction in inches")
+                           default=0,
+                           help="Start of plot in normalized time")
+        group.add_argument("--end",
+                           type=float,
+                           default=None,
+                           help="End of plot in normalized time")
 
     @staticmethod
     def from_arguments(arguments):
-        if arguments.plotter == "explore":
-            return ExplorePlotter.from_arguments(arguments)
+        return Simulation(arguments.sampling_rate, arguments.start,
+                          arguments.end)
 
-    def __init__(self, out, verbose, xin, yin):
-        self.out = out
-        self.verbose = verbose
-        self.xin = xin
-        self.yin = yin
+    def __init__(self, sampling_rate, start, end):
+        self.sampling_rate = sampling_rate
+        self.start = start
+        self.end = end
 
-    def plot(self):
-        pass
+    def run(self, timer, rate, generator, estimators):
+        measurements = []
+        estimations = [(e, []) for e in estimators]
+        minT = None
+        t = 0
+        timestep = 1.0 / self.sampling_rate
 
+        for time in timer.generate():
+            if minT is None:
+                minT = time
 
-class ExplorePlotter(Plotter):
-    @staticmethod
-    def add_arguments(parser):
-        pass
+            # Normalize times to start from 0
+            time -= minT
 
-    @staticmethod
-    def from_arguments(arguments):
-        return ExplorePlotter(arguments.plot_out, arguments.plot_verbose,
-                              arguments.plot_x_in, arguments.plot_y_in)
+            finaliteration = False
+            if self.end and time > self.end:
+                time = self.end
+                finaliteration = True
 
-    def __init__(self, out, verbose, xin, yin):
-        super().__init__(out, verbose, xin, yin)
+            # Sample estimates until the next data point
+            while t < time:
+                if self.start <= t:
+                    for e, data in estimations:
+                        data.append((t, rate.at(t), e.estimate(t)))
 
-    def plot(self, measurements, estimations):
-        measurements = np.array(measurements)
-        estimations = np.array(estimations)
+                t = t + timestep
 
-        # Point in time of measurement, number of packets received, number of
-        # packets lost
-        mT, recv, lost = measurements[:, 0], measurements[:, 1], measurements[:, 2] # yapf: disable
+            # Train with next data point
+            sample = generator.sample(rate.at(time))
 
-        # Points in time, true PSR at time, estimated PSR distribution
-        T, truerate, distrs = estimations[:, 0], estimations[:, 1], estimations[:, 2] # yapf: disable
-        Tmin, Tmax = min(T), max(T)
+            if self.start <= t:
+                measurements.append((time, *sample))
 
-        if self.xin and self.yin:
-            pp.figure(figsize=(self.xin, self.yin))
+            for e, data in estimations:
+                e.train(time, sample)
 
-        # Plot the true PSR
-        pp.plot(T, truerate, "-", lw=2, c="#D4D1CE", label="True Rate")
+            if finaliteration:
+                break
 
-        # If the estimator is not stochastic, just plot the estimates
-        if len(distrs) > 0 and isinstance(distrs[0], float):
-            # Plot estimates
-            pp.plot(T, distrs, "--", lw=2, c="#8A8600", label="Estimates")
-
-        # Otherwise do a more thorough analysis
-        else:
-            # Plot estimation mean
-            pp.plot(T, mean(distrs), "--", lw=2, c="#8A8600", label="Mean")
-
-            # Plot estimation mode
-            pp.plot(T,
-                    betamode(distrs),
-                    "--m",
-                    lw=2,
-                    c="#31707B",
-                    label="Mode")
-
-            # Plot percentiles
-            pp.plot(T, percentile(distrs, 0.05), c="#BFCAC9", label="90% Box")
-            pp.plot(T, percentile(distrs, 0.95), c="#BFCAC9")
-
-            X, Y = np.meshgrid(T, np.linspace(0, 1, 100))
-            Z = np.ndarray(X.shape)
-            for i in range(Z.shape[1]):
-                Z[:, i] = distrs[i].pdf(Y[:, i])
-
-            pp.imshow(Z,
-                      interpolation="bilinear",
-                      cmap="viridis",
-                      extent=(0, Tmax, 0, 1),
-                      origin="lower",
-                      alpha=0.75,
-                      aspect="auto")
-
-        # Plot markers for received packets at 1
-        pp.plot(mT[recv > 0],
-                np.ones(recv[recv > 0].shape),
-                "x",
-                mew=2,
-                c="#43BA22",
-                label="Packet received")
-
-        # Plot vertical lines for received packets
-        if self.verbose:
-            for t in mT[recv > 0]:
-                pp.plot([t, t], [0, 1], "--", alpha=0.5, lw=1, c="#43BA22")
-
-        # Plot markers for lost packets at 0
-        pp.plot(mT[lost > 0],
-                0 * lost[lost > 0],
-                "x",
-                mew=2,
-                c="#D96241",
-                label="Packet lost")
-
-        # Plot vertical lines for lost packets
-        if self.verbose:
-            for t in mT[lost > 0]:
-                pp.plot([t, t], [0, 1], "--", alpha=0.5, lw=1, c="#D96241")
-
-        pp.xlim(Tmin, Tmax)
-        pp.ylim(-0.05, 1.05)
-        pp.xlabel("Time")
-        pp.ylabel("Packet Success Rate")
-        pp.legend(loc="best", framealpha=0.5, ncol=2, fontsize="small")
-
-        if self.out:
-            pp.savefig(self.out)
-        else:
-            pp.show()
-
-
-def parse_arguments():
-    parser = ArgumentParser(description="Simulate an estimator")
-    parser.add_argument("--time",
-                        type=float,
-                        default=10.0,
-                        help="How long to simulate")
-    parser.add_argument("-s",
-                        "--sampling-rate",
-                        type=float,
-                        default=100,
-                        help="How often to sample per second")
-    parser.add_argument("--seed",
-                        type=int,
-                        default=None,
-                        help="Initial value for RNG seed")
-    parser.add_argument("--experiment",
-                        type=str,
-                        default=None,
-                        help="Experimental output file")
-    parser.add_argument("--start",
-                        type=float,
-                        default=0,
-                        help="Start of plot in normalized time")
-    parser.add_argument("--end",
-                        type=float,
-                        default=None,
-                        help="End of plot in normalized time")
-    parser.add_argument("-v",
-                        "--verbose",
-                        action="store_const",
-                        const=True,
-                        default=False,
-                        help="Plot everything")
-    parser.add_argument("-o", "--out", help="Outfile")
-
-    Timer.add_arguments(parser)
-    ConstantStepTimer.add_arguments(parser)
-    ExponentialTimer.add_arguments(parser)
-    ExperimentTimer.add_arguments(parser)
-
-    RateFunction.add_arguments(parser)
-    ConstantRateFunction.add_arguments(parser)
-    SineRateFunction.add_arguments(parser)
-    UnknownRateFunction.add_arguments(parser)
-
-    Generator.add_arguments(parser)
-    ConstantRecvLossGenerator.add_arguments(parser)
-    SamplingGenerator.add_arguments(parser)
-    ExperimentGenerator.add_arguments(parser)
-
-    Estimator.add_arguments(parser)
-    ExpWindowMeanEstimator.add_arguments(parser)
-    TrustFunctionEstimator.add_arguments(parser)
-
-    Plotter.add_arguments(parser)
-    ExplorePlotter.add_arguments(parser)
-
-    return parser.parse_args()
-
-
-@np.vectorize
-def betamode(dist):
-    a, b = dist.args
-
-    if a + b == 2:
-        return np.nan
-    else:
-        return (a - 1) / (a + b - 2)
-
-
-@np.vectorize
-def mean(dist):
-    return dist.mean()
-
-
-@np.vectorize
-def percentile(dist, p):
-    return dist.ppf(p)
-
-
-def main():
-    arguments = parse_arguments()
-
-    np.random.seed(arguments.seed)
-
-    timer = Timer.from_arguments(arguments)
-    rate = RateFunction.from_arguments(arguments)
-    generator = Generator.from_arguments(arguments)
-    estimator = Estimator.from_arguments(arguments)
-    plotter = Plotter.from_arguments(arguments)
-    measurements = []
-    estimations = []
-    minT = None
-    t = 0
-    timestep = 1.0 / arguments.sampling_rate
-
-    for time in timer.generate():
-        if minT is None:
-            minT = time
-
-        # Normalize times to start from 0
-        time -= minT
-
-        finaliteration = False
-        if arguments.end and time > arguments.end:
-            time = arguments.end
-            finaliteration = True
-
-        # Sample estimates until the next data point
-        while t < time:
-            if arguments.start <= t:
-                estimations.append((t, rate.at(t), estimator.estimate(t)))
-
-            t = t + timestep
-
-        # Train with next data point
-        sample = generator.sample(rate.at(time))
-
-        if arguments.start <= t:
-            measurements.append((time, *sample))
-
-        estimator.train(time, sample)
-
-        if finaliteration:
-            break
-
-    plotter.plot(measurements, estimations)
-
-
-if __name__ == "__main__":
-    main()
+        return (measurements, estimations)
