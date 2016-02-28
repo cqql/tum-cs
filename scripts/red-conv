@@ -19,6 +19,7 @@ parser.add_argument("--mean",
                     type=float,
                     required=True,
                     help="Mean of the beta distribution")
+parser.add_argument("--out", help="Optional output file")
 
 arguments = parser.parse_args()
 
@@ -46,4 +47,8 @@ pp.gca().invert_xaxis()
 pp.xscale("log")
 pp.xlabel("Variance of estimate")
 pp.ylabel("Number of redundant packets")
-pp.show()
+
+if arguments.out:
+    pp.savefig(arguments.out)
+else:
+    pp.show()

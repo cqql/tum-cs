@@ -36,6 +36,7 @@ parser.add_argument("--exact",
                     const=True,
                     default=False,
                     help="Use the exact inverse CDF")
+parser.add_argument("--out", help="Optional output file")
 
 arguments = parser.parse_args()
 
@@ -55,7 +56,6 @@ for y in range(Z.shape[0]):
         else:
             Z[y, x] = BetaNegativeBinomial(n, X[y, x], Y[y, x]).iCDFapprox(p0)
 
-
 pp.xlabel(r"$\alpha$-Parameter")
 pp.ylabel(r"$\beta$-Parameter")
 pp.imshow(Z,
@@ -67,4 +67,8 @@ cb.set_label("Redundancy")
 contours = [10 * i for i in range(int(n * 4 / 10))]
 contour = pp.contour(X, Y, Z, contours)
 pp.clabel(contour, inline=1, fontsize=10, fmt="%1.0f")
-pp.show()
+
+if arguments.out:
+    pp.savefig(arguments.out)
+else:
+    pp.show()
