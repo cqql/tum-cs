@@ -34,6 +34,15 @@
 % Nicefracs are nice in exponents
 \usepackage{nicefrac}
 
+% Units!
+\usepackage{siunitx}
+\DeclareSIUnit{\byte}{B}
+
+% I want subfigures. No idea whether I need all that.
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
 \title{Predicting Lost Packets}
 \author{Marten Lienen, Julius Michaelis}
 
@@ -145,24 +154,56 @@ At least some of linux's wireless drivers use exponential moving average.
 \end{minted}
 
 \section{Validating the assumptions}
-We have run a few experiments that try to justify the modeling descisions earlier. We present the results here.
+We have run a few experiments that try to justify the modeling decisions earlier. We present the results here.
 
 \subsection{Autocorrelation test}
-In Section \ref{sec:model} we modelled subsequent packet transfers as idependent actions with dependent probabilities.
-If, however, packet transfers were dependent, this would break the assumptions made when using the negative binomial distribution and require higher redundancy.
-Thus, 
+In Section \ref{sec:model} we modelled subsequent packet transfers as independent actions with dependent probabilities.
+If, however, packet transfers were dependent, this could break the assumptions made when using the negative binomial distribution and require higher redundancy.
+Unfortunately, it is not directly feasible to test whether random variables are independent.
+However, in many situations dependent variables are also correlated. (But not in all. Only the converse is an implication.)
+Thus, we ran a series of experiments with one node transmitting at constant rate and another node tracking which packets it received.
+We varied the channel ($\SI{5700}{\mega\hertz}$, $\SI{4920}{\mega\hertz}$, $\SI{5240}{\mega\hertz}$), the frame length ($\SI{28}{\byte}$, $\SI{528}{\byte}$, $\SI{1028}{\byte}$), and the injection rate ($\SI{2}{\per\second}$, $\SI{100}{\per\second}$, maximum (depends on MCS index and frame length, $\SI{4500}{\per\second}$, ranged between and $\SI{7000}{\per\second}$)).
+Figure \ref{fig:acrpil} shows a few exemplary autocorrelation plots.
+These plots were generated on a vector where a 1 indicates a received packet and a 0 a loss.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{./fig/maes-1456822952-5240-2-3-modpc.png}
+		\caption{MCS 3, 2 frames per second,\\ $\SI{5240}{\mega\hertz}$, $\SI{28}{B}$}\label{fig:acrpil:a}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{./fig/maes-1456906587-5700-100--1000pc.png}
+		\caption{MCS 3, 100 frames per second,\\ $\SI{5700}{\mega\hertz}$, $\SI{1028}{B}$}\label{fig:acrpil:b}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{./fig/maes-1456822952-5240-2-2-modpc.png}
+		\caption{MCS 2, 2 frames per second,\\ $\SI{5240}{\mega\hertz}$, $\SI{28}{B}$}\label{fig:acrpil:c}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{./fig/maes-1456822952-5240-20000-2-modpc.png}
+		\caption{MCS 2, 6052 frames per second,\\ $\SI{5240}{\mega\hertz}$, $\SI{28}{B}$}\label{fig:acrpil:d}
+	\end{subfigure}
+	\caption{Autocorrelation plots of constant rate packet injection loss}\label{fig:acrpil}
+\end{figure}
+
+Subfigures \ref{fig:acrpil:a} and \ref{fig:acrpil:b} show normal behavior of the correlation values remaining between the confidence bounds (plotted as blue lines around 0) and show no indication of changing over time.
+Subfigure \ref{fig:acrpil:c} shows a correlation that drags over a long period ($\SI{200}{\second}$ are shown in the plot) and can easily be compensated by learning the new channel properties.
+Subfigure \ref{fig:acrpil:d} shows one of the few cases where we discovered a correlation over a short period of time, about $\SI{200}{\milli\second}$ in this case.
+However, the correlation is not dramatic and can be safely ignored.
 
 \subsection{A stress test}
-One of the hardest problems to deal with is starting up from beacon traffic to transmitting at maximum possible rate. 
-In such a situation, the reliable transfer of a session can only be ensured by inserting large amounts of redundancy.
-This section asks the question: Does our model predict the right amount of redundancy?
+One of the hardest problems to deal with in an encoded packet network % Marten: Eigentlich heißen die coded packet network, aber irgendwann brauchten Stephan mal ein Backronym für moep (sein Spitzname). Und da kam mesh over encoded packets auf. Mal gucken, ob er's mitbekommt. :)
+is starting up from beacon traffic to transmitting at maximum possible rate.
+In such a situation, the reliable transfer of a generation can only be ensured by inserting large amounts of redundancy.
+This section asks the question: when applied to such a situation, does our model predict the right amount of redundancy?
 
 We set up the following experiment with two participants, A and B:
 A remains at beacon traffic of 5 frames per second for 24 seconds to obtain a somewhat stable estimate of the channel.
 These estimates are communicated back by B.
 After 24 seconds, A derives the number of frames that has to be sent so that 64 frames or more are received (i.e.\ a generation of 64 packets could be decoded) with a probability of $0.9$ at B.\footnote{The code for this experiment is included in \texttt{experiments/burstsend/} of the accompanying file repository.}
 
-The experiment has been conducted at 5825MHz, HT20, MCS index 10, and a frame length of 28B.
+The experiment has been conducted at $\SI{5825}{\mega\hertz}$, HT20, MCS index 10, and a frame length of 28B.
 As a trust function (see Section \ref{sec:trust_function}), we used $e^{-\nicefrac{t}{3}}$, where $t$ is the time in seconds.
 
 We repeated this experiment 1012 times.
@@ -188,8 +229,8 @@ The packet success rate was at $0.921$.
 
 When preparing for this second test, we noticed that the chosen trust function is too optimistic for a real network setup.
 While it produced the expected results in the final setup, a quickly changing packet success probability decreased the generation success probabilities to $0.8$ and lower.
-This could already be triggered by a person moving around in the same room, chainging the link quality.
-Choosing a different trust function, e.g., $e^{-t*x}$ where $x=1$ might help to solve this.
+This could already be triggered by a person moving around in the same room, changing the link quality.
+Choosing a different trust function, e.g., $e^{-xt}$ $x=1$ might help to solve this.
 Finding an appropriate parameter $x$ that works in many situations, especially outside of laboratory conditions, is left for future work.
 
 \subsection{Perfect channel test}
