@@ -155,9 +155,9 @@ This section asks the question: Does our model predict the right amount of redun
 We set up the following experiment with two participants, A and B:
 A remains at beacon traffic of 5 frames per second for 24 seconds to obtain a somewhat stable estimate of the channel.
 These estimates are communicated back by B.
-After 24 seconds, A derives the number of frames that has to be sent so that 64 frames or more are received (i.e. a generation of 64 packets could be decoded) with a probability of $0.9$ at B.
+After 24 seconds, A derives the number of frames that has to be sent so that 64 frames or more are received (i.e. a generation of 64 packets could be decoded) with a probability of $0.9$ at B.\footnote{The code for this experiment is included in \texttt{experiments/burstsend/} of the accompanying file repository.}
 
-The experiment has been conducted at MCS index 10, HT20 and a frame length of 28B.
+The experiment has been conducted at 5825MHz, HT20, MCS index 10, and a frame length of 28B.
 As a trust function (see Section \ref{sec:trust_function}), we used $e^{-\nicefrac{t}{3}}$, where $t$ is the time in seconds.
 
 We repeated this experiment 1012 times.
