@@ -54,7 +54,7 @@ Our contributions to this problem are
 \item a formula to derive a number $n'$ of redundant packets to inject so that the destination receives $n$ packets with a certain probability
 \end{itemize}
 
-\section{Model}
+\section{Model}\label{sec:model}
 
 A dataflow is a sequence of packets $p_{1}, p_{2}, \dots$ sent at times $t_{1}, t_{2}, \dots$ from a source $S$ to a destination $D$.
 However the data transport medium is unreliable so that packets can go missing.
@@ -147,6 +147,11 @@ At least some of linux's wireless drivers use exponential moving average.
 \section{Validating the assumptions}
 We have run a few experiments that try to justify the modeling descisions earlier. We present the results here.
 
+\subsection{Autocorrelation test}
+In Section \ref{sec:model} we modelled subsequent packet transfers as idependent actions with dependent probabilities.
+If, however, packet transfers were dependent, this would break the assumptions made when using the negative binomial distribution and require higher redundancy.
+Thus, 
+
 \subsection{A stress test}
 One of the hardest problems to deal with is starting up from beacon traffic to transmitting at maximum possible rate. 
 In such a situation, the reliable transfer of a session can only be ensured by inserting large amounts of redundancy.
@@ -155,18 +160,40 @@ This section asks the question: Does our model predict the right amount of redun
 We set up the following experiment with two participants, A and B:
 A remains at beacon traffic of 5 frames per second for 24 seconds to obtain a somewhat stable estimate of the channel.
 These estimates are communicated back by B.
-After 24 seconds, A derives the number of frames that has to be sent so that 64 frames or more are received (i.e. a generation of 64 packets could be decoded) with a probability of $0.9$ at B.\footnote{The code for this experiment is included in \texttt{experiments/burstsend/} of the accompanying file repository.}
+After 24 seconds, A derives the number of frames that has to be sent so that 64 frames or more are received (i.e.\ a generation of 64 packets could be decoded) with a probability of $0.9$ at B.\footnote{The code for this experiment is included in \texttt{experiments/burstsend/} of the accompanying file repository.}
 
 The experiment has been conducted at 5825MHz, HT20, MCS index 10, and a frame length of 28B.
 As a trust function (see Section \ref{sec:trust_function}), we used $e^{-\nicefrac{t}{3}}$, where $t$ is the time in seconds.
 
 We repeated this experiment 1012 times.
-In 928 cases, 64 or more frames were received, indicating a success rate of approx. $0.92$, close to the desired rate of $0.9$.
+In 940 cases, 64 or more frames were received, indicating a (generation) success rate of approx.\ $0.94$, slightly above the desired rate of $0.9$.
 
 Closer inspection of the data revealed the following:
-the estimator indicated that more than 128 frames would be necessary in 8 cases. 
+the estimator indicated that more than 128 frames would be necessary in 8 cases.
 Out of these cases, only 3 succeeded with 64 or more frames received.
-An investigation towards the reasons of this is future work.
+An investigation towards the reasons of this is left for future work.
 We deem it likely that this happened merely due to the fact that the channel became unstable at the moment of the experiment (in general, the frame success rate was about $0.83$) and no safe prediction could be made.
+
+\subsection{Full load test}
+To complement the first, low load experiment, we ran a second one with full load from A to B.
+Essentially, the experiment remained the same as in the previous section, only that the waiting time of 24 seconds between the bursts was removed.
+Additionally, we had to downgrade the MCS index to 8.
+When attempting the experiment with the original MCS index, we saw the packet success probability quickly declining over the first 10 to 20 seconds.\footnote{%
+	We speculate that this is due to the hardware warming up, increasing the loss rate.}
+We thus reduced the MCS index and removed the values up to a point where the packet success probability stabilized.
+Additionally, we increased the rate at which the parameters $\alpha$ and $\beta$ were communicated back by B to match the rate of generations
+
+Out of the 1067 generations sent, B received 64 more frames in 979 cases, indicating a generation success probability of $0.92$.
+The packet success rate was at $0.921$.
+
+When preparing for this second test, we noticed that the chosen trust function is too optimistic for a real network setup.
+While it produced the expected results in the final setup, a quickly changing packet success probability decreased the generation success probabilities to $0.8$ and lower.
+This could already be triggered by a person moving around in the same room, chainging the link quality.
+Choosing a different trust function, e.g., $e^{-t*x}$ where $x=1$ might help to solve this.
+Finding an appropriate parameter $x$ that works in many situations, especially outside of laboratory conditions, is left for future work.
+
+\subsection{Perfect channel test}
+On a channel with perfect link quality and high throughput, eventually 0 redundancy will be inserted.
+On a near-perfect channel with packet success probabilities >0.99, a single packet of redundancy remains.
 
 \end{document}
