@@ -135,6 +135,31 @@ Unfortunately there are neither closed-form expressions for the cumulative distr
                       & = \min_{k \in \mathbb{N}_{0}} \left( \begin{array}{r} \sum_{i = 0}^{k} t_{i} \cdot \left( \frac{(\alpha + n)(\alpha + \beta)}{(\alpha + n + \beta + i)\alpha} \right)^{\alpha} \cdot \left( \frac{\alpha + n}{\alpha + n + \beta + i} \right)^{n} \cdot \left( \frac{(\beta + i)(\alpha + \beta)}{(\alpha + n + \beta + i)\beta} \right)^{\beta} \cdot \left( \frac{\beta + i}{\alpha + n + \beta + i} \right)^{i - \frac{1}{2}}\\ \ge p_{0} \cdot \sqrt{\frac{(\alpha + \beta)(\alpha + n)}{\alpha\beta}} \end{array} \right)
 \end{align*}
 
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{prediction/cdf-contour}
+  \caption{Amount of redundancy required to transmit $64$ packets successfully with a probability of $90\%$ (capped at 250)}
+  \label{fig:prediction:cdf-contour}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.3\textwidth}
+		\includegraphics[width=\textwidth]{prediction/converge-0-5}
+		\caption{PSP of $50\%$}
+	\end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+		\includegraphics[width=\textwidth]{prediction/converge-0-75}
+		\caption{PSP of $75\%$}
+	\end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+		\includegraphics[width=\textwidth]{prediction/converge-0-9}
+		\caption{PSP of $90\%$}
+	\end{subfigure}
+	\caption{Amount of redundancy required to transmit $64$ packets successfully with a probability of $90\%$}
+  \label{fig:prediction:convergence}
+\end{figure}
+
 \section{Linux}
 
 At least some of linux's wireless drivers use exponential moving average.
