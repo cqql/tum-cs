@@ -135,6 +135,17 @@ Unfortunately there are neither closed-form expressions for the cumulative distr
                       & = \min_{k \in \mathbb{N}_{0}} \left( \begin{array}{r} \sum_{i = 0}^{k} t_{i} \cdot \left( \frac{(\alpha + n)(\alpha + \beta)}{(\alpha + n + \beta + i)\alpha} \right)^{\alpha} \cdot \left( \frac{\alpha + n}{\alpha + n + \beta + i} \right)^{n} \cdot \left( \frac{(\beta + i)(\alpha + \beta)}{(\alpha + n + \beta + i)\beta} \right)^{\beta} \cdot \left( \frac{\beta + i}{\alpha + n + \beta + i} \right)^{i - \frac{1}{2}}\\ \ge p_{0} \cdot \sqrt{\frac{(\alpha + \beta)(\alpha + n)}{\alpha\beta}} \end{array} \right)
 \end{align*}
 
+The final term is written in such a way that the factors do not push the double precision boundaries.
+Previous versions had intermediate factors smaller than $10^{-320}$ for values of $\alpha, \beta > 1000$ that led to the sum evaluating to infinity and failing the computation.
+
+Figure \ref{fig:prediction:cdf-contour} shows the number of redundant packets required to transmit $64$ packets successfully with a probability of $90\%$ for various link quality estimates.
+You can see that the necessary redundancy grows as the estimated probability decreases, i.e. $\alpha$ drops and $\beta$ rises.
+In fact it tends to infinity as $\alpha$ goes to $0$, though the values in the graph are capped at $250$.
+On the other hand the amount of redundant packets decreases for proportionately increasing $\alpha$ and $\beta$, i.e. for estimates of constant mean but decreasing variance.
+This notion is also supported by the plots in figure \ref{fig:prediction:convergence} that basically plot cuts through the contour plot in figure \ref{fig:prediction:cdf-contour} along lines through the origin.
+Furthermore the plots show the theoretical minimum number of redundant packets and how the $\cdf^{-1}$ converges towards it with increasing accuracy of the estimate.
+The theoretical minimum is determined as the number of packets you had to sent if you knew the real link quality instead of just its distribution.
+
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{prediction/cdf-contour}
@@ -146,15 +157,15 @@ Unfortunately there are neither closed-form expressions for the cumulative distr
 	\centering
 	\begin{subfigure}[b]{0.3\textwidth}
 		\includegraphics[width=\textwidth]{prediction/converge-0-5}
-		\caption{PSP of $50\%$}
+		\caption{LQ of $50\%$}
 	\end{subfigure}
   \begin{subfigure}[b]{0.3\textwidth}
 		\includegraphics[width=\textwidth]{prediction/converge-0-75}
-		\caption{PSP of $75\%$}
+		\caption{LQ of $75\%$}
 	\end{subfigure}
   \begin{subfigure}[b]{0.3\textwidth}
 		\includegraphics[width=\textwidth]{prediction/converge-0-9}
-		\caption{PSP of $90\%$}
+		\caption{LQ of $90\%$}
 	\end{subfigure}
 	\caption{Amount of redundancy required to transmit $64$ packets successfully with a probability of $90\%$}
   \label{fig:prediction:convergence}
