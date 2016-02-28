@@ -40,13 +40,17 @@ Y = [rv.iCDFapprox(p0) for rv in rvs]
 
 limit = [sps.nbinom.ppf(p0, n, arguments.mean) for k in range(1, kmax)]
 
-pp.plot(X, Y, "s--", lw=2)
-pp.plot(X, limit, "-", lw=2)
+pp.ylim(limit[0] - 1, Y[0] + 1)
+pp.xlim(X[-1] * 0.9, X[0] * 1.1)
+
+pp.plot(X, Y, "s--", lw=2, label="$\mathrm{CDF}^{-1}$")
+pp.plot(X, limit, "-", lw=2, label="Theoretical minimum")
 
 pp.gca().invert_xaxis()
 pp.xscale("log")
 pp.xlabel("Variance of estimate")
 pp.ylabel("Number of redundant packets")
+pp.legend()
 
 if arguments.out:
     pp.savefig(arguments.out)
