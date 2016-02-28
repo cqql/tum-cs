@@ -43,6 +43,8 @@
 \usepackage{caption}
 \usepackage{subcaption}
 
+\DeclareMathOperator{\cdf}{CDF}
+
 \title{Predicting Lost Packets}
 \author{Marten Lienen, Julius Michaelis}
 
@@ -98,21 +100,21 @@ Some reasonable things to expect from a trust function are
 
 \section{Predicting Redundancy}
 
-Let $P \sim Beta(\alpha, \beta)$ be the current estimate for the packet success probability.
-Then the amount of redundant packets necessary to send $n$ packets depending on $P$ is $X \mid P \sim NB(n, P)$ where $NB$ is the negative binomial distribution.
+Let $P \sim \mathrm{Beta}(\alpha, \beta)$ be the current estimate for the packet success probability.
+Then the amount of redundant packets necessary to send $n$ packets depending on $P$ is $X \mid P \sim \mathrm{NB}(n, P)$ where $\mathrm{NB}$ is the negative binomial distribution.
 However, there is also a distribution for the joint distribution of $P$ and $X \mid P$ called the beta negative binomial distribution, so that
 \begin{equation*}
-  X \sim BNB(n, \alpha, \beta)
+  X \sim \mathrm{BNB}(n, \alpha, \beta)
 \end{equation*}
 So $X$ is the number of redundant packets necessary to have $n$ successful transmissions when the packet success probability is beta distributed with parameters $\alpha$ and $\beta$ and therefore $X$ has support on $\mathbb{N}_{0}$.
 In the end we are interested in the number of redundant packets $k$ that we have to send so that the destination receives $n$ packets with a probability of least some lower bound $p_{0}$.
 More formally we are interested in a $k \in \mathbb{N}_{0}$ such that
 \begin{equation*}
-  P[X \le k] = CDF_{X}(k) \ge p_{0} \Leftrightarrow k = CDF_{X}^{-1}(p_{0})
+  P[X \le k] = \cdf_{X}(k) \ge p_{0} \Leftrightarrow k = \cdf_{X}^{-1}(p_{0})
 \end{equation*}
 Unfortunately there are neither closed-form expressions for the cumulative distribution function of a beta negative binomial distribution nor its inverse, so we have to resort to a simple summation over the PMF.
 \begin{align*}
-  CDF_{X}^{-1}(p_{0}) & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} P[X = i] \ge p_{0} \right)\\
+  \cdf_{X}^{-1}(p_{0}) & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} P[X = i] \ge p_{0} \right)\\
                       & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} \frac{\Gamma(n + i)}{i! \Gamma(n)} \frac{B(\alpha + n, \beta + i)}{B(\alpha, \beta)} \ge p_{0} \right)\\
                       & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} \frac{\Gamma(n + i)}{i! \Gamma(n)} B(\alpha + n, \beta + i) \ge p_{0} \cdot B(\alpha, \beta) \right)\\
                       & = \min_{k \in \mathbb{N}_{0}} \left( \sum_{i = 0}^{k} \frac{\Gamma(n + i)}{i! \Gamma(n)} \frac{\Gamma(\alpha + n) \Gamma(\beta + i)}{\Gamma(\alpha + \beta + n + i)} \ge p_{0} \cdot \frac{\Gamma(\alpha) \Gamma(\beta)}{\Gamma(\alpha + \beta)} \right)\\
@@ -193,6 +195,7 @@ Subfigure \ref{fig:acrpil:d} shows one of the few cases where we discovered a co
 However, the correlation is not dramatic and can be safely ignored.
 
 \subsection{A stress test}
+
 One of the hardest problems to deal with in an encoded packet network % Marten: Eigentlich heißen die coded packet network, aber irgendwann brauchten Stephan mal ein Backronym für moep (sein Spitzname). Und da kam mesh over encoded packets auf. Mal gucken, ob er's mitbekommt. :)
 is starting up from beacon traffic to transmitting at maximum possible rate.
 In such a situation, the reliable transfer of a generation can only be ensured by inserting large amounts of redundancy.
