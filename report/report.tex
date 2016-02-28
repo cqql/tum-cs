@@ -31,6 +31,9 @@
 % Do not indent paragraphs
 \usepackage{parskip}
 
+% Nicefracs are nice in exponents
+\usepackage{nicefrac}
+
 \title{Predicting Lost Packets}
 \author{Marten Lienen, Julius Michaelis}
 
@@ -68,7 +71,7 @@ This distribution can model a uniform distribution on $[0, 1]$ as well as a smoo
 Whenever you register a packet loss, you add $1$ to the $\beta$ parameter of the current prior.
 When a packet is received, you add $1$ to the $\alpha$ parameter of the current prior instead.
 
-\section{Trust Function Model}
+\section{Trust Function Model}\label{sec:trust_function}
 
 Say the last point of measurement was $t_{i}$ and we want to predict the distribution of the success probability $s'$ at time $t_{i} + t'$.
 In the trust function model we still believe in the latest measurement, but we might believe less so depending on the time $t'$ that has passed.
@@ -140,5 +143,30 @@ At least some of linux's wireless drivers use exponential moving average.
     priv->wstats.qual.updated &= ~IW_QUAL_QUAL_INVALID;
   }
 \end{minted}
+
+\section{Validating the assumptions}
+We have run a few experiments that try to justify the modeling descisions earlier. We present the results here.
+
+\subsection{A stress test}
+One of the hardest problems to deal with is starting up from beacon traffic to transmitting at maximum possible rate. 
+In such a situation, the reliable transfer of a session can only be ensured by inserting large amounts of redundancy.
+This section asks the question: Does our model predict the right amount of redundancy?
+
+We set up the following experiment with two participants, A and B:
+A remains at beacon traffic of 5 frames per second for 24 seconds to obtain a somewhat stable estimate of the channel.
+These estimates are communicated back by B.
+After 24 seconds, A derives the number of frames that has to be sent so that 64 frames or more are received (i.e. a generation of 64 packets could be decoded) with a probability of $0.9$ at B.
+
+The experiment has been conducted at MCS index 10, HT20 and a frame length of 28B.
+As a trust function (see Section \ref{sec:trust_function}), we used $e^{-\nicefrac{t}{3}}$, where $t$ is the time in seconds.
+
+We repeated this experiment 1012 times.
+In 928 cases, 64 or more frames were received, indicating a success rate of approx. $0.92$, close to the desired rate of $0.9$.
+
+Closer inspection of the data revealed the following:
+the estimator indicated that more than 128 frames would be necessary in 8 cases. 
+Out of these cases, only 3 succeeded with 64 or more frames received.
+An investigation towards the reasons of this is future work.
+We deem it likely that this happened merely due to the fact that the channel became unstable at the moment of the experiment (in general, the frame success rate was about $0.83$) and no safe prediction could be made.
 
 \end{document}
