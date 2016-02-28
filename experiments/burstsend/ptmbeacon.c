@@ -33,6 +33,7 @@
 
 #include <netinet/in.h>
 
+/* only necessary for old estimator, can be removed. */
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_sf_log.h>
 #include <gsl/gsl_errno.h>
@@ -57,6 +58,7 @@ struct lqe {
 	u16 ex_recvd;
 	u16 ex_goal;
 	bool ex_running;
+	u8 ex_sn;
 	struct timespec tslast;
 	float a;
 	float b;
@@ -83,6 +85,7 @@ struct qinfos {
 struct moep_hdr_beacon {
 	struct moep_hdr_ext hdr;
 	u16 ex_status;
+	u8 ex_sn;
 	struct qinfos qi;
 } __attribute__((packed));
 
@@ -165,6 +168,20 @@ static struct argp_option options[] = {
 		.flags  = 0,
 		.doc	= "Number of frames to send at full rate."
 	},
+	{
+		.name   = "quiet",
+		.key	= 'q',
+		.arg    = "QUIET",
+		.flags  = 0,
+		.doc	= "Less noise."
+	},
+	{
+		.name   = "al",
+		.key	= 'p',
+		.arg    = "AL",
+		.flags  = 0,
+		.doc	= "Pack in some additional dummy payload"
+	},
 	{NULL}
 };
 
@@ -196,6 +213,8 @@ static struct config {
 	u64 moep_chan_width;
 	u32 experiment_after;
 	u32 experiment_length;
+	bool quiet;
+	size_t addll;
 } cfg;
 
 static error_t
@@ -285,6 +304,12 @@ parse_opt(int key, char *arg, struct argp_state *state)
 		break;
 	case 'l':
 		config->experiment_length = atol(arg);
+		break;
+	case 'q':
+		config->quiet = true;
+		break;
+	case 'p':
+		config->addll = atol(arg);
 		break;
 	case ARGP_KEY_ARG:
 		switch (state->arg_num) {
@@ -425,32 +450,28 @@ static struct lqe * find_lqe(struct list_head* l, u8 *addr) {
 	}
 	return est;
 }
-double logp(double a, double b) { return log(a) / log(b); }
 
 double iCDFapproc(double n, double alpha, double beta, double p0) {
-  double k = 0.0;
-  double S = 0.0;
-  double t = 1.0;
+	double k = 0.0;
+	double S = 0.0;
+	double t = 1.0;
 
-  double ab = alpha + beta;
-  double an = alpha + n;
+	double ab = alpha + beta;
+	double an = alpha + n;
 
-  double bound =
-      p0 * sqrt(ab / alpha / beta) *
-      pow(ab, alpha * (logp(alpha, ab) - 1) + beta * (logp(beta, ab) - 1));
-  double upperbound = 4 * n;
+	double bound = p0 * sqrt(ab * an / alpha / beta);
+	double upperbound = 4 * n;
 
-  while (S < bound && k < upperbound) {
-    double bi = beta + k;
-    double anbi = alpha + n + beta + k;
-    double P = t * sqrt(anbi / an / bi) *
-               pow(anbi, an * (logp(an, anbi) - 1) + bi * (logp(bi, anbi) - 1));
-    S += P;
-    k += 1;
-    t *= (n + k - 1) / (k);
-  }
+	while (S < bound && k < upperbound) {
+		double bi = beta + k;
+		double anbi = an + bi;
+		double P = t * pow(an * ab / anbi / alpha, alpha) * pow(an / anbi, n) * pow(bi * ab / anbi / beta, beta) * pow(bi / anbi, k - 0.5);
+		S += P;
+		k += 1;
+		t *= (n + k - 1) / (k);
+	}
 
-  return k - 1.0;
+	return k - 1.0;
 }
 
 static void adjust_ab(struct lqe * est) {
@@ -466,6 +487,8 @@ static void adjust_ab(struct lqe * est) {
 	est->a = def + trust * (est->a - def);
 	est->b = def + trust * (est->b - def);
 }
+
+static void send_beacon(u16 ex_status, u8 ex_sn);
 
 static void radh(moep_dev_t dev, moep_frame_t frame)
 {
@@ -513,27 +536,31 @@ static void radh(moep_dev_t dev, moep_frame_t frame)
 					printf(" warning: evil frame.\n");
 					break;
 				}
-				double pmin = gsl_cdf_beta_Pinv(0.1,qi->a,qi->b);
-				u64 l = cfg.experiment_length ? cfg.experiment_length : 64;
-				double rmin2 = (iCDFapproc(l, qi->a, qi->b, 0.9) + cfg.experiment_length) / l;
 				if(memcmp(cfg.hwaddr, qi->sta, IEEE80211_ALEN) == 0) {
-					printf(" qo %s: %f %f -> old: %f new: %f\n", ieee80211_ntoa(qi->sta), qi->a, qi->b, 1/pmin, rmin2);
+					if(!cfg.quiet) {
+						double pmin = gsl_cdf_beta_Pinv(0.1,qi->a,qi->b);
+						u64 l = cfg.experiment_length ? cfg.experiment_length : 64;
+						double rmin2 = (iCDFapproc(l, qi->a, qi->b, 0.9) + cfg.experiment_length) / l;
+						printf(" qo %s: %f %f -> old: %f new: %f\n", ieee80211_ntoa(qi->sta), qi->a, qi->b, 1/pmin, rmin2);
+					}
 					struct lqe * est = find_lqe(&lqes_thr, hdr->ta);		
 					clock_gettime(CLOCK_REALTIME, &est->tslast);
 					est->a = qi->a, est->b = qi->b;
-					if(beacon->ex_status != 0 && est->ex_running)
+					if(beacon->ex_status != 0 && beacon->ex_sn == est->ex_sn && est->ex_running)
 						est->ex_recvd++;
-					else if(beacon->ex_status != 0  && !est->ex_running)
-						est->ex_running = true,
-						est->ex_goal = le16toh(beacon->ex_status),
-						est->ex_recvd = 1;
-					else if(beacon->ex_status == 0 && est->ex_running)
+					if((beacon->ex_status == 0 || beacon->ex_sn != est->ex_sn) && est->ex_running)
 						printf("Experiment by %s finished: %d / %d\n", ieee80211_ntoa(qi->sta), est->ex_recvd, est->ex_goal), 
 						fflush(stdout),
-						est->ex_running = false;
+						est->ex_running = false,
+						send_beacon(0,0); // hack. stuff will break if you have two things running experiments at the same time
+					if(beacon->ex_status != 0  && !est->ex_running)
+						est->ex_running = true,
+						est->ex_goal = le16toh(beacon->ex_status),
+						est->ex_recvd = 1,
+						est->ex_sn = beacon->ex_sn;
 				}
 			}
-		} else
+		} else if(!cfg.quiet)
 			printf(" no lqi\n");
 		moep_frame_destroy(frame);
 		return;
@@ -574,7 +601,7 @@ static void radh(moep_dev_t dev, moep_frame_t frame)
 	moep_frame_destroy(frame);
 }
 
-static void send_beacon(u16 ex_status)
+static void send_beacon(u16 ex_status, u8 ex_sn)
 {
 	moep_frame_t frame;
 	struct moep80211_radiotap *radiotap;
@@ -606,7 +633,7 @@ static void send_beacon(u16 ex_status)
 	struct list_head *e = 0;
 	size_t s = 0;
 	list_for_each(e, &lqes_our) ++s;
-	const size_t pll = s*sizeof(struct qinfo);
+	const size_t pll = s * sizeof(struct qinfo) + cfg.addll;
 	struct qinfo *is = malloc(pll); // TODO (actually never do) check alloc.
 	size_t i = 0;
 	list_for_each(e, &lqes_our) {
@@ -622,6 +649,7 @@ static void send_beacon(u16 ex_status)
 		moep_frame_set_payload(frame, (u8*)is, pll);
 	beacon->qi.count = s;
 	beacon->ex_status = htole16(ex_status);
+	beacon->ex_sn = ex_sn;
 
 	if (!(radiotap = moep_frame_radiotap(frame))) {
 		fprintf(stderr, "ptmbeacon: error: no radiotap header: %s\n", strerror(errno));
@@ -691,7 +719,7 @@ static int run()
 		//printf("%d %d %d\n", ex_f_count, f_till_experiment, cfg.experiment_length);
 		if((!ex_f_count && f_till_experiment) || !cfg.experiment_length) {
 			f_till_experiment--;
-			send_beacon(0);
+			send_beacon(0,0);
 
 			clock_gettime(CLOCK_REALTIME, &tmp);
 			timespecsub(&timeout, &tmp);
@@ -707,13 +735,14 @@ static int run()
 				}
 			}
 		} else {
+			static u8 esn = 0;
 			if(!ex_f_count) {
 				f_till_experiment = cfg.experiment_after;
 				// pick a random link (we might want to save which we picked, but oh come on, there's only two boxes in this experiment, right?)
 				struct list_head *e = 0;
 				size_t s = 0;
 				list_for_each(e, &lqes_thr) ++s;
-				if(!s) continue;
+				if(!s) { f_till_experiment = max(1, f_till_experiment); continue; }
 				s = rand() % s;
 				struct lqe *est = 0;
 				list_for_each(e, &lqes_thr)
@@ -726,9 +755,10 @@ static int run()
 				ex_f_count = ex_f_max = iCDFapproc(cfg.experiment_length, est->a, est->b, 0.9) + cfg.experiment_length;
 				//ex_f_count = ex_f_max = 1 / pmin * cfg.experiment_length;
 				printf(" ex %s: %d\n", ieee80211_ntoa(est->sta), ex_f_count);
+				esn++;
 			}
 			ex_f_count--;
-			send_beacon(ex_f_max);
+			send_beacon(ex_f_max,esn);
 			//printf("sb: %d\n", ex_f_count);
 		}
 	}
@@ -765,6 +795,7 @@ int main(int argc, char **argv)
 	cfg.moep_chan_width = MOEP80211_CHAN_WIDTH_20_NOHT;
 	cfg.experiment_after = 60;
 	cfg.experiment_length = 0;
+	cfg.addll = 0;
 	argp_parse(&argp, argc, argv, 0, 0, &cfg);
 
 	if (!(tap = moep_dev_ieee8023_tap_open(cfg.hwaddr, &cfg.ip, 24,
