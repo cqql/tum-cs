@@ -120,12 +120,13 @@ class RateFunction:
         group = parser.add_argument_group("Rate Functions")
         group.add_argument("-r",
                            "--rate-function",
-                           choices=["const", "sin"],
+                           choices=["const", "sin", "step"],
                            default="const",
                            help="Type of rate function to use")
 
         ConstantRateFunction.add_arguments(parser)
         SineRateFunction.add_arguments(parser)
+        StepRateFunction.add_arguments(parser)
         UnknownRateFunction.add_arguments(parser)
 
     @staticmethod
@@ -136,6 +137,8 @@ class RateFunction:
             return ConstantRateFunction.from_arguments(arguments)
         elif arguments.rate_function == "sin":
             return SineRateFunction.from_arguments(arguments)
+        elif arguments.rate_function == "step":
+            return StepRateFunction.from_arguments(arguments)
 
     def at(self, time):
         pass
@@ -183,6 +186,40 @@ class SineRateFunction(RateFunction):
 
     def at(self, time):
         return 0.5 + np.sin(time / self.stretch) / 2
+
+
+class StepRateFunction(RateFunction):
+    @staticmethod
+    def add_arguments(parser):
+        group = parser.add_argument_group("Step Rate Function")
+        group.add_argument("--step-pos",
+                           type=float,
+                           default=3.0,
+                           help="Time where the step occurs.")
+        group.add_argument("--step-from",
+                           type=float,
+                           default=0.2,
+                           help="Initial rate.")
+        group.add_argument("--step-to",
+                           type=float,
+                           default=0.8,
+                           help="Rate to step to.")
+
+    @staticmethod
+    def from_arguments(arguments):
+        return StepRateFunction(arguments.step_pos, arguments.step_from,
+                                arguments.step_to)
+
+    def __init__(self, pos, initial, to):
+        self.pos = pos
+        self.initial = initial
+        self.to = to
+
+    def at(self, time):
+        if time < self.pos:
+            return self.initial
+        else:
+            return self.to
 
 
 class UnknownRateFunction(RateFunction):
