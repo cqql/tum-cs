@@ -43,6 +43,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 
+\DeclareMathOperator{\p}{P}
 \DeclareMathOperator{\cdf}{CDF}
 
 \title{Predicting Lost Packets}
@@ -71,32 +72,101 @@ A dataflow is a sequence of packets $p_{1}, p_{2}, \dots$ sent at times $t_{1}, 
 However the data transport medium is unreliable so that packets can go missing.
 We track this with a sequence of random variables $P_{1}, P_{2}, \dots$ that are defined to be $1$ if $p_{i}$ was successfully delivered and $0$ otherwise.
 This means that each of these sending procedures $P_{i}$ is a Poisson trial with success probability $s_{i}$.
-The $s_{i}$ are then again random variables on the real interval $[0, 1]$.
-We call them packet success probabilities because they describe the probability that a packet transfer is successful at time $t_{i}$.
+We call the $s_{i}$ packet success probabilities because they describe the probability that a packet transfer is successful at time $t_{i}$.
+However, the $s_{i}$ are hidden variables that we cannot directly measure.
+Instead we can only rely on the observed realizations $p_{i}$ of the $P_{i}$.
+So to figure out some information about the $s_{i}$ we can draw on bayesian learning as follows.
+If we knew the value of $s_{i}$, we could easily compute $\p[P_{i} = p_{i} \mid s_{i}]$.
+Applying the bayesian theorem tells us that
+\begin{equation*}
+  \p[s_{i} \mid P_{i} = p_{i}] = \frac{\p[P_{i} = p_{i} \mid s_{i}] \cdot \p[s_{i}]}{\p[P_{i} = p_{i}]} = \frac{\p[P_{i} = p_{i} \mid s_{i}] \cdot \p[s_{i}]}{\int_{s_{i}} \p[P_{i} = p_{i}]~\mathrm{d} s_{i}}
+\end{equation*}
+So if we modelled the $s_{i}$ as random variables with some prior distribution, i.e. what we believe about the $s_{i}$ without having seen any data, we could update our belief once we measure $P_{i} = p_{i}$.
+In practice we would for example believe that every packet success probability is equally likely, i.e. the prior for the $s_{i}$ would be the uniform distribution.
+But after having witnessed a successful transmission, we would update our belief because it now seems more likely that a transmission succeeds that not.
+This process is illustrated in figure \ref{fig:model:beta-learning}.
 
-A reasonable choice to model the probability distribution of the $s_{i}$ would be a Beta distribution with parameters $\alpha_{i} \ge 1$ and $\beta_{i} \ge 1$.
-This distribution can model a uniform distribution on $[0, 1]$ as well as a smooth, unimodal distribution.
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{model/beta-learning-1-1}
+		\caption{The uniform prior}
+	\end{subfigure}
+  \begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{model/beta-learning-2-1}
+		\caption{First success}
+	\end{subfigure}
+  \begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{model/beta-learning-3-1}
+		\caption{Second success}
+	\end{subfigure}
+  \begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth]{model/beta-learning-3-2}
+		\caption{A failure}
+	\end{subfigure}
+  \caption{A beta model is updated as more and more data is observed}
+  \label{fig:model:beta-learning}
+\end{figure}
+
+A reasonable choice to model the probability distribution of the $s_{i}$ would be a Beta distribution with parameters $\alpha_{i} \ge 1$ and $\beta_{i} \ge 1$ because it can model the uniform distribution as well as smooth, unimodal distributions on $[0, 1]$.
+Additionally and maybe even more importantly the beta distribution is the conjugate prior for the Bernoulli distribution which means that the update step explained above has a very simple form and results again in a beta distribution.
+This aspect is important if we want to refine our model again and again as time passes and more transmissions are observed.
+
+The uniform distribution was chosen as the prior because the $s_{i}$ can potentially take any value in $[0, 1]$ and without knowing anything there is no reason to believe in any one value more than in another.
 
 \section{Updating the model}
 
+As promised the procedure to update a beta model after the observation of a Bernoulli experiment is very simple and it comes down to addition.
 Whenever you register a packet loss, you add $1$ to the $\beta$ parameter of the current prior.
 When a packet is received, you add $1$ to the $\alpha$ parameter of the current prior instead.
 
-\section{Trust Function Model}\label{sec:trust_function}
+\section{Trust Function Model}
+\label{sec:trust_function}
+
+In the end we want to make predictions about the future.
+In particular we are trying to predict the probability that a packet will be transmitted successfully that we are yet to send.
+If we assumed the uniform prior for every transmission, we would not get all that far since we would predict any data already gathered from previous transmissions.
+Instead we want to carry some of our knowledge from the past over and only rely on the uniform prior in the very beginning.
+
+We do this by using the latest estimation as the prior but damping it in relation to how far ago it was made.
+The damping models how we lose trust in measurements that were taken some time ago since the wireless network is volatile and changes over time.
+This degree of trust is captured in a trust function $T(t) : \mathbb{R}_{\ge 0} \rightarrow [0, 1]$, where a value of $1$ means that you believe the old data completely while a value of $0$ means that you do not trust it at all.
 
 Say the last point of measurement was $t_{i}$ and we want to predict the distribution of the success probability $s'$ at time $t_{i} + t'$.
-In the trust function model we still believe in the latest measurement, but we might believe less so depending on the time $t'$ that has passed.
-This degree of trust is captured in a trust function $T(t) : \mathbb{R}_{\ge 0} \rightarrow [0, 1]$, where a value of $1$ means that you believe the old data completely while a value of $0$ means that you do not trust it at all.
+Let $\mathrm{Beta}(\alpha_{i}, \beta_{i})$ be the estimation at point $t_{i}$.
+Then we would believe the distribution of $s'$ at point $t'$ to be $\mathrm{Beta}(\alpha', \beta')$ where $\alpha' = 1 + (\alpha_{i} - 1) \cdot T(t')$, $\beta' = 1 + (\beta_{i} - 1) \cdot T(t')$ and $T$ is the trust function.
+The subtraction and addition of $1$ serves to guarantee that $\alpha, \gamma \ge 1$.
+These formulas achieve that as the time since the last update passes we return more or less slowly to the uniform prior because all the knowledge gathered gets more and more stale.
+
 Some reasonable things to expect from a trust function are
 \begin{itemize}
 \item $T(0) = 1$ because you should believe in your measurements
 \end{itemize}
 
+The trust function we choose models what we believe about the behavior of the true packet success probability.
+
 \subsection{$T = 0$}
+
+Or more specifically
+\begin{equation*}
+  T(t) = \begin{cases}
+    1 & \text{if $t = 0$}\\
+    0 & \text{otherwise}
+  \end{cases}
+\end{equation*}
+models the case where the packet success probability at any two points in time is totally uncorrelated, so there is no point in carrying over any knowledge from the past.
 
 \subsection{$T = 1$}
 
-\subsection{$T(t) = \exp(-t)$}
+$T(t) = 1$ models the other extreme.
+Here we believe that the packet success probability is a constant function and any data will be totally valid forever.
+
+\subsection{$T(t) = \exp\left( -a \cdot t \right)$}
+
+This trust function models the middle ground.
+Old data is trusted at first but then ignored exponentially quickly.
+There is also an option $a$ to select how fast trust should be lost where a larger value for $a$ lets you forget quicker.
+Experiments have shown a value of $a = \frac{1}{3}$ to be a good choice.
 
 \section{Predicting Redundancy}
 
