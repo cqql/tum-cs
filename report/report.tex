@@ -168,6 +168,44 @@ Old data is trusted at first but then ignored exponentially quickly.
 There is also an option $a$ to select how fast trust should be lost where a larger value for $a$ lets you forget quicker.
 Experiments have shown a value of $a = \frac{1}{3}$ to be a good choice.
 
+\begin{figure}[h!]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{trust/const-0-5-rate-5}
+		\caption{$5$ packets per second}
+	\end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{trust/const-0-5-rate-50}
+		\caption{$50$ packets per second}
+	\end{subfigure}
+  \begin{subfigure}[b]{\textwidth}
+		\includegraphics[width=\textwidth]{trust/const-0-5-rate-250}
+		\caption{$250$ packets per second}
+	\end{subfigure}
+  \caption{Estimating a link quality of $50\%$}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{trust/sin-2-rate-5}
+		\caption{$5$ packets per second}
+	\end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{trust/sin-2-rate-50}
+		\caption{$50$ packets per second}
+	\end{subfigure}
+  \begin{subfigure}[b]{\textwidth}
+		\includegraphics[width=\textwidth]{trust/sin-2-rate-250}
+		\caption{$250$ packets per second}
+	\end{subfigure}
+  \caption{Estimating a sine link quality with a period of $4\pi$}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{trust/heaviside-experiment}
+  \caption{Data from a real experiment with just beacon traffic at first and then full-throttle transmissions}
+\end{figure}
+
 \section{Predicting Redundancy}
 
 Let $P \sim \mathrm{Beta}(\alpha, \beta)$ be the current estimate for the packet success probability.
