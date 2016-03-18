@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <math.h>
+
+#include <mpi.h>
+
+double f(double x) {
+  if (x <= 0.5) {
+    return 0.0;
+  } else {
+    return 1.0;
+  }
+}
+
+double integrate(double (*f)(double), double a, double b, int n) {
+  double h = (b - a) / n;
+  double sum = 0.0;
+
+  for (int i = 0; i < n; i++) {
+    sum += (f(a + i * h) + f(a + (i + 1) * h)) * h / 2;
+  }
+
+  return sum;
+}
+
+int main(int argc, char** argv) {
+  int nranks, rank;
+  double a = 0;
+  double b = 1;
+  double eps = 0.2;
+
+  MPI_Init(&argc, &argv);
+  MPI_Comm_size(MPI_COMM_WORLD, &nranks);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  if (argc >= 2) {
+    sscanf(argv[1], "%lf", &eps);
+  }
+
+  double h = (b - a) / nranks;
+
+  /* Local settings */
+  a = a + rank * h;
+  b = a + h;
+
+  double last = 0.0;
+  double sum = 0.0;
+
+  int n = 0;
+  do {
+    n++;
+    last = sum;
+    sum = integrate(f, a, b, n);
+  } while (fabs(last - sum) >= eps);
+
+  printf("Rank %d -> n=%d\n", rank, n);
+
+  if (rank == 0) {
+    for (int i = 1; i < nranks; i++) {
+      double buf;
+      MPI_Recv(&buf, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      sum += buf;
+    }
+
+    printf("Integral = %.10f\n", sum);
+  } else {
+    MPI_Send(&sum, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+  }
+
+  MPI_Finalize();
+}

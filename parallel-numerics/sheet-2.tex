@@ -1,0 +1,124 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Parallel Numerics, Sheet 2}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+% BEGIN RECEIVE ORGTBL exercise-1-b
+\begin{tabular}{rrrr}
+Procs/n & 2 & 4 & 8\\
+\hline
+1 & 3 & 3.75 & 3.9375\\
+4 & 3.9375 & 3.984375 & 3.99609375\\
+16 & 3.99609375 & 3.9990234375 & 3.9997558594\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-1-b
+\begin{comment}
+#+ORGTBL: SEND exercise-1-b orgtbl-to-latex :splice nil :skip 0
+| Procs/n | 2            | 4              | 8              |
+|---------+--------------+----------------+----------------|
+|       1 | $3$          | $3.75$         | $3.9375$       |
+|       4 | $3.9375$     | $3.984375$     | $3.99609375$   |
+|      16 | $3.99609375$ | $3.9990234375$ | $3.9997558594$ |
+\end{comment}
+
+\subsection*{Part c)}
+
+Analytical solution
+\begin{equation*}
+  \int_{0}^{2\pi} x \sin(10x) ~\mathrm{d}x = -\left[ \frac{x}{10}\cos(10x) + \frac{1}{100} \sin(10x) \right]_{0}^{2\pi} = - \left( \frac{2\pi}{10}\cos(20\pi) + \frac{1}{100}\sin(20\pi) \right) = - \frac{2\pi}{10} \approx -0.62832
+\end{equation*}
+
+% BEGIN RECEIVE ORGTBL exercise-1-c
+\begin{tabular}{rrrr}
+Procs/n & 2 & 4 & 8\\
+\hline
+1 & 0 & 0 & -2.4674011003\\
+4 & -2.4674011003 & 0.5110154998 & -0.4121661766\\
+16 & -0.4121661766 & -0.5770228472 & -0.6156510848\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-1-c
+\begin{comment}
+#+ORGTBL: SEND exercise-1-c orgtbl-to-latex :splice nil :skip 0
+| Procs/n | 2               | 4               | 8               |
+|---------+-----------------+-----------------+-----------------|
+|       1 | $0$             | $0$             | $-2.4674011003$ |
+|       4 | $-2.4674011003$ | $0.5110154998$  | $-0.4121661766$ |
+|      16 | $-0.4121661766$ | $-0.5770228472$ | $-0.6156510848$ |
+\end{comment}
+The numbers oscillate because a basic digital signal processing theorem says that you need to probe a function with at least double the highest frequency on the interval.
+The frequency on the interval $[0, 2\pi]$ is $10$ and it is true that from $20$ probes the numbers stop to oscillate and converge towards the true value.
+
+\subsection*{Part d)}
+
+The node that integrates over the discontinuity performs an ever increasing number of iterations while every other node terminates in one or two iterations.
+
+\subsection*{Part e)}
+
+It is called reducing.
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+$b_{0}$ could have any of the first two values, $b_{3}$ any the last two and $b_{1}, b_{2}$ any of the four values.
+The reason is that any interleaving of messages where the messages from each sender stay in order is a valid outcome.
+
+\subsection*{Part c)}
+
+A blocking MPI command halts program execution until the used resources, e.g. a message buffer, can be reused again.
+This does not necessarily mean that for example a message was really received by the intended recipient.
+
+\subsection*{Part d)}
+
+MPI communication commands are not synchronized which means that its termination does not guarantee reception of a message.
+To guarantee this you need to draw on special synchronization operations like $\mathtt{MPI\_Barrier}$.
+
+\section*{Exercise 3}
+
+MPI has datatypes for all the standard number types in C, i.e. short, int, float, etc.
+Furthermore there are types for some composite datatypes, e.g. a struct of two ints.
+
+\end{document}
