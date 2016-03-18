@@ -1,0 +1,126 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Draw graphics from a text description
+\usepackage{tikz}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Parallel Numerics, Sheet 1}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\begin{minted}{asm}
+  for i in 1..6
+    load A(i), Reg(0)
+    load 2, Reg(1)
+    mult
+    load B(i), Reg(1)
+    add
+    store Reg(0), A(i)
+  end
+\end{minted}
+
+\subsection*{Part b)}
+
+SISD -- Single Instruction Single Data
+
+\subsection*{Part c)}
+
+\begin{minted}{asm}
+  for i in [1, 3, 5]
+    load A(i + 1), Reg(0)
+    load 2, Reg(1)
+    mult
+    load Reg(0), Reg(2)
+    load A(i), Reg(0)
+    mult
+    load B(i), Reg(1)
+    load B(i + 1), Reg(3)
+    add2
+    store Reg(0), A(i)
+    store Reg(2), A(i + 1)
+  end
+\end{minted}
+
+It still requires 33 operations because there is no accompanying mult2 operation, so you have to multiply in the first two registers and then move the result into the third though you can reuse the 2 in the second register.
+
+Such operations are supported by modern CPUs through vector instruction extensions, for example SSE.
+
+The add2 instruction is SIMD -- Single Instruction Multiple Data.
+
+\subsection*{Part d)}
+
+Each core executes every second iteration of the original program.
+
+It is an MIMD -- Multiple Instruction Multiple Data -- architecture because the two cores could execute two different programs at the same time.
+
+\subsection*{Part e)}
+
+\begin{minted}{asm}
+  for i in 1..6
+    load A(i), Reg(0) and load 2, Reg(1)
+    mult and load B(i), Reg(1)
+    add
+    store Reg(0), A(i)
+  end
+\end{minted}
+
+It requires 24 clock cycles.
+
+\section*{Exercise 2}
+
+SPMD refers to an architecture where several cores execute the same program but operate on different data streams.
+These systems fit best in the category of MIMD architectures.
+The difference to SIMD is that SPMD computers execute the same instruction multiple times in parallel.
+
+\section*{Exercise 3}
+
+In a shared memory architecture multiple processors have direct access to each other's memory.
+On the contrary distributed shared memory systems have to carry out all memory accesses to another processor's memory through message passing.
+
+\section*{Exercise 4}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+\subsection*{Part c)}
+
+\section*{Exercise 5}
+
+\section*{Exercise 6}
+
+\end{document}
