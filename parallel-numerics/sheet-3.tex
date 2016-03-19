@@ -1,0 +1,169 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Parallel Numerics, Sheet 3}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+Such an algorithm always has to perform at least $2^{k} - 1$ additions since otherwise there would be a number missing from the sum.
+Therefore we can just add up all the numbers from first to last.
+
+\subsection*{Part c)}
+
+Do it as illustrated in the scheme.
+This scheme finishes in $k$ timesteps.
+
+You can use at most $\frac{2^{k}}{2}$ processors where each of them sums two of the values in the first step.
+
+\section*{Exercise 2}
+
+% BEGIN RECEIVE ORGTBL exercise-2
+\begin{tabular}{rlll}
+BLAS level & description & complexity & example\\
+\hline
+1 & vector-vector operations & $n$ & $w \leftarrow \alpha v + w$\\
+2 & matrix-vector operations & $n^{2}$ & $w \leftarrow \alpha Av \beta w$\\
+3 & matrix-matrix operations & $n^{3}$ & $C \leftarrow  \alpha AB + \beta C$\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-2
+\begin{comment}
+#+ORGTBL: SEND exercise-2 orgtbl-to-latex :splice nil :skip 0 :raw t
+| BLAS level | description              | complexity | example                             |
+|------------+--------------------------+------------+-------------------------------------|
+|          1 | vector-vector operations | $n$        | $w \leftarrow \alpha v + w$         |
+|          2 | matrix-vector operations | $n^{2}$    | $w \leftarrow \alpha Av + \beta w$     |
+|          3 | matrix-matrix operations | $n^{3}$    | $C \leftarrow  \alpha AB + \beta C$ |
+\end{comment}
+\\
+BLAS routines are dynamically linked because they are often fitted to the very architecture and therefore may differ from node to node.
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+After the termination of a blocking MPI command you are free to reuse the message buffers whereas you have to explicitly \mintinline{c}{MPI_Wait} somewhen in the case of non-blocking communication.
+
+\subsection*{Part c)}
+
+Non-blocking commands let you hide latency between nodes by filling the waiting time with computation.
+
+\section*{Exercise 4}
+
+\subsection*{Part a)}
+
+% BEGIN RECEIVE ORGTBL exercise-4-a
+\begin{tabular}{rr}
+Proc Rank & a\\
+\hline
+0 & 6\\
+1 & 2\\
+2 & 3\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-4-a
+\begin{comment}
+#+ORGTBL: SEND exercise-4-a orgtbl-to-latex :splice nil :skip 0
+| Proc Rank | a |
+|-----------+---|
+|         0 | 6 |
+|         1 | 2 |
+|         2 | 3 |
+\end{comment}
+
+\subsection*{Part b)}
+
+Sum reduction.
+
+\subsection*{Part c)}
+
+On the root node the addition \mintinline{c}{a += b} would possibly be executed before the value of \mintinline{c}{b} was actually received.
+Therefore you would add an undefined value to \mintinline{c}{a}.
+Furthermore it is totally possible that not a single value is received before the whole loop finishes.
+
+\section*{Exercise 5}
+
+\subsection*{Vector Addition}
+
+% BEGIN RECEIVE ORGTBL exercise-5-sum
+\begin{tabular}{rlrr}
+Procs & Time & Speedup & Efficiency\\
+\hline
+1 & 0.040754s & 1 & 1\\
+2 & 0.021910s & 1.86 & 0.93\\
+4 & 0.016606s & 2.45 & 0.49\\
+8 & 0.007573s & 5.38 & 0.67\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-5-sum
+\begin{comment}
+#+ORGTBL: SEND exercise-5-sum orgtbl-to-latex :splice nil :skip 0
+| Procs | Time      | Speedup | Efficiency |
+|-------+-----------+---------+------------|
+|     1 | 0.040754s |       1 |          1 |
+|     2 | 0.021910s |    1.86 |       0.93 |
+|     4 | 0.016606s |    2.45 |       0.49 |
+|     8 | 0.007573s |    5.38 |       0.67 |
+\end{comment}
+
+\subsection*{Inner Product}
+
+You could parallelize the final sum by SUM reducing the partial results instead of collecting them all on the root node.
+This, however, is unnecessary since the number of processors is much smaller than the number of vector entries.
+
+% BEGIN RECEIVE ORGTBL exercise-5-inner
+\begin{tabular}{rlrr}
+Procs & Time & Speedup & Efficiency\\
+\hline
+1 & 0.033900s & 1 & 1\\
+2 & 0.018552s & 1.83 & 0.915\\
+4 & 0.009315s & 3.64 & 0.91\\
+8 & 0.004800s & 7.06 & 0.883\\
+\end{tabular}
+% END RECEIVE ORGTBL exercise-5-inner
+\begin{comment}
+#+ORGTBL: SEND exercise-5-inner orgtbl-to-latex :splice nil :skip 0
+| Procs | Time      | Speedup | Efficiency |
+|-------+-----------+---------+------------|
+|     1 | 0.033900s |       1 |          1 |
+|     2 | 0.018552s |    1.83 |      0.915 |
+|     4 | 0.009315s |    3.64 |       0.91 |
+|     8 | 0.004800s |    7.06 |      0.883 |
+\end{comment}
+
+\end{document}
