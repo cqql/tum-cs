@@ -1,0 +1,171 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Parallel Numerics, Sheet 4}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+In the first case you need three steps
+\begin{itemize}
+\item evaluate all terms in parallel
+\item add first to second and third to fourth
+\item add the intermediate results
+\end{itemize}
+
+In the latter case you need four steps
+\begin{itemize}
+\item Compute first product, $x_{1} - x_{3}$
+\item Subtract $x_{2}$
+\item Multiply by $x_{1}$
+\item Add intermediate results
+\end{itemize}
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\begin{equation*}
+  t_{p} = f \cdot t_{1} + \frac{(1 - f)t_{1}}{p}
+\end{equation*}
+
+\subsection*{Part b)}
+
+\begin{equation*}
+  S = \frac{t_{1}}{t_{p}} = \frac{t_{1}}{f \cdot t_{1} + \frac{(1 - f)t_{1}}{p}} = \frac{1}{f + \frac{(1 - f)}{p}}
+\end{equation*}
+
+\subsection*{Part c)}
+
+\begin{equation*}
+  E = \frac{S}{p} = \frac{\frac{1}{f + \frac{(1 - f)}{p}}}{p} = \frac{1}{pf + (1 - f)} = \frac{1}{(p - 1)f + 1}
+\end{equation*}
+
+\subsection*{Part d)}
+
+\begin{equation*}
+  \lim_{p \rightarrow \infty} t_{p} = f \cdot t_{1}
+\end{equation*}
+
+\begin{equation*}
+  \lim_{p \rightarrow \infty} S = \frac{1}{f}
+\end{equation*}
+
+\begin{equation*}
+  \lim_{p \rightarrow \infty} E = 0
+\end{equation*}
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+\begin{equation*}
+  t_{1} = f \cdot t_{p} + p \cdot (1 - f) \cdot t_{p}
+\end{equation*}
+
+\subsection*{Part b)}
+
+\begin{equation*}
+  S = \frac{t_{1}}{t_{p}} = f + p \cdot (1 - f) = f + p - pf = (1 - p)f + p = p - (p - 1)f
+\end{equation*}
+
+\subsection*{Part c)}
+
+\begin{equation*}
+  E = \frac{S}{p} = \frac{f}{p} + 1 - f
+\end{equation*}
+
+\subsection*{Part d)}
+
+\begin{equation*}
+  \lim_{p \rightarrow \infty} S = \infty
+\end{equation*}
+
+\begin{equation*}
+  \lim_{p \rightarrow \infty} E = 1 - f
+\end{equation*}
+
+\subsection*{Part e)}
+
+This situation is best described by Gustafson's law because it assumes a problem that scales with the number of processors available.
+
+\section*{Exercise 4}
+
+\subsection*{Part a)}
+
+With blocking operations the outcome is guaranteed to be $0, 1$.
+If non-blocking operations are used, the outcome could be any number of undefined value, $0$ or $1$ but in this order.
+For example the program could print $undefined, 1$ or $0, 0$.
+
+\subsection*{Part b)}
+
+\emph{Synchronized} means that all nodes partaking in this synchronization have reached a predefined point in their execution, for example the reception of a message send with \emph{synchronized send}.
+
+\subsection*{Part c)}
+
+As long as there is no synchronization point on the receiver side, this is no different than the non-blocking case in part a.
+
+\subsection*{Part d)}
+
+The result will always be $0, 1$ but both nodes have to perform synchronization work.
+
+\subsection*{Part e)}
+
+Both return immediately but a \emph{buffered send} may store the message in an allocated intermediate buffer, while a \emph{ready send} will just send the message and you have to make sure that the destination is ready to receive it.
+
+\section*{Exercise 5}
+
+\subsection*{Part a)}
+
+One element depends on a row of $A$ and a column of $B$.
+
+\subsection*{Part b)}
+
+Every submatrix depends on all submatrixes in its row in $A$ and column in $B$.
+
+\subsection*{Part c)}
+
+\subsection*{Part d)}
+
+See b).
+It takes $\sqrt{p}$ timesteps since there are $\sqrt{p}$ pairs of submatrices $(A_{ik}, B_{kj})$.
+
+\subsection*{Part e)}
+
+Node $ij$ loads $A_{ij}$ and $B_{ij}$ initially and computes $C_{ij}^{1}$.
+Then iteratively send the current submatrix of $A$ to the left, the current submatrix of $B$ to the top and compute $C_{ij}^{k}$.
+Repeat until every node has its original submatrix back.
+Finally sum up $C_{ij} = \sum_{k = 1}^{\sqrt{p}} C_{ij}^{k}$.
+
+\end{document}
