@@ -1,0 +1,195 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Parallel Numerics, Sheet 5}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+In the context of algorithms \emph{in situ} means that an algorithm only needs some constant amount of space in addition to the space storing the input.
+
+\subsection*{Part b)}
+
+Forward elimination means the iterative solving for $x_{i}, i = 1..n$ in $Ax = b$ in the case of a lower-triangular matrix $A$, while backward elimination is the solving for $x_{i}, i = n..1$ in the case of an upper-triangular matrix $A$.
+
+\subsection*{Part c)}
+
+\begin{equation*}
+  L = \begin{pmatrix}
+    1 & 0 & 0\\
+    2 & 1 & 0\\
+    1 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+  U = \begin{pmatrix}
+    2 & 2 & 1\\
+    0 & -2 & 1\\
+    0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+\subsection*{Part d)}
+
+\begin{equation*}
+  P_{0} = \begin{pmatrix}
+    0 & 1 & 0\\
+    1 & 0 & 0\\
+    0 & 0 & 1
+  \end{pmatrix}
+  \qquad
+  A_{0} = \begin{pmatrix}
+    2 & 2 & 1\\
+    4 & 2 & 3\\
+    2 & 2 & 2
+  \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+  A_{1} = \begin{pmatrix}
+    4 & 2 & 3\\
+    2 & 2 & 1\\
+    2 & 2 & 2
+  \end{pmatrix}
+  \qquad
+  L_{1} = \begin{pmatrix}
+    1 & 0 & 0\\
+    -\frac{1}{2} & 1 & 0\\
+    -\frac{1}{2} & 0 & 1
+  \end{pmatrix}
+  \qquad
+  U_{1} = \begin{pmatrix}
+    4 & 2 & 3\\
+    0 & 1 & -\frac{1}{2}\\
+    0 & 1 & \frac{1}{2}
+  \end{pmatrix}
+  \qquad
+  P_{1} = \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 1 & 0\\
+    0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+  L_{2} = \begin{pmatrix}
+    1 & 0 & 0\\
+    0 & 1 & 0\\
+    0 & -1 & 1
+  \end{pmatrix}
+  \qquad
+  U_{2} = \begin{pmatrix}
+    4 & 2 & 3\\
+    0 & 1 & -\frac{1}{2}\\
+    0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+  L_{2}P_{1}L_{1}P_{0}A = U_{2} \Rightarrow A = P_{0}L_{1}^{-1}P_{1}L_{2}^{-1}U_{2}
+\end{equation*}
+
+\begin{equation*}
+  P = \begin{pmatrix}
+    0 & 1 & 0\\
+    1 & 0 & 0\\
+    0 & 0 & 1
+  \end{pmatrix}
+  \qquad
+  L = \begin{pmatrix}
+    1 & 0 & 0\\
+    \frac{1}{2} & 1 & 0\\
+    \frac{1}{2} & 1 & 1
+  \end{pmatrix}
+  \qquad
+  U = \begin{pmatrix}
+    4 & 2 & 3\\
+    0 & 1 & -\frac{1}{2}\\
+    0 & 0 & 1
+  \end{pmatrix}
+\end{equation*}
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+A \emph{collective operation} is an MPI operation in which an arbitrary number of nodes participate.
+
+\subsection*{Part b)}
+
+There were none before MPIv3.
+
+\subsection*{Part c)}
+
+\begin{description}
+\item[Collective Computations] Sum Reduction
+\item[Data Movement] Gathering
+\item[Synchronization] Barrier
+\end{description}
+
+\subsection*{Part d)}
+
+For example, sum, prod, min, max.
+\mintinline{c}{MPI_Reduce} stores the final result on a designated root node, while \mintinline{c}{MPI_Allreduce} makes the result available to all nodes.
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+\begin{equation*}
+  x_{n} = \frac{b_{n}}{a_{n,n}} \qquad x_{n - 1} = \frac{b_{n - 1} - a_{n - 1,n}x_{n}}{a_{n - 1, n - 1}}
+\end{equation*}
+
+The computation of every $x_{i}$ depends on all $x_{j}$ with $j > i$.
+However, you can precompute parts as soon as some of the $x_{i}$ are computed.
+
+\subsection*{Part b)}
+
+Whenever a result $x_{i}$ is received, subtract $a_{j,i}x_{i}$ from the current intermediate result.
+Once node $j$ has fully computed $x_{j}$, it sends it to all nodes $k < j$ with an $\mathtt{MPI\_Bcast}$.
+
+First the first node goes idle, then the second and so on.
+
+\subsection*{Part c)}
+
+Node $i$ computes $x_{i}$ and then subtracts $a_{j,i}x_{i}$ for all rows $j < i$ and sends the results to the next node $i - 1$ with $\mathtt{MPI\_Send}$.
+
+There is only one busy node at a time.
+
+\subsection*{Part d)}
+
+\end{document}
