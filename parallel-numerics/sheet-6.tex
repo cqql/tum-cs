@@ -1,0 +1,72 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Parallel Numerics, Sheet 6}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+Each node has to pass the ratio $\frac{a_{k + 1}}{b_{k}}$ to its right neighbour who only then can update its own $b_{k}$ to continue the chain.
+Therefore there is only one busy node at any point in time.
+
+\subsection*{Part b)}
+
+The first step fills-in the left border cells of the matrix block while at the same time eliminating the subdiagonal.
+Second, the cells second from the right border are filled-in while the superdiagonal is eliminated.
+Later steps only manipulate and eliminate existing cells.
+
+In the end this algorithm can run in place because for every fill-in there is a cell eliminated at the same time.
+
+\subsection*{Part c)}
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\mintinline{c}{u = 1, v = 2, w = undefined} and blocking until another message with tag $0$ is received.
+
+\subsection*{Part b)}
+
+\mintinline{c}{u = 1, v = 3, w = 2}
+
+\section*{Exercise 3}
+
+You relate the $x_{i}$ to variables that are further and further away until they drop off the edge of the matrix and you get an equation like $b_{i}^{(N)}x_{i} = d_{i}^{(N)}$.
+
+There is no fill-in generated and it is easy to parallelize.
+Every core computes a block of the $x_{i}$ and then shares only the necessary updates with the respective nodes.
+
+\end{document}
