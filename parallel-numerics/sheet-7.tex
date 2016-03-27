@@ -1,0 +1,90 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Parallel Numerics, Sheet 7}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+Hypercube, cartesian grid, tree, fat tree, ring.
+
+You can use virtual topologies to map MPI ranks to nodes such that they are optimized for a ring communication pattern for example.
+
+\subsection*{Part b)}
+
+A two-dimensional cartesian grid with wrap around.
+
+\subsection*{Part c)}
+
+\subsection*{Part d)}
+
+Restrict messages to subgroups of processors, for example the second row of a two-dimensional grid topology.
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+Elements of the same color can be computed in parallel and have dependency trees of the same depth.
+
+\subsection*{Part b)}
+
+Chess board coloring.
+
+\subsection*{Part c)}
+
+\section*{Exercise 3}
+
+In the general case of a random matrix CSR and CSC perform best.
+In practice there are probably scenario where for example the diagonal-wise storage would perform best.
+
+\begin{figure}[h]
+  \centering
+  \begin{minted}{sh}
+    $ ./a.out
+    Full: 0.104327s
+    Coordinate Form: 0.020137s
+    Compressed Sparse Row: 0.016188s
+    Compressed Sparse Column: 0.016050s
+    CSR with Extracted Diagonal: 0.016366s
+    Diagonal-Wise Storage: 0.135155s
+    Rectangular Row Storage: 0.018884s
+    Jagged Diagonal: 0.026019s
+  \end{minted}
+  \caption{Run with a random matrix $n = 4000$ and a mean fill-in of $10\%$}
+  \label{fig:}
+\end{figure}
+
+\end{document}
