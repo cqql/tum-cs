@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from argparse import ArgumentParser
+import csv
+import os
 
 import matplotlib.pyplot as pp
 import numpy as np
@@ -145,6 +147,40 @@ class ExplorePlotter:
             pp.show()
 
 
+def plotcsv(dir, measurements, estimations):
+    if not os.path.isdir(dir):
+        os.makedirs(dir)
+
+    measurements = np.array(measurements)
+    estimations = np.array(estimations)
+
+    with open(os.path.join(dir, "measurements.csv"), "w") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Time", "Received", "Lost"])
+
+        for i in range(measurements.shape[0]):
+            writer.writerow(measurements[i, :])
+
+    with open(os.path.join(dir, "estimations.csv"), "w") as f:
+        writer = csv.writer(f)
+
+        if len(estimations) > 0 and isinstance(estimations[0, 2], float):
+            writer.writerow(["Time", "True PSR", "Estimate"])
+
+            for i in range(estimations.shape[0]):
+                writer.writerow(estimations[i, :])
+        else:
+            writer.writerow(["Time", "True PSR", "Mode", "Mean", "Variance",
+                             "5-Percentile", "95-Percentile"])
+
+            for i in range(estimations.shape[0]):
+                row = estimations[i, :]
+                d = row[2]
+
+                writer.writerow([row[0], row[1], betamode(d), d.mean(), d.var(),
+                                 d.ppf(0.05), d.ppf(0.95)]) # yapf: disable
+
+
 def parse_arguments():
     parser = ArgumentParser(description="Simulate an estimator")
     parser.add_argument("--time",
@@ -166,6 +202,7 @@ def parse_arguments():
                         default=False,
                         help="Plot everything")
     parser.add_argument("-o", "--out", help="Outfile")
+    parser.add_argument("--csv", help="CSV Output Directory")
 
     simulation.Timer.add_arguments(parser)
     simulation.RateFunction.add_arguments(parser)
@@ -193,6 +230,9 @@ def main():
     measurements, estimations = sim.run(timer, rate, generator, [estimator])
 
     plotter.plot(measurements, estimations[0][1])
+
+    if arguments.csv:
+        plotcsv(arguments.csv, measurements, estimations[0][1])
 
 
 if __name__ == "__main__":
