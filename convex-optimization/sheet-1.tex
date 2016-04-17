@@ -1,0 +1,139 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Convex Optimization for Computer Vision, Sheet 1}
+\author{Marten Lienen (03670270)}
+
+\DeclareMathOperator{\epi}{epi}
+\DeclareMathOperator{\dom}{dom}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+I will assume that $X$ in the definition of $\epi(f)$ is the domain of $f$.
+
+\begin{proof}
+  $(1) \Rightarrow (2)$: Let $(x_{1}, y_{1}), (x_{2}, y_{2}) \in \epi(f)$ and $\alpha \in [0, 1]$.
+  Then $\alpha x_{1} + (1 - \alpha) x_{2} \in X$ because $\dom(f)$ is convex.
+  \begin{align*}
+    f\left( \alpha x_{1} + (1 - \alpha) x_{2} \right) \le \alpha f(x_{1}) + (1 - \alpha) f(x_{2}) \le \alpha y_{1} + (1 - \alpha) y_{2}
+  \end{align*}
+  So $\alpha \begin{pmatrix}x_{1}\\y_{1}\end{pmatrix} + (1 - \alpha) \begin{pmatrix}x_{2}\\y_{2}\end{pmatrix} \in \epi(f)$ and therefore $\epi(f)$ is convex.
+
+  $(1) \Leftarrow (2)$: For every $x_{1}, x_{2} \in X = \dom(f)$ there are $y_{1}, y_{2}$ such that $(x_{1}, y_{1}), (x_{2}, y_{2}) \in \epi(f)$ because $x_{1}, x_{2} \in \dom(f)$.
+  Because $\epi(f)$ is convex, for any $\alpha \in [0, 1]$ we have $\alpha \begin{pmatrix}x_{1}\\y_{1}\end{pmatrix} + (1 - \alpha) \begin{pmatrix}x_{2}\\y_{2}\end{pmatrix} \in \epi(f)$ and therefore $\alpha x_{1} + (1 - \alpha) x_{2} \in X$.
+  So $X = \dom(f)$ is convex.
+
+  Now let $x_{1}, x_{2} \in X$ and $\alpha \in [0, 1]$.
+  Since $(x_{1}, f(x_{1})), (x_{2}, f(x_{2})) \in \epi(f)$, we have $\alpha \begin{pmatrix}x_{1}\\f(x_{1})\end{pmatrix} + (1 - \alpha) \begin{pmatrix}x_{2}\\f(x_{2})\end{pmatrix} \in \epi(f)$.
+  So by the definition of the epigraph
+  \begin{equation*}
+    f(\alpha x_{1} + (1 - \alpha) x_{2}) \le \alpha f(x_{1}) + (1 - \alpha) f(x_{2})
+  \end{equation*}
+  and $f$ is convex.
+\end{proof}
+
+\section*{Exercise 2}
+
+\begin{proof}
+  Let $(x_{1}, t_{1}), (x_{2}, t_{2}) \in \dom(f)$ and $\alpha \in [0, 1]$.
+  Then $t_{1}, t_{2} > 0$ and $\frac{x_{1}}{t_{1}}, \frac{x_{2}}{t_{2}} \in \dom(g)$.
+  Therefore $\alpha t_{1} + (1 - \alpha) t_{2} > 0$ as well as $\frac{\alpha x_{1} + (1 - \alpha) x_{2}}{\alpha t_{1} + (1 - \alpha) t_{2}} = \beta \frac{x_{1}}{t_{1}} + (1 - \beta) \frac{x_{2}}{t_{2}} \in \dom(g)$.
+  \begin{align*}
+    \frac{\alpha x_{1} + (1 - \alpha) x_{2}}{\alpha t_{1} + (1 - \alpha) t_{2}} & = \textit{nonsense}\\
+                                                                                & = \frac{\beta x_{1} t_{2} + (1 - \beta) x_{2} t_{1}}{t_{1}t_{2}}\\
+                                                                                & = \beta \frac{x_{1}}{t_{1}} + (1 - \beta) \frac{x_{2}}{t_{2}} \in \dom(g)
+  \end{align*}
+  So $\dom(f)$ is convex.
+
+  \begin{align*}
+    f(\alpha x_{1} + (1 - \alpha)x_{2}, \alpha t_{1} + (1 - \alpha)t_{2}) & = (\alpha t_{1} + (1 - \alpha)t_{2}) g\left( \frac{\alpha x_{1} + (1 - \alpha)x_{2}}{\alpha t_{1} + (1 - \alpha)t_{2}} \right)\\
+                                                                          & \le (\alpha t_{1} + (1 - \alpha)t_{2}) g\left( \frac{\alpha x_{1} + (1 - \alpha)x_{2}}{\alpha t_{1} + (1 - \alpha)t_{2}} \right)\\
+  \end{align*}
+\end{proof}
+
+\section*{Exercise 3}
+
+\begin{proof}
+  $(1) \Rightarrow (2)$: $X$ is closed, so $\bar{X}$ is open.
+  Let $(x_{i})_{i \in \mathbb{N}}$ be a convergent series in $X$ with limit $x'$.
+  Assume that $x' \not\in X$.
+  Then there is an $\varepsilon$-ball around $x'$ that is complete contained in $\bar{X}$.
+  Therefore none of the $x_{i}$ can be closer to $x'$ than $\varepsilon$ which contradicts the assumption that $\lim_{i \rightarrow \infty} x_{i} = x'$.
+  So $x' \in X$.
+
+  $(1) \Leftarrow (2)$: Let $x' \in \bar{X}$.
+  Assume that there is no $\varepsilon$ such that $B_{\varepsilon}(x') \cap X = \emptyset$.
+  So for every $i \in \mathbb{N}$ there is an $x_{i} \in X$ such that $d(x', x) < \frac{1}{i}$.
+  These $(x_{i})$ form a convergent series in $X$ with limit point $x'$.
+  But $x' \not\in X$ which contradicts the assumption that every convergent series attains its limit in $X$.
+  So $\bar{X}$ is open and $X$ is closed.
+\end{proof}
+
+\section*{Exercise 4}
+
+\begin{proof}
+  $(1) \Rightarrow (2)$: Let $x \in X$, $v \in \mathbb{R}^{n}$.
+  \begin{align*}
+    v^{T}H_{f}(x)v & = \lim_{t \rightarrow 0} 2 \frac{f(x + tv) - f(x) - tv^{T} \nabla f(x)}{t^{2}}\\
+            & \ge \lim_{t \rightarrow 0} 2 \frac{(tv)^{T}\nabla f(x) - tv^{T} \nabla f(x)}{t^{2}} = 0 \qquad \textit{apply the hint with $y = x + tv$}\\
+  \end{align*}
+  So $H_{f}(x)$ is positive semidefinite.
+
+  $(1) \Leftarrow (2)$: Let $x, y \in X$.
+  \begin{equation*}
+    f(x + (y - x)) = f(x) + (y - x)^{T} \nabla f(x) + \frac{1}{2} (y - x)^{T} H_{f}(x + t(y - x)) (y - x)^{T} \ge f(x) + (y - x)^{T} \nabla f(x)
+  \end{equation*}
+  So
+  \begin{equation*}
+    f(y) - f(x) \ge (y - x)^{T} \nabla f(x)
+  \end{equation*}
+  what proves that $f$ is convex according to the hint.
+\end{proof}
+
+\section*{Exercise 5}
+
+\begin{proof}
+  The Hessian of $f$ is
+  \begin{align*}
+    f''(x) = A + A^{T}
+  \end{equation*}
+  which is still positive semidefinite:
+  Let $v \in \mathbb{R}^{n}$.
+  \begin{equation*}
+    v^{T}(A + A^{T})v = v^{T}Av + v^{T}A^{T}v = v^{T}Av + (v^{T}Av)^{T} \ge 0
+  \end{equation*}
+  So $f$ is convex according to exercise 4.
+\end{proof}
+
+\end{document}
