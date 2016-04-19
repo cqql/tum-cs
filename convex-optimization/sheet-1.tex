@@ -20,7 +20,7 @@
 \usepackage{minted}
 
 % Set global minted options
-\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+\setminted{linenos, autogobble}
 
 % Import the comment environment for orgtbl-mode
 \usepackage{comment}
@@ -68,18 +68,23 @@ I will assume that $X$ in the definition of $\epi(f)$ is the domain of $f$.
 \begin{proof}
   Let $(x_{1}, t_{1}), (x_{2}, t_{2}) \in \dom(f)$ and $\alpha \in [0, 1]$.
   Then $t_{1}, t_{2} > 0$ and $\frac{x_{1}}{t_{1}}, \frac{x_{2}}{t_{2}} \in \dom(g)$.
-  Therefore $\alpha t_{1} + (1 - \alpha) t_{2} > 0$ as well as $\frac{\alpha x_{1} + (1 - \alpha) x_{2}}{\alpha t_{1} + (1 - \alpha) t_{2}} = \beta \frac{x_{1}}{t_{1}} + (1 - \beta) \frac{x_{2}}{t_{2}} \in \dom(g)$.
+  Therefore $\alpha t_{1} + (1 - \alpha) t_{2} > 0$ as well as $\frac{\alpha x_{1} + (1 - \alpha) x_{2}}{\alpha t_{1} + (1 - \alpha) t_{2}} \in \dom(g)$ because
   \begin{align*}
-    \frac{\alpha x_{1} + (1 - \alpha) x_{2}}{\alpha t_{1} + (1 - \alpha) t_{2}} & = \textit{nonsense}\\
-                                                                                & = \frac{\beta x_{1} t_{2} + (1 - \beta) x_{2} t_{1}}{t_{1}t_{2}}\\
-                                                                                & = \beta \frac{x_{1}}{t_{1}} + (1 - \beta) \frac{x_{2}}{t_{2}} \in \dom(g)
+    \frac{\alpha x_{1} + (1 - \alpha) x_{2}}{\alpha t_{1} + (1 - \alpha) t_{2}} & = \frac{\alpha}{\alpha t_{1} + (1 - \alpha) t_{2}} x_{1} + \frac{1 - \alpha}{\alpha t_{1} + (1 - \alpha) t_{2}} x_{2}\\
+                                                                                & = \frac{\alpha t_{1}}{\alpha t_{1} + (1 - \alpha) t_{2}} \frac{x_{1}}{t_{1}} + \frac{(1 - \alpha)t_{2}}{\alpha t_{1} + (1 - \alpha) t_{2}} \frac{x_{2}}{t_{2}}\\
+                                                                                & = \beta \frac{x_{1}}{t_{1}} + (1 - \beta) \frac{x_{2}}{t_{2}} \in \dom(g) \qquad \textrm{with $\beta = \frac{\alpha t_{1}}{\alpha t_{1} + (1 - \alpha) t_{2}}$}
   \end{align*}
+  where $\beta \in [0, 1]$ since the denominator is always greater than or equal to the numerator.
   So $\dom(f)$ is convex.
 
   \begin{align*}
     f(\alpha x_{1} + (1 - \alpha)x_{2}, \alpha t_{1} + (1 - \alpha)t_{2}) & = (\alpha t_{1} + (1 - \alpha)t_{2}) g\left( \frac{\alpha x_{1} + (1 - \alpha)x_{2}}{\alpha t_{1} + (1 - \alpha)t_{2}} \right)\\
-                                                                          & \le (\alpha t_{1} + (1 - \alpha)t_{2}) g\left( \frac{\alpha x_{1} + (1 - \alpha)x_{2}}{\alpha t_{1} + (1 - \alpha)t_{2}} \right)\\
+                                                                          & \le (\alpha t_{1} + (1 - \alpha)t_{2}) \left( \beta g\left( \frac{x_{1}}{t_{1}} \right) + (1 - \beta) g\left( \frac{x_{2}}{t_{2}} \right) \right)\\
+                                                                          & = (\alpha t_{1} + (1 - \alpha)t_{2}) \left( \frac{\alpha t_{1}}{\alpha t_{1} + (1 - \alpha) t_{2}} g\left( \frac{x_{1}}{t_{1}} \right) + \frac{(1 - \alpha) t_{2}}{\alpha t_{1} + (1 - \alpha) t_{2}} g\left( \frac{x_{2}}{t_{2}} \right) \right)\\
+                                                                          & = \alpha t_{1} g\left( \frac{x_{1}}{t_{1}} \right) + (1 - \alpha) t_{2} g\left( \frac{x_{2}}{t_{2}} \right)\\
+                                                                          & = \alpha f(x_{1}, t_{1}) + (1 - \alpha) f(x_{2}, t_{2})
   \end{align*}
+  So $f$ is convex.
 \end{proof}
 
 \section*{Exercise 3}
@@ -124,16 +129,88 @@ I will assume that $X$ in the definition of $\epi(f)$ is the domain of $f$.
 \section*{Exercise 5}
 
 \begin{proof}
-  The Hessian of $f$ is
   \begin{align*}
-    f''(x) = A + A^{T}
+    \frac{\partial f}{\partial x_{i}} = \frac{1}{2}\left( \sum_{j = 1}^{n} a_{ij} x_{j} + a_{ji} x_{j} \right) + b_{i} = \frac{1}{2}x^{T}\left( A_{:,i} + A_{i,:}^{T} \right) + b_{i} \Rightarrow f'(x) = \frac{1}{2}x^{T}(A + A^{T}) + b^{T}
+  \end{align*}
+  \begin{align*}
+    \frac{\partial f}{\partial x_{i} \partial x_{j}} = \frac{1}{2} \left( A_{ji} + A_{ij} \right) \Rightarrow f''(x) = \frac{1}{2} \left( A + A^{T} \right)
+  \end{align*}
+
+  So the Hessian of $f$ is
+  \begin{equation*}
+    f''(x) = \frac{1}{2}\left(A + A^{T}\right)
   \end{equation*}
   which is still positive semidefinite:
   Let $v \in \mathbb{R}^{n}$.
   \begin{equation*}
-    v^{T}(A + A^{T})v = v^{T}Av + v^{T}A^{T}v = v^{T}Av + (v^{T}Av)^{T} \ge 0
+    \frac{1}{2}v^{T}(A + A^{T})v = \frac{1}{2} \left(v^{T}Av + v^{T}A^{T}v\right) = \frac{1}{2} \left(v^{T}Av + (v^{T}Av)^{T}\right) \ge 0
   \end{equation*}
   So $f$ is convex according to exercise 4.
 \end{proof}
+
+\section*{Exercise 6}
+
+If we understand the mask $I$ as a matrix that is $1$ for pixels that should be kept and $0$ everywhere else, we can write $u$ as $(1 - I)\bar{u} + If$ for vectorized $\bar{u}$ and $f$.
+
+Let $\nabla_{c}$ be the gradient constructed on sheet 0.
+Then you can rewrite the objective to
+\begin{equation*}
+  \min_{u \in \mathbb{R}^{n \times m}} ||\nabla_{c} u||_{F}^{2} \quad \text{s.t.}~u_{i,j} = f_{i,j}~\forall (i,j) \in I
+\end{equation*}
+Next we plug in the decomposition and drop the constraint.
+\begin{equation*}
+  \min_{\bar{u} \in \mathbb{R}^{n \times m}} ||\nabla_{c} \left( (1 - I)\bar{u} - If \right)||_{F}^{2} = \min_{\bar{u} \in \mathbb{R}^{n \times m}} ||\left( \nabla_{c} (1 - I) \right)\bar{u} - \left( \nabla_{c}I \right)f||_{F}^{2}
+\end{equation*}
+This in turn is the approximate solution of
+\begin{equation*}
+  \left( \nabla_{c} (1 - I) \right)\bar{u} = \left( \nabla_{c}I \right)
+\end{equation*}
+Finally we construct the solution by plugging $\bar{u}$ into $u = (1 - I)\bar{u} + If$ and get the result in figure \ref{fig:inpainted}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{sheet-1/inpainted}
+  \caption{The inpainted vegetable picture}
+  \label{fig:inpainted}
+\end{figure}
+
+\begin{minted}{matlab}
+  % Read image and mask
+  f = imread('corrupted.png');
+  nm = size(f);
+  n = nm(1);
+  m = nm(2);
+  f = f(:);
+  mask = imread('mask.png');
+  mask = mask(:) > 0;
+  invmask = ~mask;
+
+  % Construct the gradient
+  en = ones(n, 1);
+  em = ones(m, 1);
+  Dx = spdiags([-1 * em, em], [0, -1], m, m);
+  Dy = spdiags([-1 * en, en], [0, 1], n, n);
+  DX = kron(Dx', speye(n));
+  DY = kron(speye(m), Dy);
+  nablac = cat(1, kron(eye(3), DX), kron(eye(3), DY));
+
+  % Split the gradient
+  nablau = nablac;
+  nablau(:, mask) = 0;
+  nablaf = nablac;
+  nablaf(:, invmask) = 0;
+
+  % Construct right hand side
+  b = -nablaf * double(f);
+
+  % Solve for u-bar
+  u = nablau \ b;
+
+  % Insert into image
+  f(invmask) = u(invmask);
+
+  % Display
+  imshow(reshape(f, n, m, 3));
+\end{minted}
 
 \end{document}
