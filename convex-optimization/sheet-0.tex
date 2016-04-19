@@ -1,0 +1,110 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\usepackage{color}
+\setminted{linenos, autogobble, mathescape, numbersep=5pt}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\DeclareMathOperator{\tovec}{vec}
+
+\title{Convex Optimization for Computer Vision, Sheet 0}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+$D_{x}$ and $D_{y}$ are $n \times n$ and $m \times m$ diagonal matrices with $1$ on the main diagonal and $-1$ on the first sub- respectively superdiagonal.
+
+\section*{Exercise 2}
+
+\begin{minted}{matlab}
+  f = double(rgb2gray(imread('Vegetation-028.jpg')));
+  nm = size(f);
+  n = nm(1);
+  m = nm(2);
+  ex = double(ones(m, 1));
+  ey = double(ones(n, 1));
+  Dx = spdiags([-1 * ex, ex], [0, -1], m, m);
+  Dy = spdiags([-1 * ey, ey], [0, 1], n, n);
+  imshow(f * Dx, [-255, 255]);
+  imshow(Dy * f, [-255, 255]);
+\end{minted}
+
+\section*{Exercise 3}
+
+\begin{equation*}
+  I_{m} \cdot f \cdot \widetilde{D}_{x} = \nabla_{x} f \Leftrightarrow (\widetilde{D}_{x}^{T} \otimes I_{m}) \cdot \tovec(f) = \tovec(\nabla_{x} f) \Rightarrow D_{x} = \widetilde{D}_{x}^{T} \otimes I_{m}
+\end{equation*}
+\begin{equation*}
+  \widetilde{D}_{y} \cdot f \cdot I_{n} = \nabla_{y} f \Leftrightarrow (I_{n} \otimes \widetilde{D}_{y}) \cdot \tovec(f) = \tovec(\nabla_{y} f) \Rightarrow D_{y} = I_{n} \otimes \widetilde{D}_{y}
+\end{equation*}
+
+\begin{minted}{matlab}
+  F = f(:);
+  E = ones(n * m, 1);
+  DX = spdiags([-1 * E, E], [0, n], n * m, n * m);
+  DY = spdiags([-1 * E, repmat([0; ones(n - 1, 1)], m, 1)], [0, 1], n * m, n * m);
+  norm(DX * F - reshape(f * Dx, n * m, 1)) % => 0
+  norm(DY * F - reshape(Dy * f, n * m, 1)) % => 0
+
+  DX = kron(Dx', eye(n));
+  DY = kron(eye(m), Dy);
+  norm(DX * F - reshape(f * Dx, n * m, 1)) % => 0
+  norm(DY * F - reshape(Dy * f, n * m, 1)) % => 0
+\end{minted}
+
+\section*{Exercise 4}
+
+\begin{minted}{matlab}
+  f3 = double(imread('Vegetation-028.jpg'));
+  F3 = f3(:);
+  nm = size(f3);
+  n = nm(1);
+  m = nm(2);
+  en = ones(n, 1);
+  em = ones(m, 1);
+  Dx = spdiags([-1 * em, em], [0, -1], m, m);
+  Dy = spdiags([-1 * en, en], [0, 1], n, n);
+  DX = kron(Dx', speye(n));
+  DY = kron(speye(m), Dy);
+  nablac = cat(1, kron(eye(3), DX), kron(eye(3), DY));
+\end{minted}
+
+\section*{Exercise 5}
+
+\begin{minted}{matlab}
+  deriv = reshape(nablac * F3, n * m, 6);
+  TV = sum(sqrt(sum(deriv.^2, 2)));
+\end{minted}
+
+The total variation of the second image is almost an order of magnitude larger than the total variation of the first image ($6 \cdot 10^{6}$ vs. $4 \cdot 10^{7}$).
+I assume that the total variation of the first image is smaller because most of the image is a monotone, flat blue and thus small gradient.
+
+\end{document}
