@@ -1,0 +1,239 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser
+import csv
+import os
+
+import matplotlib.pyplot as pp
+import numpy as np
+
+import simulation
+
+
+@np.vectorize
+def betamode(dist):
+    a, b = dist.args
+
+    if a + b == 2:
+        return np.nan
+    else:
+        return (a - 1) / (a + b - 2)
+
+
+@np.vectorize
+def mean(dist):
+    return dist.mean()
+
+
+@np.vectorize
+def percentile(dist, p):
+    return dist.ppf(p)
+
+
+class ExplorePlotter:
+    @staticmethod
+    def add_arguments(parser):
+        group = parser.add_argument_group("Plot")
+        group.add_argument(
+            "--plot-out",
+            help="File to plot into (show interactively if none)")
+        group.add_argument("--plot-verbose", help="Plot extra information")
+        group.add_argument("--plot-x-in",
+                           type=float,
+                           help="Size of plot in x direction in inches")
+        group.add_argument("--plot-y-in",
+                           type=float,
+                           help="Size of plot in y direction in inches")
+
+    @staticmethod
+    def from_arguments(arguments):
+        return ExplorePlotter(arguments.plot_out, arguments.plot_verbose,
+                              arguments.plot_x_in, arguments.plot_y_in)
+
+    def __init__(self, out, verbose, xin, yin):
+        self.out = out
+        self.verbose = verbose
+        self.xin = xin
+        self.yin = yin
+
+    def plot(self, measurements, estimations):
+        measurements = np.array(measurements)
+        estimations = np.array(estimations)
+
+        # Point in time of measurement, number of packets received, number of
+        # packets lost
+        mT, recv, lost = measurements[:, 0], measurements[:, 1], measurements[:, 2] # yapf: disable
+
+        # Points in time, true PSR at time, estimated PSR distribution
+        T, truerate, distrs = estimations[:, 0], estimations[:, 1], estimations[:, 2] # yapf: disable
+        Tmin, Tmax = min(T), max(T)
+
+        if self.xin and self.yin:
+            pp.figure(figsize=(self.xin, self.yin))
+
+        # Plot the true PSR
+        pp.plot(T, truerate, "-", lw=2, c="#D4D1CE", label="True Rate")
+
+        # If the estimator is not stochastic, just plot the estimates
+        if len(distrs) > 0 and isinstance(distrs[0], float):
+            # Plot estimates
+            pp.plot(T, distrs, "--", lw=2, c="#8A8600", label="Estimates")
+
+        # Otherwise do a more thorough analysis
+        else:
+            # Plot estimation mean
+            pp.plot(T, mean(distrs), "--", lw=2, c="#8A8600", label="Mean")
+
+            # Plot estimation mode
+            pp.plot(T,
+                    betamode(distrs),
+                    "--m",
+                    lw=2,
+                    c="#31707B",
+                    label="Mode")
+
+            # Plot percentiles
+            pp.plot(T, percentile(distrs, 0.05), c="#BFCAC9", label="90% Box")
+            pp.plot(T, percentile(distrs, 0.95), c="#BFCAC9")
+
+            X, Y = np.meshgrid(T, np.linspace(0, 1, 100))
+            Z = np.ndarray(X.shape)
+            for i in range(Z.shape[1]):
+                Z[:, i] = distrs[i].pdf(Y[:, i])
+
+            pp.imshow(Z,
+                      interpolation="bilinear",
+                      cmap="viridis",
+                      extent=(0, Tmax, 0, 1),
+                      origin="lower",
+                      alpha=0.75,
+                      aspect="auto")
+
+        # Plot markers for received packets at 1
+        pp.plot(mT[recv > 0],
+                np.ones(recv[recv > 0].shape),
+                "x",
+                mew=2,
+                c="#43BA22",
+                label="Packet received")
+
+        # Plot vertical lines for received packets
+        if self.verbose:
+            for t in mT[recv > 0]:
+                pp.plot([t, t], [0, 1], "--", alpha=0.5, lw=1, c="#43BA22")
+
+        # Plot markers for lost packets at 0
+        pp.plot(mT[lost > 0],
+                0 * lost[lost > 0],
+                "x",
+                mew=2,
+                c="#D96241",
+                label="Packet lost")
+
+        # Plot vertical lines for lost packets
+        if self.verbose:
+            for t in mT[lost > 0]:
+                pp.plot([t, t], [0, 1], "--", alpha=0.5, lw=1, c="#D96241")
+
+        pp.xlim(Tmin, Tmax)
+        pp.ylim(-0.05, 1.05)
+        pp.xlabel("Time")
+        pp.ylabel("Packet Success Rate")
+        pp.legend(loc="best", framealpha=0.5, ncol=2, fontsize="small")
+
+        if self.out:
+            pp.savefig(self.out)
+        else:
+            pp.show()
+
+
+def plotcsv(dir, measurements, estimations):
+    if not os.path.isdir(dir):
+        os.makedirs(dir)
+
+    measurements = np.array(measurements)
+    estimations = np.array(estimations)
+
+    with open(os.path.join(dir, "measurements.csv"), "w") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Time", "Received", "Lost"])
+
+        for i in range(measurements.shape[0]):
+            writer.writerow(measurements[i, :])
+
+    with open(os.path.join(dir, "estimations.csv"), "w") as f:
+        writer = csv.writer(f)
+
+        if len(estimations) > 0 and isinstance(estimations[0, 2], float):
+            writer.writerow(["Time", "True PSR", "Estimate"])
+
+            for i in range(estimations.shape[0]):
+                writer.writerow(estimations[i, :])
+        else:
+            writer.writerow(["Time", "True PSR", "Mode", "Mean", "Variance",
+                             "5-Percentile", "95-Percentile"])
+
+            for i in range(estimations.shape[0]):
+                row = estimations[i, :]
+                d = row[2]
+
+                writer.writerow([row[0], row[1], betamode(d), d.mean(), d.var(),
+                                 d.ppf(0.05), d.ppf(0.95)]) # yapf: disable
+
+
+def parse_arguments():
+    parser = ArgumentParser(description="Simulate an estimator")
+    parser.add_argument("--time",
+                        type=float,
+                        default=10.0,
+                        help="How long to simulate")
+    parser.add_argument("--seed",
+                        type=int,
+                        default=None,
+                        help="Initial value for RNG seed")
+    parser.add_argument("--experiment",
+                        type=str,
+                        default=None,
+                        help="Experimental output file")
+    parser.add_argument("-v",
+                        "--verbose",
+                        action="store_const",
+                        const=True,
+                        default=False,
+                        help="Plot everything")
+    parser.add_argument("-o", "--out", help="Outfile")
+    parser.add_argument("--csv", help="CSV Output Directory")
+
+    simulation.Timer.add_arguments(parser)
+    simulation.RateFunction.add_arguments(parser)
+    simulation.Generator.add_arguments(parser)
+    simulation.Estimator.add_arguments(parser)
+    simulation.Simulation.add_arguments(parser)
+
+    ExplorePlotter.add_arguments(parser)
+
+    return parser.parse_args()
+
+
+def main():
+    arguments = parse_arguments()
+
+    np.random.seed(arguments.seed)
+
+    timer = simulation.Timer.from_arguments(arguments)
+    rate = simulation.RateFunction.from_arguments(arguments)
+    generator = simulation.Generator.from_arguments(arguments)
+    estimator = simulation.Estimator.from_arguments(arguments)
+    sim = simulation.Simulation.from_arguments(arguments)
+    plotter = ExplorePlotter.from_arguments(arguments)
+
+    measurements, estimations = sim.run(timer, rate, generator, [estimator])
+
+    plotter.plot(measurements, estimations[0][1])
+
+    if arguments.csv:
+        plotcsv(arguments.csv, measurements, estimations[0][1])
+
+
+if __name__ == "__main__":
+    main()

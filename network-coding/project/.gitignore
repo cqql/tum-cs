@@ -1,0 +1,11 @@
+# LaTeX artifacts
+_region_.tex
+*.aux
+*.log
+*.pdf
+*.synctex.gz
+_minted-*
+
+# Python artifacts
+*.pyc
+*.pyo
