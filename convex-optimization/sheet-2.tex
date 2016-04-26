@@ -1,0 +1,224 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\DeclareMathOperator{\dom}{dom}
+
+\title{Convex Optimization for Computer Vision}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\begin{proof}
+  $\partial f(u) \subseteq \{ \nabla f(u) \}$: Let $g \in \partial f(u)$.
+  This is defined as $f(v) - f(u) \ge \langle g, v - u \rangle$ for all $v \in \mathbb{R}^{n}$.
+  Consequently it also has to be true for the $i$th vector $e_{i}$ of the canonical basis of $\mathbb{R}^{n}$ scaled by any $\lambda \in \mathbb{R}$.
+  \begin{equation*}
+    \partial_{i} f(u) = \lim_{\lambda \rightarrow 0} \frac{f(u + \lambda e_{i}) - f(u)}{\lambda} \ge \lim_{\lambda \rightarrow 0} \frac{\langle g, \lambda e_{i} \rangle}{\lambda} = \lim_{\lambda \rightarrow 0} \frac{\lambda g_{i}}{\lambda} = g_{i}
+  \end{equation*}
+  So $g \le \nabla f(u)$ componentwise.
+  Now assume that $g_{i} < \partial_{i} f(u)$ for some $1 \le i \le n$.
+  Let $\alpha = \partial_{i} f(u) - g_{i} > 0$.
+  Then for every $\lambda > 0$ we have
+  \begin{equation}\label{eq:ex-1}
+    f(u - \lambda e_{i}) = f(u) - \lambda \partial_{i} f(u) + \varepsilon = f(u) - \lambda (\alpha + g_{i}) = f(u) - \lambda g_{i} - \lambda \alpha + \varepsilon
+  \end{equation}
+  By choosing $\lambda$ sufficiently small such that $-\lambda \alpha + \varepsilon < 0 \Leftrightarrow \varepsilon < \lambda \alpha$ -- which is always possible since $\varepsilon$ drops off quadratically in $\lambda$ by Taylor's theorem -- equation \ref{eq:ex-1} simplifies to
+  \begin{equation*}
+    f(u - \lambda e_{i}) < f(u) - \lambda g_{i} = f(u) + \langle g, -\lambda e_{i} \rangle = f(u) + \langle g, u - \lambda e_{i} - u \rangle
+  \end{equation*}
+  which contradicts the assumption that $g$ is a subgradient, so actually $g = \nabla f(u)$.
+
+  $\partial f(u) \supseteq \{ \nabla f(u) \}$: Let $v \in \mathbb{R}^{n}$.
+  By Taylor expansion we have
+  \begin{equation*}
+    f(v) = f(u) + \langle \nabla f(u), v - u \rangle + \varepsilon
+  \end{equation*}
+  If $f(v) = \infty$, $f(v) > f(u) + c$ for any $c \in \mathbb{R}$, so $f(v) > f(u) + \langle \nabla f(u), v - u \rangle$.
+
+  Lastly we have to handle the case where $v \in \dom(f)$.
+  Assume that $\varepsilon < 0$.
+  Define $g(\lambda) = f(\lambda v + (1 - \lambda)u)$ for $\lambda \in [0, 1]$.
+  $g$ has to take on all values between $f(v)$ and $f(u)$ by the intermediate value theorem.
+  Yet $g$ cannot be the connecting line $\lambda f(v) + (1 - \lambda) f(u)$, since then $g'(\lambda) = \partial_{v} f(u) = \langle \nabla f(u), v - u \rangle = f(v) - f(u)$ and $\epsilon = 0$.
+  $g$ cannot take on a value above the connecting line because that would give $g(\lambda) = f(\lambda v + (1 - \lambda)u) > \lambda f(v) + (1 - \lambda) f(u)$ and thus contradict the convexity of $f$.
+  So $g$ is upperbounded by
+  \begin{equation*}
+    \lambda f(v) + (1 - \lambda) f(u) = \lambda(f(u) + \langle \nabla f(u), v - u \rangle + \varepsilon) + (1 - \lambda)f(u) = f(u) + \lambda\langle \nabla f(u), v - u \rangle + \lambda\varepsilon
+  \end{equation*}
+  However, there is a $\kappa \in (0, 1)$ close to $0$ such that
+  \begin{align*}
+    g(\kappa) & = f(\kappa v + (1 - \kappa)u)\\
+              & = f(u) + \langle \nabla f(u), \kappa v + (1 - \kappa)u - u \rangle + \delta\\
+              & = f(u) + \kappa\langle \nabla f(u), v - u \rangle + \delta\\
+              & > f(u) + \kappa\langle \nabla f(u), v - u \rangle + \kappa\varepsilon > g(\kappa)
+  \end{align*}
+  because $|\delta|$ goes to $0$ quadratically in $\kappa$ but $\kappa\varepsilon$ only linearly as $\kappa \rightarrow 0$.
+  This contradicts the upper bound on $g$, so $\varepsilon \ge 0$.
+
+  In the end we have in all cases $\varepsilon \ge 0$ and consequently $f(v) \ge f(u) + \langle \nabla f(u), v - u \rangle$ and $\nabla f(u)$ is a subgradient.
+\end{proof}
+
+\section*{Exercise 2}
+
+\begin{proof}
+  Let $x, y \in X$ and $\lambda \in [0, 1]$.
+  \begin{equation*}
+    g_{i}(\lambda x + (1 - \lambda)y) \le \lambda g_{i}(x) + (1 - \lambda)g_{i}(y) \le 0~\forall i \in \{ 1, \dots, m \}
+  \end{equation*}
+  because of the convexity of $g$.
+  So $\lambda x + (1 - \lambda)y \in X$ and $X$ is convex.
+
+  $(1) \Rightarrow (2)$: What is $\iota_{X}$?
+
+  $(2) \Rightarrow (3)$: Let $x \in \mathbb{R}^{n}$ such that $-\nabla f(x) \in N_{X}(x)$.
+  The second definition for $N_{X}(x)$ says that
+  \begin{equation*}
+    -\nabla f(x) = \sum_{i \in \mathcal{A}(x)} \lambda_{i} \nabla g_{i}(x)
+  \end{equation*}
+  where $\lambda_{i} \ge 0$ and $\mathcal{A}(x)$ is the set of active constraints at point $x$.
+  Let $\lambda_{j} = 0$ for $j \in \{ 1, \dots, m \} \setminus \mathcal{A}(x)$.
+  Then
+  \begin{equation*}
+    \nabla f(x) + \sum_{i = 1}^{m} \lambda_{i} \nabla g_{i}(x) = \nabla f(x) + \sum_{i \in \mathcal{A}(x)} \lambda_{i} \nabla g_{i}(x) = -\sum_{i \in \mathcal{A}(x)} \lambda_{i} \nabla g_{i}(x) + \sum_{i \in \mathcal{A}(x)} \lambda_{i} \nabla g_{i}(x) = 0
+  \end{equation*}
+  It remains to verify the second point.
+  $\lambda_{i} \ge 0$ is true by construction of $\lambda$.
+  $\lambda_{i} g_{i}(x) = 0$ because $g_{i}(x) = 0$ if $i \in \mathcal{A}(x)$ and otherwise $\lambda_{i} = 0$.
+  Lastly show why $g_{i}(x) \le 0$.
+  If $x \in X$, this is given by the definition of the feasible set.
+  Otherwise ...
+
+  $(3) \Rightarrow (1)$: Let $x \in \mathbb{R}^{n}$ satisfy the KKT conditions, i.e. there is a $\lambda \in \mathbb{R}^{m}$ such that
+  \begin{itemize}
+  \item $0 = \nabla f(x) + \sum_{i = 1}^{m} \nabla g_{i}(x)$
+  \item $\lambda_{i} \ge 0$, $g_{i}(x) \le 0$, $\lambda_{i} g_{i}(x) = 0$ for $1 \le i \le m$
+  \end{itemize}
+\end{proof}
+
+\section*{Exercise 3}
+
+\subsection*{Part 1}
+
+\begin{proof}
+  Let $x, y \in \mathbb{R}^{m}$.
+  $\varphi$ is differentiable everywhere with $\varphi'(x) = \frac{x}{\sqrt{x^{2} + \varepsilon^{2}}}$ and $\varphi''(x) = \frac{\varepsilon^{2}}{\sqrt{x^{2} + \varepsilon^{2}}^{3}}$.
+  By the mean value theorem there is a $z \in (x, y)$ such that
+  \begin{align*}
+    ~|\varphi'(x) - \varphi'(y)| & = \left| \frac{x}{\sqrt{x^{2} + \varepsilon^{2}}} - \frac{y}{\sqrt{y^{2} - \varepsilon^{2}}} \right|\\
+                                 & = \left| \frac{\varepsilon^{2}}{\sqrt{x^{2} + \varepsilon^{2}}^{3}} \right| \cdot |x - y|\\
+                                 & \le \frac{1}{\varepsilon}|x - y| \quad \text{because the denominator is lower bounded by $\varepsilon^3$}
+  \end{align*}
+  Hence $\varphi$ is $\frac{1}{\varepsilon}$-smooth.
+
+  Let $v, w \in \mathbb{R}^{2m}$.
+  \begin{align*}
+    ~||\nabla g(v) - \nabla g(w)|| & = \left|\left| \begin{pmatrix}\varphi'(v_{1}) - \varphi'(w_{1})\\\hdots\\\varphi'(v_{2m}) - \varphi'(w_{2m})\end{pmatrix} \right|\right|\\
+                                   & \le \sum_{i = 1}^{2m} |\varphi'(v_{i}) - \varphi'(w_{i})|\\
+                                   & \le \sum_{i = 1}^{2m} \frac{1}{\varepsilon}|v_{i} - w_{i}|\\
+                                   & = \frac{1}{\varepsilon}||v - w||_{1} \le \frac{1}{\varepsilon}||v - w||_{2}
+  \end{align*}
+  So $g$ is $\frac{1}{\varepsilon}$-smooth as well.
+
+  Let $v, w \in \mathbb{R}^{m}$.
+  \begin{align*}
+    ~||\nabla h(v) - \nabla h(w)|| & = ||D^{T}\nabla g(Dv) - D^{T}\nabla g(Dw)||\\
+                                   & \le ||D^{T}|| \cdot ||\nabla g(Dv) - g(Dw)||\\
+                                   & \le ||D^{T}|| \cdot \frac{1}{\varepsilon} \cdot ||Dv - Dw||\\
+                                   & \le \frac{||D||^{2}}{\varepsilon} \cdot ||v - w||
+  \end{align*}
+  Therefore $h$ is $\frac{||D||^{2}}{\varepsilon}$-smooth.
+
+  Let $v, w \in \mathbb{R}^{m}$.
+  \begin{align*}
+    ~||\nabla t(v) - \nabla t(w)|| & = \left|\left| \lambda \cdot (v - f) - \lambda \cdot (w - f) \right|\right|\\
+                                   & \le \lambda \cdot ||v - w|| \qquad \textit{assuming $\lambda \ge 0$}
+  \end{align*}
+  So $t$ is $\lambda$-smooth.
+
+  Let $x, y \in \mathbb{R}^{m}$.
+  \begin{align*}
+    ~||\nabla E(x) - \nabla E(y)|| & = ||\nabla t(x) + \nabla h(x) - \nabla t(y) - \nabla h(y)||\\
+                                   & \le ||\nabla t(x) - \nabla t(y)| + |\nabla h(x) - \nabla h(y)||\\
+                                   & \le \lambda ||x - y|| + \frac{|D|^{2}}{\varepsilon} ||x - y||\\
+                                   & = \left( \lambda + \frac{|D|^{2}}{\varepsilon} \right) ||x - y||
+  \end{align*}
+  This means that $E$ is $L$-smooth with $L = \lambda + \frac{|D|^{2}}{\varepsilon}$.
+\end{proof}
+
+\subsection*{Part 2}
+
+\begin{proof}
+  Let $v, w \in \mathbb{R}^{m}$.
+
+  \begin{equation*}
+    \partial_{i} h(v) = D_{:,i}^{T} \begin{pmatrix}
+      \varphi'((Dv)_{1})\\
+      \hdots\\
+      \varphi'((Dv)_{2m})
+    \end{pmatrix}
+    = D_{:,i}^{T} \begin{pmatrix}
+      \frac{(Dv)_{1}}{\sqrt{(Dv)_{1}^{2} + \varepsilon^{2}}}\\
+      \hdots\\
+      \frac{(Dv)_{2m}}{\sqrt{(Dv)_{2m}^{2} + \varepsilon^{2}}}
+    \end{pmatrix}
+    = D_{:,i}^{T}D \begin{pmatrix}
+      \frac{v_{1}}{\sqrt{(Dv)_{1}^{2} + \varepsilon^{2}}}\\
+      \hdots\\
+      \frac{v_{2m}}{\sqrt{(Dv)_{2m}^{2} + \varepsilon^{2}}}
+    \end{pmatrix}
+  \end{equation*}
+  This means
+  \begin{align*}
+    \nabla h(v) = D^{T}D \begin{pmatrix}
+      \frac{v_{1}}{\sqrt{(Dv)_{1}^{2} + \varepsilon^{2}}}\\
+      \hdots\\
+      \frac{v_{2m}}{\sqrt{(Dv)_{2m}^{2} + \varepsilon^{2}}}
+    \end{pmatrix}
+  \end{align*}
+
+  Using this we can write
+  \begin{align*}
+    \langle \nabla E(v) - \nabla E(w), v - w \rangle & = \langle \nabla t(v) + \nabla h(v) - \nabla t(w) - \nabla h(w), v - w \rangle\\
+                                                     & = \langle \nabla t(v) - \nabla t(w), v - w \rangle + \langle \nabla h(v) - \nabla h(w), v - w \rangle\\
+                                                     & = \langle \lambda(v - f) - \lambda(w - f), v - w \rangle + \langle \nabla h(v) - \nabla h(w), v - w \rangle\\
+                                                     & = \lambda\langle v - w, v - w \rangle + \langle \nabla h(v) - \nabla h(w), v - w \rangle\\
+                                                     & = \lambda ||v - w||_{2}^{2} + \langle \nabla h(v) - \nabla h(w), v - w \rangle\\
+                                                     & \ge \lambda ||v - w||_{2}^{2}
+  \end{align*}
+  Consequently $E$ is $\lambda$-strongly convex according to characterization 3.
+\end{proof}
+
+\section*{Exercise 4}
+
+\end{document}
