@@ -99,7 +99,14 @@
   because of the convexity of $g$.
   So $\lambda x + (1 - \lambda)y \in X$ and $X$ is convex.
 
-  $(1) \Rightarrow (2)$: What is $\iota_{X}$?
+  Because $g$ is continuously differentiable, the boundary of the feasible set is
+  \begin{equation*}
+    \partial X = \{ x \in \mathbb{R}^{n} \mid g_{i}(x) = 1~\forall 1 \le i \le m \}
+  \end{equation*}
+  So Slater's condition guarantees that the feasible set has an open interior on which you can compute derivatives.
+  This in turn means that the sum rule for subdifferentials on $X$ holds.
+
+  $(1) \Rightarrow (2)$:
 
   $(2) \Rightarrow (3)$: Let $x \in \mathbb{R}^{n}$ such that $-\nabla f(x) \in N_{X}(x)$.
   The second definition for $N_{X}(x)$ says that
@@ -121,7 +128,7 @@
 
   $(3) \Rightarrow (1)$: Let $x \in \mathbb{R}^{n}$ satisfy the KKT conditions, i.e. there is a $\lambda \in \mathbb{R}^{m}$ such that
   \begin{itemize}
-  \item $0 = \nabla f(x) + \sum_{i = 1}^{m} \nabla g_{i}(x)$
+  \item $0 = \nabla f(x) + \sum_{i = 1}^{m} \lambda_{i} \nabla g_{i}(x)$
   \item $\lambda_{i} \ge 0$, $g_{i}(x) \le 0$, $\lambda_{i} g_{i}(x) = 0$ for $1 \le i \le m$
   \end{itemize}
 \end{proof}
@@ -192,18 +199,13 @@
       \hdots\\
       \frac{(Dv)_{2m}}{\sqrt{(Dv)_{2m}^{2} + \varepsilon^{2}}}
     \end{pmatrix}
-    = D_{:,i}^{T}D \begin{pmatrix}
-      \frac{v_{1}}{\sqrt{(Dv)_{1}^{2} + \varepsilon^{2}}}\\
-      \hdots\\
-      \frac{v_{2m}}{\sqrt{(Dv)_{2m}^{2} + \varepsilon^{2}}}
-    \end{pmatrix}
   \end{equation*}
   This means
   \begin{align*}
-    \nabla h(v) = D^{T}D \begin{pmatrix}
-      \frac{v_{1}}{\sqrt{(Dv)_{1}^{2} + \varepsilon^{2}}}\\
+    \nabla h(v) = D^{T} \begin{pmatrix}
+      \frac{(Dv)_{1}}{\sqrt{(Dv)_{1}^{2} + \varepsilon^{2}}}\\
       \hdots\\
-      \frac{v_{2m}}{\sqrt{(Dv)_{2m}^{2} + \varepsilon^{2}}}
+      \frac{(Dv)_{2m}}{\sqrt{(Dv)_{2m}^{2} + \varepsilon^{2}}}
     \end{pmatrix}
   \end{align*}
 
@@ -218,7 +220,5 @@
   \end{align*}
   Consequently $E$ is $\lambda$-strongly convex according to characterization 3.
 \end{proof}
-
-\section*{Exercise 4}
 
 \end{document}
