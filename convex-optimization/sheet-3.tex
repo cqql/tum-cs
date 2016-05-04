@@ -1,0 +1,192 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\DeclareMathOperator{\argmin}{arg\,min}
+
+\title{Convex Optimization for Computer Vision, Sheet 3}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\begin{proof}
+  From the characterizations of $L$-smooth functions we know that
+  \begin{equation*}
+    \langle \nabla E(u) - \nabla E(v), u - v \rangle \ge \frac{1}{L} ||\nabla E(u) - \nabla E(v)||^{2}
+  \end{equation*}
+  and from the characterizations of $m$-strongly convex functions we get
+  \begin{equation*}
+    \langle \nabla E(u) - \nabla E(v), u - v \rangle \ge m||u - v||^{2}
+  \end{equation*}
+
+  Adding and multiplying by $\frac{L}{m + L}$ results in
+  \begin{equation*}
+    \frac{2L}{m + L} \langle \nabla E(u) - \nabla E(v), u - v \rangle \ge \frac{mL}{m + L} ||u - v||^{2} + \frac{1}{m + L} ||\nabla E(u) - \nabla E(v)||^{2}
+  \end{equation*}
+
+  Finally we have to get rid of this factor in the front...
+\end{proof}
+
+\section*{Exercise 2}
+
+\subsection*{Part 1)}
+
+In the one-dimensional case we have
+\begin{equation*}
+  \partial f(x) = \begin{cases}
+    \{ -1 \} & \text{if $x < 0$}\\
+    [-1, 1] & \text{if $x = 0$}\\
+    \{ 1 \} & \text{if $x > 0$}
+  \end{cases}
+\end{equation*}
+
+\begin{proof}
+  The cases for $x \ne 0$ are clear because the subgradient is equal to the gradient if $f$ is differentiable in $x$.
+  \begin{equation*}
+    g \in \partial f(0) \Leftrightarrow f(x) - f(0) = |x| = \begin{cases}
+      -x & \text{if $x < 0$}\\
+      x & \text{otherwise}
+    \end{cases} \ge gx = \langle g, x \rangle = \langle g, x - 0 \rangle \Leftrightarrow |g| \le 1 \Leftrightarrow g \in [-1, 1]
+  \end{equation*}
+  So $\partial f(0) = [-1, 1]$.
+\end{proof}
+
+For general $n$
+\begin{equation*}
+  \partial f(x) = \partial f_{1}(x_{1}) \times \dots \times \partial f_{n}(x_{n})
+\end{equation*}
+
+\subsection*{Part 2)}
+
+\begin{equation*}
+  \partial f(x) = \begin{cases}
+    \left\{ \frac{x}{||x||_{2}} \right\} & \text{if $x \ne 0$}\\
+    \left\{ y \mid y \in \mathbb{R}^{n}~\land~||y||_{2} \le 1 \right\} & \text{if $x = 0$}
+  \end{cases}
+\end{equation*}
+
+\begin{proof}
+  Let $x = 0$, $z \in \mathbb{R}^{n}$ and $y \in \mathbb{R}^{n}$ with $||y||_{2} \le 1$.
+  Then
+  \begin{equation*}
+    f(z) - f(x) = \sqrt{\sum_{i = 1}^{n} z_{i}^{2}} \ge \sum_{i = 1}^{2} y_{i}z_{i} = \langle y, z - x \rangle
+  \end{equation*}
+
+  Let $x \ne 0$ and $z \in \mathbb{R}^{n}$.
+  \begin{align*}
+    f(z) - f(x) & = ||z||_{2} - ||x||_{2} = \frac{||x||_{2}}{||x||_{2}}||z||_{2} - ||x||_{2}\\
+                & \ge \frac{\langle x, z \rangle}{||x||_{2}} - \frac{||x||_{2}^{2}}{||x||_{2}} \qquad \text{Cauchy-Schwarz inequality $\langle x, y \rangle \le ||x|| \cdot ||y||$ for the induced norm}\\
+                & = \sum_{i = 1}^{n} \frac{x_{i}}{||x||_{2}}(z - x)_{i} = \left\langle \frac{x}{||x||_{2}}, z - x \right\rangle
+  \end{align*}
+
+  Let $g \ne \frac{x}{||x||_{2}}$.
+  If $||g||_{2} \ne 1$, there exists $z = x + \varepsilon(||g|| - 1)g$ for some $\varepsilon > 0$ such that
+  \begin{align*}
+    f(z) - f(x) & = ||x + \varepsilon(||g|| - 1)g||_{2} - ||x||_{2}\\
+                & \le ||x||_{2} + ||\varepsilon(||g|| - 1)g||_{2} - ||x||_{2}\\
+                & = ||\varepsilon(||g|| - 1)g||_{2}\\
+                & = \varepsilon \cdot \left|||g|| - 1\right| \cdot ||g||_{2}\\
+                & < \varepsilon(||g|| - 1) \cdot ||g||_{2}^{2}\\
+                & = \varepsilon(||g|| - 1) \cdot \langle g, g \rangle\\
+                & = \langle g, \varepsilon(||g|| - 1)g \rangle\\
+                & = \langle g, z - x \rangle
+  \end{align*}
+  If $||g||_{2} = 1$, we have
+  \begin{align*}
+    ...
+  \end{align*}
+  Consequently the gradient at $x$ cannot be anything besides $\frac{x}{||x||_{2}}$.
+\end{proof}
+
+\subsection*{Part 3)}
+
+\begin{equation*}
+  \partial f(x) \in \mathbb{R}^{n \times m}
+\end{equation*}
+with
+\begin{equation*}
+  (\partial f(x))_{j} = \partial ||x_{j}||_{2} \qquad \text{from part b}
+\end{equation*}
+where $(\partial f(x))_{j}$ is the $j$th column of the matrix $\partial f(x)$.
+
+\section*{Exercise 3}
+
+\begin{proof}
+  Since the summands of the term are convex, the whole term in the $\argmin$ is convex as well and its domain is the whole $\mathbb{R}^{n}$ so we can use the sum rule for subdifferentials.
+  Let $h(u) = \frac{1}{2\lambda}||u - f||^{2} + ||u||_{1}$.
+  Then the subdifferential of $h$ is given as
+  \begin{equation*}
+    \partial h(u) = \left\{\left. \frac{1}{\lambda} \begin{pmatrix}
+        (u_{1} - f)\\
+        \hdots\\
+        (u_{n} - f)
+      \end{pmatrix} + \begin{pmatrix}
+        \kappa_{1}\\
+        \hdots\\
+        \kappa_{n}
+      \end{pmatrix} \right| \kappa_{i} \in \begin{cases}
+        \{ -1 \} & \text{if $u_{i} < 0$}\\
+        [-1, 1] & \text{if $u_{i} = 0$}\\
+        \{ 1 \} & \text{if $u_{i} > 0$}
+      \end{cases}
+    \right\}
+  \end{equation*}
+  Note that the gradient of $u_{i}$ only depends on $u_{i}$, so instead of solving all equations at once we can instead solve $n$ 1-dimensional optimization problems.
+
+  $u_{i}$ is the minimizer for the $i$th entry if $0 \in (\partial h)_{i}$, i.e. if there is a $\kappa \in \partial |u_{i}|$ such that
+  \begin{equation*}
+    \frac{1}{\lambda} (u_{i} - f_{i}) + \kappa = 0 \Leftrightarrow u_{i} - f_{i} = -\kappa\lambda
+  \end{equation*}
+  The range of the righthand side is $[-\lambda, \lambda]$ in general.
+  Consequently if $|f_{i}| > \lambda \Rightarrow u_{i} \ne 0$.
+  If $f_{i} < -\lambda$, $u_{i} < 0$ because otherwise $u_{i} - f_{i} > \lambda \ge -\kappa\lambda$.
+  Then we can solve $u_{i} - f_{i} = \lambda$ for $u_{i} = f_{i} + \lambda$.
+  If $f_{i} > \lambda$, $u_{i} > 0$ because otherwise $u_{i} - f_{i} < \lambda \le -\kappa\lambda$.
+  We can solve the resulting expression $u_{i} - f_{i} = -\lambda$ for $u_{i} = f_{i} - \lambda$ as well.
+  Finally if $f_{i} \in [-\lambda, \lambda]$, assume that $u_{i} > 0$.
+  From this we get $u_{i} - f_{i} = -\lambda \Leftrightarrow u_{i} = f_{i} - \lambda \le 0$; contradiction.
+  Vice versa assume that $u_{i} < 0$.
+  Now we get $u_{i} - f_{i} = \lambda \Leftrightarrow u_{i} = f_{i} + \lambda \ge 0$ which contradicts the assumption as well.
+  From this follows that $u_{i} = 0$.
+
+  In the end we get
+  \begin{equation*}
+    u_{i} = \begin{cases}
+      f_{i} + \lambda & \text{if $f_{i} < -\lambda$}\\
+      0 & \text{if $f_{i} \in [-\lambda, \lambda]$}\\
+      f_{i} - \lambda & \text{if $f_{i} > \lambda$}
+    \end{cases}
+  \end{equation*}
+\end{proof}
+
+\end{document}
