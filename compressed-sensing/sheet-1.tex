@@ -1,0 +1,88 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, frame=lines, framesep=2mm}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Compressed Sensing, Sheet 1}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+\section*{Exercise 2}
+
+\begin{proof}
+  Let $m < 2s$.
+\end{proof}
+
+\section*{Exercise 3}
+
+\inputminted{matlab}{sheet-1/prony.m}
+
+\section*{Exercise 4}
+
+\begin{proof}
+  We will show it by induction.
+  Let $n = 1$.
+  \begin{equation*}
+    \det \begin{pmatrix}1\end{pmatrix} = 1 = \prod_{1 \le i < j \le 1} (x_{j} - x_{i})
+  \end{equation*}
+
+  Now let $n > 1$ and assume that the proposition is true for $n - 1$.
+  By the Laplace expansion we have
+  \begin{equation*}
+    ~|V_{n}| = \sum_{i = 1}^{n} (-1)^{i + n} x_{i}^{n} \det(W_{in})
+  \end{equation*}
+  where $W_{in}$ is the submatrix of $V_{n}$ where the $i$th row and $n$th column have been removed.
+  These actually look like
+  \begin{equation*}
+    W_{in} = \begin{pmatrix}
+      1 & x_{1} & \dots & x_{1}^{n - 1}\\
+      \vdots & \vdots & \ddots & \vdots\\
+      1 & x_{i - 1} & \dots & x_{i - 1}^{n - 1}\\
+      1 & x_{i + 1} & \dots & x_{i + 1}^{n - 1}\\
+      \vdots & \vdots & \ddots & \vdots\\
+      1 & x_{n} & \dots & x_{n}^{n - 1}\\
+    \end{pmatrix}
+  \end{equation*}
+  and as such are still square Vandermonde matrices of size $(n - 1) \times (n - 1)$.
+
+  Thus plugging in the proposition yields
+  \begin{equation*}
+    ~|V_{n}| = \sum_{i = 1}^{n} (-1)^{i + n} x_{i}^{n} \prod_{\substack{1 \le i' < j' \le n - 1\\i' \ne i}} (x_{j'} - x_{i'})
+  \end{equation*}
+\end{proof}
+
+\end{document}
