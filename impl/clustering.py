@@ -67,10 +67,14 @@ parser.add_argument("-e",
                     default=None,
                     type=float,
                     help="Epsilon parameter")
+parser.add_argument("--seed", default=10, type=int, help="Random seed")
 
 args = parser.parse_args()
 
 ### Setup ###
+
+# Seed random state
+np.random.seed(args.seed)
 
 # Generate points
 clusters = args.cluster
@@ -100,11 +104,35 @@ X_D = np.array(X.value)
 # Denoised data
 PX_D = P @X_D
 
+# Extract approximate cluster affinities
+nodes = set(range(N))
+clusters = []
+while len(nodes) > 0:
+    node = nodes.pop()
+    row = X_D[node, :]
+
+    cluster = [node]
+    for i in range(N):
+        if i in nodes and row[i] > 1 / N:
+            cluster.append(i)
+            nodes.remove(i)
+
+    clusters.append(cluster)
+
 # Rounding
 if args.epsilon:
     epsilon = args.epsilon
 else:
-    epsilon = 1.5
+    # Compute cluster means from denoised data
+    means = [np.mean(PX_D[:, c], axis=1) for c in clusters]
+
+    # Compute minimum distance as approximation to d_min
+    d_min = min(scipy.spatial.distance.pdist(means))
+
+    # Use something slightly smaller than the upper bound d_min / 8
+    epsilon = d_min / 10
+
+    print("Using epsilon = {}".format(epsilon))
 
 # Construct "adjacency" graph
 G = nx.Graph()
@@ -134,35 +162,22 @@ for i in range(k):
 
 # Plot original and denoised data colored by cluster
 COLORS = ["r", "g", "b"]
-nodes = set(range(N))
-clusternr = 0
-while len(nodes) > 0:
-    node = nodes.pop()
-    row = X_D[node, :]
-
-    cluster = [node]
-    for i in range(N):
-        if i in nodes and row[i] > 1 / N:
-            cluster.append(i)
-            nodes.remove(i)
-
+for i, cluster in enumerate(clusters):
     orig = P[:, cluster]
     denoised = PX_D[:, cluster]
 
     pp.plot(orig[0, :],
             orig[1, :],
             "o",
-            color=COLORS[clusternr],
-            label="Cluster {}".format(clusternr + 1))
+            color=COLORS[i],
+            label="Cluster {}".format(i + 1))
 
     pp.plot(denoised[0, :],
             denoised[1, :],
             "x",
             ls="",
-            color=COLORS[clusternr],
-            label="Denoised Data {}".format(clusternr + 1))
-
-    clusternr += 1
+            color=COLORS[i],
+            label="Denoised Data {}".format(i + 1))
 
 # Plot cluster centers
 for i, center in enumerate(centers):
