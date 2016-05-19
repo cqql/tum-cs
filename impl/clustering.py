@@ -36,6 +36,9 @@ class BallCluster:
 
         return P
 
+    def center(self):
+        return self.p
+
 
 # Normally distributed cluster
 class NormalCluster:
@@ -48,6 +51,9 @@ class NormalCluster:
         return scipy.stats.multivariate_normal.rvs(mean=self.mu,
                                                    cov=self.sigma,
                                                    size=self.n).T
+
+    def center(self):
+        return self.mu
 
 
 def parsecluster(string):
@@ -77,9 +83,9 @@ args = parser.parse_args()
 np.random.seed(args.seed)
 
 # Generate points
-clusters = args.cluster
-k = len(clusters)
-P = np.hstack([c.samples() for c in clusters])
+models = args.cluster
+k = len(models)
+P = np.hstack([m.samples() for m in models])
 N = P.shape[1]
 
 ### Clustering ###
@@ -134,7 +140,11 @@ else:
 
     print("Using epsilon = {}".format(epsilon))
 
-# Construct "adjacency" graph
+# Compute pairwise distances of denoised data
+D = scipy.spatial.distance.pdist(PX_D.T)
+D = scipy.spatial.distance.squareform(D)
+
+# Construct "adjacency" graph from denoised distances
 G = nx.Graph()
 G.add_nodes_from(range(N))
 for i in range(N):
@@ -156,7 +166,7 @@ for i in range(k):
         if D[center, j] <= 4 * epsilon:
             G.remove_node(j)
 
-    centers.append(P[:, center])
+    centers.append(PX_D[:, center])
 
 ### Plotting ###
 
@@ -176,16 +186,26 @@ for i, cluster in enumerate(clusters):
             denoised[1, :],
             "x",
             ls="",
+            ms=12,
             color=COLORS[i],
             label="Denoised Data {}".format(i + 1))
 
-# Plot cluster centers
-for i, center in enumerate(centers):
-    pp.plot([center[0]],
-            [center[1]],
-            "*",
-            label="Center {}".format(i + 1),
-            ms=15)
+    # Plot true cluster centers
+    center = models[min(len(models) - 1, i)].center()
+    pp.plot(center[0],
+            center[1],
+            "^",
+            ms=12,
+            ls="",
+            color=COLORS[i],
+            label="True centers")
+
+# Plot cluster center approximators
+pp.plot([c[0] for c in centers],
+        [c[1] for c in centers],
+        "*",
+        label="Approximate centers",
+        ms=12)
 
 pp.legend(loc="best", framealpha=0.5, numpoints=1)
 pp.show()
