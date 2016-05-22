@@ -202,6 +202,9 @@ def main():
     # Save true cluster centers
     truecenters = [m.center() for m in models]
 
+    # Save the k-means-optimal centroids
+    optimalcentroids = [np.mean(S, axis=1) for S in samples]
+
     # Save true cluster affinities
     offset = 0
     trueclusters = []
@@ -235,16 +238,22 @@ def main():
     print(msg.format(N - len(misclass), N, error))
 
     # Clustering error (distance to true centers)
-    error = 0
+    trueerror = 0
+    optimalerror = 0
     tmp = set(range(centers.shape[1]))
-    for C in truecenters:
-        match = min(tmp, key=lambda c: scipy.linalg.norm(centers[:, c] - C))
+    for i in range(k):
+        tcenter = truecenters[i]
+        optimal = optimalcentroids[i]
+        match = min(tmp,
+                    key=lambda c: scipy.linalg.norm(centers[:, c] - tcenter))
 
-        error += scipy.linalg.norm(centers[:, match] - C)
+        trueerror += scipy.linalg.norm(centers[:, match] - tcenter)
+        optimalerror += scipy.linalg.norm(centers[:, match] - optimal)
 
         tmp.remove(match)
 
-    print("Cumulative Error = {:.3f}".format(error))
+    print("Error (True Centers) = {:.3f}".format(trueerror))
+    print("Error (k-means-optimal centroids) = {:.3f}".format(optimalerror))
 
     if m != 2:
         return
@@ -269,6 +278,16 @@ def main():
                 color=COLORS[i],
                 label="Denoised Data {}".format(i + 1))
 
+        # Plot k-means-optimal centroids
+        centroid = optimalcentroids[min(len(models) - 1, i)]
+        pp.plot(centroid[0],
+                centroid[1],
+                "h",
+                ms=12,
+                ls="",
+                color=COLORS[i],
+                label="Optimal Centroid {}".format(i + 1))
+
         # Plot true cluster centers
         center = truecenters[min(len(models) - 1, i)]
         pp.plot(center[0],
@@ -277,8 +296,7 @@ def main():
                 ms=15,
                 ls="",
                 color=COLORS[i],
-                label="True centers")
-
+                label="True Center {}".format(i + 1))
 
     # Mark misclassified points
     Pmisclass = P[:, misclass]
@@ -287,7 +305,6 @@ def main():
             "xr",
             ms=12,
             label="Misclassified")
-
 
     # Plot cluster center approximators
     pp.plot(centers[0, :],
