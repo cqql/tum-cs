@@ -199,6 +199,10 @@ def main():
     P = np.hstack(samples)
     m, N = P.shape
 
+    # Save true cluster centers
+    truecenters = [m.center() for m in models]
+
+    # Save true cluster affinities
     offset = 0
     trueclusters = []
     for S in samples:
@@ -230,6 +234,18 @@ def main():
     msg = "Correctly classified {} / {}; Error = {:.3f}"
     print(msg.format(N - len(misclass), N, error))
 
+    # Clustering error (distance to true centers)
+    error = 0
+    tmp = set(range(centers.shape[1]))
+    for C in truecenters:
+        match = min(tmp, key=lambda c: scipy.linalg.norm(centers[:, c] - C))
+
+        error += scipy.linalg.norm(centers[:, match] - C)
+
+        tmp.remove(match)
+
+    print("Cumulative Error = {:.3f}".format(error))
+
     if m != 2:
         return
 
@@ -254,7 +270,7 @@ def main():
                 label="Denoised Data {}".format(i + 1))
 
         # Plot true cluster centers
-        center = models[min(len(models) - 1, i)].center()
+        center = truecenters[min(len(models) - 1, i)]
         pp.plot(center[0],
                 center[1],
                 "^",
