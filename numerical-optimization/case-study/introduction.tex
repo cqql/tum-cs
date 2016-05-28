@@ -1,1 +1,18 @@
+%%% -*- TeX-master: "case-study.tex" -*-
 \section{Introduction}
+
+The accurate numerical solution of hyperbolic partial differential equations requires higher-order methods.
+An increasingly popular variant are discontinuous Galerkin methods that approximate the considered quantity piecewise by $n$-th order polynomials.
+This approach in its pure form allows the capturing of shocks but nonetheless develops oscillations in their proximity.
+Their development can be mitigated by limiters, i.e. artificially restricting the slope of interpolating functions to mathematically and physically sensible values.
+One of the first limiters was the minmod-limiter\cite{VanLeer1979} proposed by van Leer in 1979.
+It ensures that the slope is at most as steep as the minimum of upwind and downwind slope and at the same time agrees with their trend, i.e. is positive if both are positive and vice versa.
+Otherwise the cell has to contain an extremum and the slope is limited to zero.
+
+The minmod limiter was generalized to the moment limiter\cite{Krivodonova} by L. Krivodonova as recently as 2007.
+She applied it iteratively to the derivates of the interpolating polynomials of the discontinuous Galerkin method.
+This procedure retains as high a polynomial degree as possible instead of always limiting to a constant zeroth degree polynomial.
+
+The structure of this paper is as follows: first, we introduce the concept of total variation in section \ref{sec:total-variation}, a way to measure the amount of oscillation introduced by a limiter.
+Next, we present the minmod limiter in section \ref{sec:minmod} and show that it behaves nicely as measured by the total variation.
+Finally, we present Krivodonova's moment limiter in section \ref{sec:moment}.

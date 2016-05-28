@@ -5,3 +5,5 @@ _region_.tex
 *.pdf
 *.synctex.gz
 _minted-*
+*.bbl
+*.blg
