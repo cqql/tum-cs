@@ -1,7 +1,7 @@
 %%% -*- TeX-master: "case-study.tex" -*-
 \section{Introduction}
 
-Discontinuous Galerkin methods are higher-order methods for the numerical solution of hyperbolic partial differential equations that let you use reconstructions of arbitrary order.
+Discontinuous Galerkin methods are higher-order methods for the numerical solution of hyperbolic partial differential equations that let you use approximations of arbitrary order.
 This property is essential insofar as it is a necessity for high accuracy.
 However, Godunov's Theorem dictates that schemes of any order greater than one cannot prevent the introduction of unphysical new extrema in general.
 In practice such high-resolution schemes lead to very accurate approximations in smooth parts of the solution but develop oscillations in the vicinity of discontinuities and steep gradients.
@@ -15,7 +15,7 @@ minmod yields a reasonable improvement over an unlimited solution though the def
 So you could argue that restricting to first order is truncating too much information and one should look into more refined methods.
 
 Biswas et al. extended the minmod limiter to the \emph{moment} limiter\cite{Biswas1994} in the case of modal discontinuous Galerkin methods with Legendre basis functions.
-They exploit the fact that the derivatives of the polynomial reconstructions are more or less given by the coefficients of the Legendre basis polynomials insofar that they can limit the derivatives individually.
+They exploit the fact that the derivatives of the polynomial approximations are more or less given by the coefficients of the Legendre basis polynomials insofar that they can limit the derivatives individually.
 To relax the strictness of the original minmod limiter, the moment limiter instead successively applies a modified minmod operation to the derivatives from highest to lowest until a derivative does not need limiting.
 As a result the limiter preserves as high of a polynomial degree as possible what in turn helps preserving the extrema.
 This was further generalized by Krivodonova in 2007 by parameterizing the strictness of the limiter\cite{Krivodonova}.
