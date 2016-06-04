@@ -1,7 +1,7 @@
 %%% -*- TeX-master: "case-study.tex" -*-
 \section{Introduction}
 
-Discontinuous Galerkin methods are higher-order methods for the numerical solution of hyperbolic partial differential equations that let you use approximations of arbitrary order.
+Discontinuous Galerkin methods are high-order methods for the numerical solution of hyperbolic partial differential equations that let you use approximations of arbitrary order.
 This property is essential insofar as it is a necessity for high accuracy.
 However, Godunov's Theorem dictates that schemes of any order greater than one cannot prevent the introduction of unphysical new extrema in general.
 In practice such high-resolution schemes lead to very accurate approximations in smooth parts of the solution but develop oscillations in the vicinity of discontinuities and steep gradients.
@@ -9,7 +9,7 @@ The tried and tested solution to this problem is to actually detect the oscillat
 Though how to actually perform this truncation is an active area of research and has been since the 70s.
 
 One of the first limiters was given by van Leer in 1979 called \emph{minmod}\cite{VanLeer1979}.
-It ensures that the gradient inside a cell agrees with the trend that one would estimate from the upwind and downwind slopes and that the gradients magnitude does not exceed the magnitude of any of these approximations.
+It ensures that the gradient inside a cell agrees with the trend that one would estimate from the upwind and downwind slopes and that the gradient's magnitude does not exceed the magnitude of any of these approximations.
 If upwind and downwind slopes disagree in sign, the current cell has to contain an extremum and its gradient is limited to $0$.
 minmod yields a reasonable improvement over an unlimited solution though the default case of limiting to $0$ is too restrictive and flattens out the actual extrema over time.
 So you could argue that restricting to first order is truncating too much information and one should look into more refined methods.
@@ -21,7 +21,7 @@ As a result the limiter preserves as high of a polynomial degree as possible wha
 This was further generalized by Krivodonova in 2007 by parameterizing the strictness of the limiter\cite{Krivodonova}.
 Even though the limiter could not be proven to be total variation diminishing to the present date, numerical experiments demonstrate a convincing performance.
 
-The rest of this paper is structered as follows: first, we introduce the concept of total variation in section \ref{sec:total-variation}, a way to measure the amount of oscillation introduced by a limiter.
+The rest of this paper is structured as follows: first, we introduce the concept of total variation in section \ref{sec:total-variation}, a way to measure the amount of oscillation introduced by a limiter.
 Next, we present the minmod limiter in section \ref{sec:minmod} and show that it behaves nicely as measured by the total variation.
 Afterwards we recapture the relevant basics of discontinuous Galerkin methods in section \ref{sec:dg}.
 Finally, we present Krivodonova's generalized moment limiter in section \ref{sec:moment}.
