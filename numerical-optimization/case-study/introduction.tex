@@ -21,9 +21,9 @@ As a result the limiter preserves as high of a polynomial degree as possible wha
 This was further generalized by Krivodonova in 2007 by parameterizing the strictness of the limiter\cite{Krivodonova}.
 Even though the limiter could not be proven to be total variation diminishing to the present date, numerical experiments demonstrate a convincing performance.
 
-The rest of this paper is structured as follows: first, we introduce the concept of total variation in section \ref{sec:total-variation}, a way to measure the amount of oscillation introduced by a limiter.
-Next, we present the minmod limiter in section \ref{sec:minmod} and show that it behaves nicely as measured by the total variation.
-Afterwards we recapture the relevant basics of discontinuous Galerkin methods in section \ref{sec:dg}.
+The rest of this paper is structured as follows: first, we restate the relevant basics of discontinuous Galerkin methods in section \ref{sec:dg}.
+Next, we present the minmod limiter in section \ref{sec:minmod} and apply it to the DG method.
+Afterwards we introduce the theory of total variation and Godunov's theorem in section \ref{sec:total-variation} to get some insights into limiters and analyze their behavior.
 Finally, we present Krivodonova's generalized moment limiter in section \ref{sec:moment}.
 
 % DG (from paper) (modal/nodal)
