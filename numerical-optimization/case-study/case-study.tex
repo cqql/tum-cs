@@ -43,7 +43,7 @@
 
 \author{
 \authorblockN{Marten Lienen}
-\authorblockA{Fakultät für Informatik\\Technische Universität München\\
+\authorblockA{FakultÃ¤t fÃ¼r Informatik\\Technische UniversitÃ¤t MÃ¼nchen\\
 Email: marten.lienen@in.tum.de}
 }
 
@@ -76,17 +76,24 @@ Email: marten.lienen@in.tum.de}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{keywords}
-  limiters, discontinuous galerkin, minmod
+  limiters, moment, minmod, discontinuous Galerkin
 \end{keywords}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 	Sections, Subsections,...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Introduction (The need for limitation)
 \input{introduction}
-
-% \input{section1}
-
+% Related Work (minmod etc.)
+% Discontinuous Galerkin
+\input{dg}
+% Total Variation
+\input{total-variation}
+% Limiters
+\input{minmod}
+\input{moment}
+% Conclusion
 \input{conclusion}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
