@@ -1,3 +1,93 @@
 %%% -*- TeX-master: "case-study.tex" -*-
-\section{The moment limiter}
+\section{The generalized moment limiter}
 \label{sec:moment}
+
+The original moment limiter by Biswas et al. takes the idea from minmod to bound the gradient by the upwind and downwind difference quotient approximations to the first derivative and extends it to higher derivatives.
+So the $k$-th derivative is bounded by the upwind and downwind difference quotients of the $k - 1$-th derivative in a manner that is to be further specified.
+However, not all derivatives are limited in all cases.
+Instead you start with the highest derivative and work your way down until a limiter is no longer \emph{active}, i.e. the limiter did not modify the value.
+Krivodonova experimented with different variations but none of them worked as well as this top-down order.
+For example limiting in the opposite order resulted in flattening of the extrema and limiting either all derivatives if at least one limiter was active or limiting none if not all limiters were active resulted in insufficient suppression of oscillations and reduced accuracy, respectively \cite[remark 1]{Krivodonova}.
+
+The first important observation is that limiting the derivatives essentially amounts to limiting the coefficients of $U$.
+We see this by taking the Taylor series expansion of the solution $u$ at $a$ on cell $i$
+\begin{equation*}
+  u(x, t') = \sum_{n = 0}^{\infty} \frac{(x - a)^{n}}{n!} \cdot \partial_{x}^{j} u(a, t')
+\end{equation*}
+and comparing it to $U_{i} = \sum_{j = 0}^{p} c_{i}^{j} P_{j}(x - a)$.
+Equating the coefficients of the terms $(x - a)^{n}$ reveals
+\begin{equation*}
+  c_{i}^{j} \approx C \Delta x_{i} \partial_{x}^{j} u(x)
+\end{equation*}
+where $C$ is a constant scaling factor.
+
+So limiting the derivatives and coefficients of $U$ amounts to the same thing.
+Since we are extending the minmod limiter to higher derivatives, we are looking for an update formula for the coefficients of the form
+\begin{equation*}
+  \tilde{c}_{i}^{j} = \minmod(c_{i}^{j}, D_{i}^{+j}, D_{i}^{-j})
+\end{equation*}
+where $\tilde{c}_{i}^{j}$ is the limited $j$-th coefficient of $U_{i}$ and $D_{i}^{+k}$ and $D_{i}^{-k}$ are upwind respectively downwind first-order approximations to the $j$-th derivative.
+
+We can work out feasible expressions for $D_{i}^{+k}$ and $D_{i}^{-k}$ by computing $U_{i}$s partial derivatives.
+Note that the highest order coefficient of a Legendre polynomial $P_{j}$ written in the monomial basis is $\frac{(2j)!}{2^{j} j! j!}$.
+Consequently its $j$-th derivative is given by
+\begin{equation*}
+  \partial_{x}^{j} P_{j}(x) = \frac{(2j)!}{2^{j} j! j!} \cdot j! = \frac{(2j)!}{2^{j} j!}
+\end{equation*}
+which we will use during the computation of the $k$-th derivative of $U_{i} \circ \xi_{i}$.
+\begin{align}
+  & \partial_{x}^{k} U_{i} \circ \xi_{i}(x) = \sum_{j = 0}^{p} c_{i}^{j} \partial_{x}^{k} P_{j}(\xi_{i}(x))\nonumber\\
+  \intertext{The first $k - 1$ terms vanish since the $k + 1$-th derivative of a polynomial of degree $k$ is $0$.}
+  =~& \sum_{j = k}^{p} c_{i}^{j} \partial_{x}^{k} P_{j}(\xi_{i}(x))\nonumber\\
+  \intertext{Since the first derivative of $\xi_{i}$ is $\frac{2}{\Delta x_{i}}$, applying the chain rule $k$ times just pulls out this factor to the $k$-th power.}
+  =~& \sum_{j = k}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x))\nonumber\\
+  \intertext{Separating the first summand}
+  =~& c_{i}^{k} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{k}(\xi_{i}(x)) + \sum_{j = k + 1}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x))\nonumber\\
+  \intertext{lets us plug in the $k$-th derivative of $P_{k}$}
+  =~& c_{i}^{k} \left( \frac{2}{\Delta x_{i}} \right)^{k} \frac{(2k)!}{2^{k} k!} + \sum_{j = k + 1}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x))\nonumber\\
+  \intertext{and simplify to}
+  =~& c_{i}^{k} \left( \frac{2}{\Delta x_{i}} \right)^{k} \left( 2k - 1 \right)!! + \sum_{j = k + 1}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x)) \label{eq:kth-deriv}
+\end{align}
+where $!!$ is the double factorial, i.e. the factorial with all even factors cancelled out.
+
+In the next step we approximate the $k$-th derivative with the forward and backward difference quotients.
+Evaluating equation \eqref{eq:kth-deriv} for $k := k - 1$ yields the $k - 1$-th derivative of $U_{i} \circ \xi_{i}$
+\begin{align*}
+  \partial_{x}^{k - 1} U_{i} \circ \xi_{i}(x) & = c_{i}^{k - 1} \left( \frac{2}{\Delta x_{i}} \right)^{k - 1} \left( 2k - 3 \right)!!\\
+  & \quad + \sum_{j = k}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k - 1} \partial_{\xi_{i}}^{k - 1} P_{j}(\xi_{i}(x))
+\end{align*}
+By combining the values from neighboring cells we can compute the forward difference quotient
+\begin{align}
+  & \frac{\partial_{x}^{k - 1} U_{i + 1} \circ \xi_{i + 1} - \partial_{x}^{k - 1} U_{i} \circ \xi_{i}}{\Delta x}\nonumber\\
+  =~& \left( \frac{2}{\Delta x} \right)^{k} \frac{(2k - 3)!!}{2} (c_{i + 1}^{k - 1} - c_{i}^{k - 1})\nonumber\\
+  & + \frac{1}{2} \left( \frac{2}{\Delta x} \right)^{k} \sum_{j = k}^{p} (c_{i + 1}^{j} - c_{i}^{j}) \partial_{\xi_{i}}^{k - 1} P_{j}(\xi_{i}(x)) \label{eq:kth-deriv-forward}
+\end{align}
+and the backward difference quotient
+\begin{align}
+  & \frac{\partial_{x}^{k - 1} U_{i} \circ \xi_{i} - \partial_{x}^{k - 1} U_{i - 1} \circ \xi_{i - 1}}{\Delta x}\nonumber\\
+  =~& \left( \frac{2}{\Delta x} \right)^{k} \frac{(2k - 3)!!}{2} (c_{i}^{k - 1} - c_{i - 1}^{k - 1})\nonumber\\
+  & + \frac{1}{2} \left( \frac{2}{\Delta x} \right)^{k} \sum_{j = k}^{p} (c_{i}^{j} - c_{i - 1}^{j}) \partial_{\xi_{i}}^{k - 1} P_{j}(\xi_{i}(x)) \label{eq:kth-deriv-backward}
+\end{align}
+Note that this step only works on uniform meshes, i.e. $\Delta x_{i} = \Delta x_{j}~\forall i, j$, because otherwise you could not combine the $\frac{1}{\Delta x}$ factors.
+Now we can get first order approximations to $c_{i}^{k}$ by equating the first summands of equations \eqref{eq:kth-deriv} and \eqref{eq:kth-deriv-forward} respectively \eqref{eq:kth-deriv} and \eqref{eq:kth-deriv-backward} and solving for $c_{i}^{k}$.
+\begin{align*}
+  c_{i}^{k} & \approx \frac{c_{i + 1}^{k - 1} - c_{i}^{k - 1}}{2(2k - 1)}\\
+  c_{i}^{k} & \approx \frac{c_{i}^{k - 1} - c_{i - 1}^{k - 1}}{2(2k - 1)}
+\end{align*}
+By setting $D_{i}^{+k} = \frac{c_{i + 1}^{k - 1} - c_{i}^{k - 1}}{2(2k - 1)}$ and $D_{i}^{-k} = \frac{c_{i}^{k - 1} - c_{i - 1}^{k - 1}}{2(2k - 1)}$ we derive the moment limiter
+\begin{equation*}
+  \tilde{c}_{i}^{k} = \minmod\left( c_{i}^{k}, \frac{c_{i + 1}^{k - 1} - c_{i}^{k - 1}}{2(2k - 1)}, \frac{c_{i}^{k - 1} - c_{i - 1}^{k - 1}}{2(2k - 1)} \right)
+\end{equation*}
+However, numerical experiments by Krivodonova have shown that this is too diffusive.
+% What does diffusive mean?
+This is mitigated by equipping the differences with variable coefficients $\frac{1}{2(2k - 1)} \le \alpha_{i} \le 1$ and generalizing the limiter to
+\begin{equation}
+  \tilde{c}_{i}^{k} = \minmod\left( c_{i}^{k}, \alpha_{i} \left( c_{i + 1}^{k - 1} - c_{i}^{k - 1} \right), \alpha_{i} \left( c_{i}^{k - 1} - c_{i - 1}^{k - 1} \right) \right), \label{eq:moment-limiter}
+\end{equation}
+thus relaxing the limiter.
+In further numerical tests by Krivodonova the best results where attained with the mildest limiter $\alpha_{i} = 1$.
+This choice allows the coefficients to grow $2(2k - 1)$ times bigger than the first order approximations would suggest.
+Yet the effectiveness of the limiter is not impaired since higher derivatives grow stronger near discontinuities while they have little weight in smooth portions.
+Finally the choice $\alpha_{i} = 1$ makes it so that equation \eqref{eq:moment-limiter} reduces exactly to the original $\minmod$ definition for $p = 1$.
+
+% Algorithmic summary (Maybe flowchart?)
