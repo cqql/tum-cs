@@ -2,7 +2,7 @@
 \section{Introduction}
 
 Discontinuous Galerkin methods are high-order methods for the numerical solution of hyperbolic partial differential equations that let you use approximations of arbitrary order.
-This property is essential insofar as it is a necessity for high accuracy.
+This property makes them popular in a community of scientists that require high accuracy.
 However, Godunov's Theorem dictates that schemes of any order greater than one cannot prevent the introduction of unphysical new extrema in general.
 In practice such high-resolution schemes lead to very accurate approximations in smooth parts of the solution but develop oscillations in the vicinity of discontinuities and steep gradients.
 The tried and tested solution to this problem is to actually detect the oscillations and reduce their effect by limiting them to mathematically and physically sensible values.
@@ -15,13 +15,13 @@ minmod yields a reasonable improvement over an unlimited solution though the def
 So you could argue that restricting to first order is truncating too much information and one should look into more refined methods.
 
 Biswas et al. extended the minmod limiter to the \emph{moment} limiter\cite{Biswas1994} in the case of modal discontinuous Galerkin methods with Legendre basis functions.
-They exploit the fact that the derivatives of the polynomial approximations are more or less given by the coefficients of the Legendre basis polynomials insofar that they can limit the derivatives individually.
+They exploit the fact that the derivatives of the polynomial approximations are more or less given by the coefficients of the Legendre basis polynomials insofar that they limit the derivatives indirectly by limiting the coefficients.
 To relax the strictness of the original minmod limiter, the moment limiter instead successively applies a modified minmod operation to the derivatives from highest to lowest until a derivative does not need limiting.
-As a result the limiter preserves as high of a polynomial degree as possible what in turn helps preserving the extrema.
+As a result the limiter preserves as high of a polynomial degree as possible what in turn helps preserve extrema and shocks.
 This was further generalized by Krivodonova in 2007 by parameterizing the strictness of the limiter\cite{Krivodonova}.
 Even though the limiter could not be proven to be total variation diminishing to the present date, numerical experiments demonstrate a convincing performance.
 
 The rest of this paper is structured as follows: first, we restate the relevant basics of discontinuous Galerkin methods in section \ref{sec:dg}.
-Next, we present the minmod limiter in section \ref{sec:minmod} and apply it to the DG method.
+Next, we present the minmod limiter in section \ref{sec:minmod} and apply it to the discontinuous Galerkin method.
 Afterwards we introduce the theory of total variation and Godunov's theorem in section \ref{sec:total-variation} to get some insights into limiters and analyze their behavior.
 In section \ref{sec:moment} we present Krivodonova's generalized moment limiter and lastly, we showcase some numerical results in section \ref{sec:results}.

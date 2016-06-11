@@ -6,7 +6,7 @@ Discontinuous Galerkin methods (DG) are a class of numerical schemes for solving
 For simplicity's sake we will only consider one-dimensional problems.
 Consider a spatial domain $X = [a, b] \subset \mathbb{R}$.
 Let $u(x, t) : X \times \mathbb{R}_{\ge 0} \rightarrow \mathbb{R}$ be a scalar quantity defined on $X$ that varies with time $t$.
-Futhermore consider the partial differential equation
+Furthermore consider the partial differential equation
 \begin{equation}
   \label{eq:dg-pde}
   u_{t} + f(u)_{x} = 0
@@ -29,20 +29,13 @@ Written out we have
 \begin{equation*}
   U = \bigoplus_{i = 0}^{n - 1} U_{i} \circ \xi_{i}
 \end{equation*}
-where $\oplus$ is function concatenation, $\circ$ is function composition, $U_{i}$ is a polynomial and $\xi_{i}$ normalizes coordinates in cell $i$ to the interval $[-1, 1]$, i.e. $\xi_{i}(x) = 2 \frac{x - x_{i}}{x_{i + 1} - x_{i}} - 1$.
+where $\oplus$ is a direct sum, $\circ$ is function composition, $U_{i}$ is a polynomial and $\xi_{i}$ normalizes coordinates in cell $i$ to the interval $[-1, 1]$, i.e. $\xi_{i}(x) = 2 \frac{x - x_{i}}{x_{i + 1} - x_{i}} - 1$.
 The normalization is required because DG uses a special polynomial basis, the \emph{Legendre polynomials}.
 So the $U_{i}$ can be written as
 \begin{equation*}
   U_{i} = \sum_{j = 0}^{p} c_{i}^{j} P_{j}
 \end{equation*}
 where $P_{j}$ is the $j$-th Legendre polynomial and $U_{i}$ is of degree $p$.
-
-The Legendre polynomials are special insofar that they form an orthonormal basis of $L^{2}$, i.e. the square-integrable functions, on $[-1, 1]$.
-More explanations and properties here?
-\begin{itemize}
-\item Plot of first $5-10$ Legendre polynomials?
-\item Plot of $0$ to $n$-th degree approximation with Legendre polynomials of compressed sine curve?
-\end{itemize}
 
 There are two approaches to actually compute the polynomial approximations called \emph{nodal} and \emph{modal}.
 Modal gives you polynomials in the form introduced here and is often preferred because the degree is easily adaptable; you just have to evaluate more or less coefficients.
@@ -53,6 +46,6 @@ However, the moment limiter relies heavily on this operation, so going forward w
 How the solution $U$ is finally used to estimate the derivatives and advance the solution to the next timestep goes beyond the scope of this article.
 The interested reader is encouraged to refer to \cite[chapter 3]{Hesthaven2007}.
 
-Even though the model admits discontinuities at cell boundaries, it develops oscillations in their vicinity nonetheless (because the discontinuities pass through the cells?).
+Even though the model admits discontinuities at cell boundaries, it develops oscillations in their vicinity nonetheless as discontinuities and steep gradients pass through the cells.
 This is demonstrated in figure (plot of discontinuity with oscillations) where a single shock was simulated for $1000$ timesteps.
 Such overshoots are not observed in physical processes and therefore stem entirely from numerical errors.
