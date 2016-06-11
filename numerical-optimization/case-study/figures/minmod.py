@@ -76,7 +76,7 @@ def plotminmod(P):
 
 
 def main():
-    P = np.array([[1, 1], [1.6, 1.8], [2.75, 0.6]])
+    P = np.array([[1, 1], [1.6, 1.8], [2.75, 0.8]])
     plotminmod(P)
     pp.savefig("minmod-a.eps")
     pp.clf()

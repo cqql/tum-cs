@@ -7,10 +7,9 @@ One of the first ideas was researched by van Leer in 1979, when he proposed the 
 A limiter in general restricts the steepness of the gradient of $U$ to sensible values where the bounds may be computed based on the current state or even set based on domain knowledge.
 Of interest for us is in particular the former type because of its wide applicability.
 
-The idea behind $\minmod$ specifically is to preserve the monotonicity of $U$.
-% TODO: What is monotonicity? Does is provide TVD?
-In the simplest case assume that the solution on cell $i$ is approximated by a first-order polynomial $c_{i}^{1}x + c_{i}^{0}$.
-The limiter updates all the slopes $c_{i}^{1}$ to $\tilde{c}_{i}^{1}$ by
+The idea behind $\minmod$ specifically is to prevent the accidental introduction of new extreme into $U$.
+It was originally defined for the case that the solution on cell $i$ is approximated by a first-order polynomial $c_{i}^{1}x + c_{i}^{0}$.
+The limiter then updates all the slopes $c_{i}^{1}$ to $\tilde{c}_{i}^{1}$ by
 \begin{equation*}
   \tilde{c}_{i}^{1} = \minmod\left( c_{i}^{1}, \frac{c_{i + 1}^{0} - c_{i}^{0}}{\Delta x}, \frac{c_{i}^{0} - c_{i - 1}^{0}}{\Delta x} \right)
 \end{equation*}
@@ -22,7 +21,6 @@ where the $\minmod$ operation is defined by
   \end{cases}
 \end{equation*}
 So the slope on each cell is bounded by the forward and backward difference quotients of the cell and its neighbor's average values that approach the true first derivative as $\Delta x$ goes to $0$.
-% TODO: How does this preserve monotonicity?
 
 The effect of this limiter is demonstrated in figure \ref{fig:minmod}.
 In figure \ref{fig:minmod-steep} the slope is limited so that the values do not exceed the average levels on neighboring cells.
@@ -51,6 +49,10 @@ Figure \ref{fig:minmod-extremum} shows how the approximation is reduced to first
   \label{fig:minmod}
 \end{figure}
 
-Prevent new extrema.
-Generalization to higher orders.
-reduces order to $1$.
+To see how such a scheme prevents the formation of new extrema, consider again figure \ref{fig:minmod-steep}.
+Before the limiter application the polynomial approximation of the center cell introduced new extrema at both of the cell's boundary points.
+Afterwards the right boundary is fixed but the interesting case occurs on the left-hand side.
+Here the extremum persists through the limiting of the center cell.
+However, it will be fixed as well when the leftmost cell is limited because the new slope of the center cell will also be an upper bound for the slope on the left-hand cell since one cell's backward difference quotient is its neighbor's forward difference quotient.
+So in the extreme case the slopes on neighboring cells can be at most as steep as the line that passes through both cells' center points.
+The argument for the way figure \ref{fig:minmod-extremum} and \ref{fig:minmod-trend} were limited require arguments from section \ref{sec:total-variation} and will be discussed at the end of it.
