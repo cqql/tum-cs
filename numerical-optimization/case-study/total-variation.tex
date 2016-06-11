@@ -2,4 +2,37 @@
 \section{Total Variation}
 \label{sec:total-variation}
 
-TV as explained by \cite[sec. 6.7]{LeVequeFVMforHP}.
+In 1983 Harten published his theory on total variation diminishing methods \cite{Harten1983} that can be used to analyze a numerical method's ``oscillation-repressivity''.
+A concept at the core of his work is the \emph{total variation} (TV) of a function, a way to measure the length of the graph of a function.
+For an arbitrary function $f$ it is defined\cite[sec. 6.7]{LeVequeFVMforHP} by
+\begin{equation*}
+  TV(f) = \sup_{\xi_{0}, \xi_{1}, \dots, \xi_{N}} \sum_{n = 1}^{N} |f(\xi_{n}) - f(\xi_{n - 1})|
+\end{equation*}
+where the $\xi_{n}$ form a subdivision of the domain of $f$, i.e. $\xi_{n} < \xi_{n + 1}$ and $\xi_{0}$ and $\xi_{N}$ are the left and right boundary of the domain of $f$.
+Important properties are that the minimum is $0$ which is attained for constant $f$ and that the total variation grows as $f$ becomes more wiggly.
+In particular does the introduction of a new extremum increase the total variation.
+
+The connection to the weak solution of a differential equation is given by the properties that the solution does not develop new extrema and the values of existing local minima are nondecreasing respectively the values of existing local maxima are nonincreasing in time.
+From this follows that solutions are \emph{total variation nonincreasing} (TVNI) which is normally called \emph{total variation diminishing} (TVD) and means that the total variation of the solution is nonincreasing in time.
+
+There is actually a class of numerical schemes that will provably never produce unphysical extrema called \emph{monotone} schemes.
+Unfortunately though, there is also a theorem by Godunov\cite{Godunov1959} that states that monotone schemes are at most first-order accurate.
+So higher-order methods cannot be monotone but are nonetheless necessary for accurate results.
+
+Harten showed that TVD is a relaxation of monotone in the sense that all monotone schemes are also TVD.
+In addition he developed second-order methods that are TVD proving that the set of TVD schemes is a strict superset of monotone schemes and contains higher-order methods.
+Consequently numerical methods should strive to produce TVD solutions to get as close to monotone as possible.
+
+This brings us back to the $\minmod$ limiter.
+Consider again figures \ref{fig:minmod-extremum} and \ref{fig:minmod-trend}.
+In the former the total variation is minimized by the $0$-slope because the increase in variation at the left boundary is counteracted by the decrease on the right side and on the interior the total variation is minimized by a constant function.
+For the latter figure holds the same argument and it remains to argue why the slope in figure \ref{fig:minmod-steep} is a fine choice.
+Here the total variation is minimized by all slopes that agree with the trend set by the neighbors and are sufficiently flat that all values on the cell are bounded by the values on the neighboring cells.
+So $\minmod$ is just one valid choice but nonetheless a minimizer.
+Another valid choice would be to limit the slope to $0$ in all cases but that would reduce the accuracy to first order.
+
+Although the $\minmod$ limiter is optimal in the sense that it makes schemes TVD, it is still lacking in various dimensions.
+First, it is not directly extendable to higher-order solvers of order greater than $2$ which makes it incompatible with modern schemes.
+Additionally it reduces the accuracy to first order in cells with extrema.
+Both of these points are handled by the next limiter that we present in section \ref{sec:moment}.
+In contrast to $\minmod$ it is not TVD, yet numerical experiments suggest that it is at least total variation bounded, i.e. the solution's total variation does not grow without bounds.
