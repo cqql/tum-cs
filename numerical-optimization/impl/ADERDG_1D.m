@@ -17,8 +17,8 @@ global N;
 %%%%%%%%%%%%%%%%%%%%%%
 % CHANGE IF YOU WANT %
 %%%%%%%%%%%%%%%%%%%%%%
-N=5;                                        % order of spatial discretization
-cells=4;                                    % number of elements
+N=6;                                        % order of spatial discretization
+cells=20;                                   % number of elements
 tEnd  = 1.0;                                % end of simulation time
 A = [1];                                    % speed at which wave travels (must be > 0)
 
@@ -45,6 +45,14 @@ x     = linspace(x0+dx/2,x1-dx/2,IMAX);
 % Gaussian quadrature is accurate up to order 2n+1
 [xGPN,wGPN] = gaussLegendre(N+1,0,1);
 nGP  = length(xGPN);                        % number of quadrature points
+
+gaussPointsGlobal = zeros(cells*nGP,1);
+cnt = 1;
+size(gaussPointsGlobal(cnt:cnt+nGP-1))
+for i=1:IMAX
+  gaussPointsGlobal(cnt:cnt+nGP-1) = (i-1)*dx+xGPN*dx;
+  cnt = cnt+nGP;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%
 % data structures    %
@@ -186,17 +194,17 @@ for i=[1:ghosts*2+IMAX]
         % Finite Volume could resolve this perfectly,
         % but DG s***s -- unless you use a limiter.
         if(xGP<0.5)
-         u0 = 1;
+          u0 = 1;
         else
-         u0 = 0;
+          u0 = 0;
         end
         %save the exact solution for later
         if (i > ghosts && i <= IMAX+ghosts)
-         if(xGP<0.5)
-           exact_solution(i-ghosts,ixGP) = 1;
-         else
-           exact_solution(i-ghosts,ixGP) = 0;
-         end
+          if(xGP<0.5)
+            exact_solution(i-ghosts,ixGP) = 1;
+          else
+            exact_solution(i-ghosts,ixGP) = 0;
+          end
         end
 
 
@@ -209,11 +217,11 @@ for i=[1:ghosts*2+IMAX]
 
 
         % (3) periodic sin, smooth
-        ## u0 = 1+sin(2*pi()*xGP);
+        %u0 = 1+sin(2*pi()*xGP);
         %save the exact solution for later
-        ## if (i > ghosts && i <= IMAX+ghosts)
-        ##   exact_solution(i-ghosts,ixGP) = 1+sin(2*pi()*xGP);
-        ## end
+        %if (i > ghosts && i <= IMAX+ghosts)
+        %  exact_solution(i-ghosts,ixGP) = 1+sin(2*pi()*xGP);
+        %end
 
 
         % (4) lone pulse, small discontinuity (undershoot)
@@ -286,14 +294,12 @@ while(curTime<tEnd)
       uhat(:,i) = uhat(:,i) - iMDG*(dt/dx*(FR-FL) - KxiDG*fhatstar(:,i));
   end
 
-  % @Marten: apply limiter here
-  % loop over cells
-  %for i=2:IMAX-1
-  %  if( detection criterion )
-  %    % adapt approximation polynomial
-  %    uhat(???,i) = new value;
-  %  end
-  %end
+  ## for i=2:IMAX-1
+  ##      if( min(uhat(3,i)*uhat(3,i-1),uhat(3,i)*uhat(3,i+1))<0)
+  ##          uhat(2,i) = minmod(uhat(1,i+1)-uhat(1,i),uhat(1,i)-uhat(1,i-1));
+  ##          uhat(3:nDOFs,i) = 0;
+  ##     end
+  ## end
 
   %set periodic boundary
   for i=[1:ghosts]
@@ -324,11 +330,6 @@ while(curTime<tEnd)
   end
   plot(x_nodal,uplot,'o');
 
-  ## Translate exact solution to current time
-  hold on;
-  plot(x_nodal,reshape(exact_solution',IMAX*nGP,1),'r-');
-  hold off;
-
   title(sprintf('t=%f',curTime))
   drawnow
 
@@ -356,6 +357,9 @@ for i = 1:IMAX
   end
 end
 
+xCell = reshape(gaussPointsGlobal,N+1,cells);
+yCell = reshape(u_solution,N+1,cells);
+
 % TODO
 % project nodel values onto equispaced
 % grid to have a nice-looking plot
@@ -363,7 +367,9 @@ end
 % polynomials and plot
 
 plot(x_nodal,u_solution,'o');
-hold on
+hold on;
+plot(xCell,yCell,'linewidth',2);
+hold on;
 plot(x_nodal,reshape(exact_solution',IMAX*nGP,1),'r-');
 title(sprintf('t=%f',curTime))
 drawnow
