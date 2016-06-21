@@ -7,3 +7,8 @@ _region_.tex
 _minted-*
 *.bbl
 *.blg
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
