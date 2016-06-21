@@ -198,18 +198,23 @@
       \caption{$TV = 2$}
     \end{subfigure}
   \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Why is total variation relevant?}
   \begin{itemize}
+  \item \emph{monotone} methods never produce oscillations
   \item The true solution has constant total variation
+  \item monotone schemes are \emph{total variation non-increasing} (TVNI/TVD)
+  \item monotone schemes are at most first-order accurate
   \item Numerical methods should mimic this
+  \item minmod is TVD
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{How minmod minimizes TV}
-  \begin{itemize}
-  \item minmod is total variation non-increasing (TVNI/TVD)
-  \item Each effect minimizes the TV
-  \end{itemize}
+  Each effect minimizes the TV
   \begin{figure}[h]
     \centering
     \begin{subfigure}{0.3\textwidth}
@@ -237,14 +242,14 @@
   \begin{itemize}
   \item Not directly applicable to higher-order models
   \item Order reduction near extrema
-  \item Discards too much information
+  \item Too diffusive
   \end{itemize}
 
   \vspace{2em}
 
   What can we do about this?
   \begin{itemize}
-  \item Consider $U_{i}$ of degree $p$ instead of $1$
+  \item Consider $U_{i} = \sum_{j = 0}^{p} c_{i}^{j} P_{j}$ of degree $p$ instead of $1$
   \item Extend minmod
   \item Relax limiter by limiting higher derivatives first
   \end{itemize}
@@ -252,18 +257,18 @@
 
 \begin{frame}
   \frametitle{The moment limiter}
-  \begin{equation*}
-    U_{i} = \sum_{j = 0}^{p} c_{i}^{j} P_{j}
-  \end{equation*}
-  \begin{equation*}
-    \tilde{c}_{i}^{k} = \minmod\left( c_{i}^{k}, c_{i + 1}^{k - 1} - c_{i}^{k - 1}, c_{i}^{k - 1} - c_{i - 1}^{k - 1} \right)
-  \end{equation*}
   \begin{enumerate}
   \item Initialize $k := p$
   \item Compute $\tilde{c}_{i}^{k}$
   \item If $\tilde{c}_{i}^{k} \ne c_{i}^{k}$, reduce $k$ by $1$ and go back to step 1
   \item Finally replace all $c_{i}^{k}$ by $\tilde{c}_{i}^{k}$
   \end{enumerate}
+
+  \vspace{1.5em}
+
+  \begin{equation*}
+    \tilde{c}_{i}^{k} = \minmod\left( c_{i}^{k}, c_{i + 1}^{k - 1} - c_{i}^{k - 1}, c_{i}^{k - 1} - c_{i - 1}^{k - 1} \right)
+  \end{equation*}
 \end{frame}
 
 \begin{frame}
