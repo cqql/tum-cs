@@ -3,6 +3,9 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
+% Citations
+\usepackage{cite}
+
 \usetheme{metropolis}
 
 % Math environments and macros
@@ -387,6 +390,18 @@
   \vfill
   \Huge{Questions?}
   \vfill
+\end{frame}
+
+\appendix
+
+\begin{frame}[allowframebreaks]
+  \frametitle{References}
+  \nocite{Krivodonova}
+  \nocite{Biswas1994}
+  \nocite{Harten1983}
+  \nocite{VanLeer1979}
+  \bibliographystyle{amsalpha}
+  \bibliography{../case-study/references.bib}
 \end{frame}
 
 \end{document}
