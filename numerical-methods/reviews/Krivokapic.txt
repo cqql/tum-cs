@@ -1,0 +1,160 @@
+# General Data
+
+Name of the reviewer: Marten Lienen
+Title of the reviewed paper: h-adaptivity
+Name of the author of the reviewed paper: Srdjan Krivokapic
+Date: June 25, 2016
+
+# Summary
+
+Hyperbolic PDEs have to be solved on grids whose resolution is governed by
+certain conditions, for example the CFL conditions, to guarantee
+convergence. However, most the time only parts of the grid need to be highly
+refined, e.g. discontinuities due to wave fronts, while the rest could be solved
+on a coarser grid and still give the same result. This idea is called
+h-adaptivity and can have a significant impact on run time.
+
+One of the basic approaches is block structured basic mesh refinement. There you
+have a coarse top-level grid that is recursively refined if a cell is estimated
+to contain a large error but also reverted to the coarser grid if a fine
+solution is not necessary any longer. A common choice for detecting a large
+error is the spatial gradient of the components. It is important that the finer
+grids proceed at a reduced step size through time that is proportional to the
+refinement factor. Furthermore you need to make sure handle the communication
+through ghost layers correctly as the cells are progressing at different rates.
+
+# Review
+
+## Categories
+
+### Abstract (Points: 4)
+
+The abstract sets up the context in the first sentence and follows it up with a
+summary of the paper contents, as it should be. It is, however, completely
+written in passive voice and has a word duplication error ("basic approach block
+structured approach").
+
+### Formal Aspects (Points: 2)
+
+- Symbol rho was not introduced
+- Steps (1) => (2) => (3) could use more explaining
+- Indices in superscript instead of subscript even for variables with only a
+  single index
+- The set of equations in I.A can also be decomposed for n = 1 (it is already)
+- "can be decomposed into a set of linear equations": It is already a set of
+  linear equations. Maybe set of linear equations involving only a single
+  variable each?
+- Lost a superscript p in "This leads to ... called the similarity solution"
+- Defined w := R^{-1}u, but in the end q is the original vector
+- At the end of I.A the recovery of q is unclear. q has an index p but the sum
+  runs over p as well, so which p is which in the summands?
+- Riemann problem is undefined for x = 0
+- w_l and w_r are not explicitly defined
+- Vectors q_l and q_r do not have eigenvalues
+- "scaled by alpha": alpha is a vector. Better just "scaled eigenvector" or
+  "scaled by some alpha_p"
+- Why do you need to be able to write script{W} as an eigenvector for (23)? And
+  something is wrong with the superscripts again because the Qs use the p for
+  the time-step, of which there are infinite, and in alpha^p r^p the p is
+  supposed to denote one of the finitely many eigenvectors
+- In II.A (24)-(26) there are now parentheses in the superscripts that are
+  normally used to distinguish between superscript powers and indices but here
+  both meanings have parentheses
+
+### Structure (Points: 3)
+
+The paper has the mandated structure, though the introduction has a
+disproportional length and takes up more than half of the content. Additionally
+there is an empty section III.A that should have been deleted and section II
+looks like it should have had two more sections for the other mentioned
+approaches. I would have reintegrated this subsection into its parent section.
+
+### Content, Level of Detail and Completeness (Points: 3)
+
+The introduction tries to cover a lot of topics in little space which leads to,
+for example, the transition from (18) to the conservative finite volume scheme
+(21) lacking explanation. On the other hand the meat of the paper does not
+actually draw an the details of the introduction, at least not in the part about
+block structured AMR. It may have even been possible to cut all the derivations
+and shrink the introduction to just the parts that are really necessary and
+instead go into tree bases as well as finite element adaptivity in hypothetical
+sections II.B and II.C. I would even go as far and move the shallow water
+application completely from the introduction into the results section III
+because the method of adaptive mesh refinement is more generally applicable than
+just in this case. Of course an actual section on the author's original results
+would be nice to have.
+
+As it is the section on block structured AMR could have been more elaborate. So
+I would have liked a more detailed explanation of ghost cells. At the moment the
+text states that ghost cells are necessary to ensure proper alignment between
+refinement levels, which was not clear to me. Is the proper alignment not
+already guaranteed by the refinement scheme that divides cells into a natural
+number of subcells? What would happen without ghost cells? Another open question
+is how the "coarsing", i.e. the inverse refinement, works? It is mentioned in
+the description but the text only describes the regridding and flagging
+procedure for refinement. Another aspect that deserves more investigation is the
+correction term. Maybe that would also justify the theory in the introduction.
+
+### Written Style and Readability (Points: 3)
+
+The paper is overall fine to read, though I found a few language issues that are
+listed below. The spelling errors are definitely preventable with a
+spell-checker like aspell.
+
+Spelling:
+- a time t -> at time t
+- incite -> insight?
+- parch -> patch
+
+Grammar:
+- "i.e.," vs ", i.e.(,)"
+- First sentence in I.D. is missing a verb
+- update vs. updates
+- A much less refinement -> A coarser grid / A less refined grid
+- "However, _as_ the wave front keeps changing ..."
+
+Other:
+- Unsightly word-wrap of LeVeque as LeV-eque
+- "The scale of the tsunami modelling makes it necessary ...": What is "it"?
+- "based on the necessity of the solution.": necessity -> requirements
+- What is "the interface of the communication"?
+
+### References (Points: 3)
+
+The author has given various references for example for the claim that something
+is the common choice but also for the source of a graphic and the software
+package used for testing. However, the citations [3] and [4] are in positions
+that make it hard to determine the scope of text that is attributed to that
+source, i.e. is it just the previous sentence or also the formulas before that?
+In addition the references [3] and [4] refer to workshop notes which do not
+normally qualify as reliable/authoritative sources.
+
+Finally I would prefer it if figure 2 was explicitly referenced in the text.
+
+### Conclusion (Points: 3)
+
+The conclusion recounts the main points of the paper but does not give outlook,
+for example what open questions in this area are or which papers you should read
+to get a deeper understanding of this field.
+
+### Overall Evaluation (Points: 3)
+
+All in all I think the paper was too long in the beginning and too short in the
+middle. I will give it this average rating and justify it with all the
+individual ratings in the different categories.
+
+## Best and Worst Aspect of the Paper
+
+### What is best in the paper?
+
+I especially enjoyed the visualization in figure 2 because it demonstrates the
+method with a real world example which I saw in no other project.
+
+### What is worst in the paper?
+
+What stood out negatively to me is the amount of slight inconsistencies in the
+formulas.
+
+## Miscellaneous Comments
+
+The paper is only 4 of the 5 required pages long
