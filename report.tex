@@ -1,0 +1,63 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+
+\DeclareMathOperator{\mean}{mean}
+
+\title{Semidefinite Programming Approaches to Clustering}
+\author{Marten Lienen (03670270)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{definition}
+  Let $P \in \mathbb{R}^{m \times N}$ denote the data matrix that has the data points as its columns.
+\end{definition}
+
+\begin{definition}
+  Let $X_{D}$ be the minimizer of the SDP.
+\end{definition}
+
+\begin{definition}
+  We say that $x_{i}$ and $x_{j}$ \emph{belong together} if ... $X_{D,ij} = \max_{k} X_{D,ik}$?
+  This means that $x_{i}$ and $x_{j}$ probably belong to the same cluster according to the denoising procedure.
+\end{definition}
+
+\begin{definition}
+  $\hat{\gamma}_{i} = \mean \{ c_{j} \mid x_{j}~\text{belongs to}~x_{i} \}$ where $c_{j}$ is the $j$-th column of $PX_{D}$.
+  These should be the best cluster center approximators according to the estimated cluster affiliations.
+\end{definition}
+
+\begin{lemma}
+  Construct an estimator $d_{\min} = \min \left\{ ||\hat{\gamma}_{a} - \hat{\gamma}_{b}|| \right\}$ for the minimum cluster center separation.
+  Then $d_{\min} \le (1 + \varepsilon) \Delta_{\min}$ with probability $P(\varepsilon, ..)$.
+\end{lemma}
+
+Maybe find a statement for the $\tilde{\gamma}_{i}$s first.
+$\tilde{\gamma}_{i}$ is $\hat{\gamma}_{i}$ if we knew the real cluster assignments.
+
+If this lemma holds, we can use this $d_{\min}$ to choose an $\varepsilon < \frac{\Delta_{\min}}{8}$ for the rounding step.
+
+\end{document}

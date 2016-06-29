@@ -1,0 +1,7 @@
+# LaTeX artifacts
+*.aux
+*.log
+*.pdf
+*.synctex.gz
+_minted-report
+_region_.tex
