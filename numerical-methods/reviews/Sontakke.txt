@@ -1,0 +1,140 @@
+# General Data
+
+Name of the reviewer: Marten Lienen
+Title of the reviewed paper: An introduction to the discontinuous Galerkin method
+Name of the author of the reviewed paper: Vishal Sontakke
+Date: June 30, 2016
+
+# Summary
+
+Discontinuous Galerkin methods are a class of numerical schemes for solving
+equations arising from conservation laws that draw on the finite volume as well
+as the finite element schemes. The solution is approximated by a piecewise
+continuous polynomial on a discretized mesh that represents the local solutions
+either in modal or in nodal form.
+
+The approximation satisfies the equation insofar that the inner product its
+residual and a selection of test functions is 0. This postulation in turn yields
+the strong as well as the weak form of the problem. The weak form leads to the
+semi-discrete weak form which can be reformulated to the DG-FEM method.
+
+At this point the paper examines the numerical flux that is included in the
+DG-FEM method and needs to be reconciled from the potentially conflicting fluxes
+that were computed on neighboring cells. Therefore it first establishes
+conditions that guarantee the stability of the scheme that in turn impose a
+condition on the flux term.
+
+Finally, a last section sketches the generalization of this approach to
+non-linear conservation laws.
+
+# Review
+
+## Categories
+
+### Abstract (Points: 5)
+
+The first sentence tells the reader what this paper is about, followed by a very
+brief description and an enumeration of the main points of this paper. Notably
+everything is in active voice.
+
+### Formal Aspects (Points: 4)
+
+The formal parts where overall fine and I found no downright errors though I had
+a few confusions listed below.
+
+- First, why is the suffix for approximations _h? Does that have a special
+  meaning or is it just mark the approximations? And why is it an h?
+- The equation N = N_p - 1 should state the meaning of N_p explicitly say that
+  it is just an abbreviation for N + 1. At the moment N_p looks meaningful
+  though it is never explained. Is it the order of accuracy?
+- If the polynomial basis and the basis of test functions differ in general,
+  they should be denoted by different symbols. In the later sections with the
+  Galerkin approach it is of course fine to plug the polynomial basis for these
+  new symbols.
+- "As we will see in the further sections, there are methods where the two
+  functions differ." This should say "bases" instead of "functions".
+- The space of test functions V_h cannot be the space of piecewise smooth
+  functions because that is of infinite dimension which is in particular
+  greater than N_p.
+- Equation (8) is missing a d/dt and the +- should be a -
+- Equation (10) should integrate over Omega instead of D^k
+
+### Structure (Points: 3)
+
+The paper has a section called introduction, a few main sections that describe
+different aspects of the DG methods and a conclusion. However, the first section
+reads rather like first part of the main portion. I think that it should be
+preceded by a section that tells the reader what DG is, why it is necessary and
+briefly compares it to the related methods FVM and FEM.
+
+### Content, Level of Detail and Completeness (Points: 5)
+
+Because discontinuous Galerkin methods are a large topic, there has to be a
+trade-off between level of detail and completeness here and I mostly agree with
+the author's choice. However, I would have preferred to trade in the section on
+the extension to non-linear equations for a deeper explanation of the
+foundations. In particular I would have liked a more elaborate description of
+the weak and strong forms and how/when which is used. The same is true for test
+functions. The paper just defines and uses them without justifying why they are
+necessary and how the orthogonality of residual and test functions makes the
+residual vanish.
+
+Lastly, I have to following minor points to mention. I think the author could
+have named the Legendre basis instead of/in addition to the monomial basis as an
+example because to my knowledge it is more relevant in practice and also has a
+positive effect on the shape of the mass matrix. A few sentences later the
+author mentions the property of the Lagrange polynomials that l_i^k(x_j^k) =
+\delta_ij which is never used, so it could be omitted. The paragraph that
+highlights the problem of multiple values on the interfaces should only
+reference figure 3 instead of both 2 and 3.
+
+When equation (8) is compacted into the matrix equation, I would have liked a
+hint regarding what happens to the integral because it took me a while to figure
+out that it is absorbed in the inner products. (Actually until this fact is
+explicitly written down on page 4).
+
+Finally I would have preferred to put the explanation of the upwind flux before
+its analysis instead of the other way around.
+
+### Written Style and Readability (Points: 5)
+
+The paper was pleasant to read and had no spelling mistakes. Besides that I just
+noticed a missing word and one grammatical oversight listed below.
+
+- "we use _a_ local polynomial basis ..." Put in the "a" and erase the comma
+- "... we must decide in which sense does the approximate solution ... satisfies
+  our PDE." Write "does satisfy" or "satisfies".
+
+### References (Points: 2)
+
+The author gives a few references, though only in the very last sentence of this
+paper as recommendations for further reading. So there are no explicit sources
+given for the theory presented. In my opinion the author should have at least
+written something along the lines of "We will follow (closely) the introduction
+in [1, chapter 3]" or "we will draw on the presentation in [1, chapter 3]" in
+the introduction.
+
+### Conclusion (Points: 5)
+
+The conclusion has everything I am looking for. It starts with a recapitulation
+of the covered theory. This follows an enumeration of open ends where method can
+or has to be further developed before it can be implemented. Finally the author
+refers the reader to further literature.
+
+### Overall Evaluation (Points: 4.5)
+
+Overall I enjoyed this paper and found just a handful of shortcomings. Though in
+comparison to the content and readability these carry little weight for me.
+
+## Best and Worst Aspect of the Paper
+
+### What is best in the paper?
+
+I liked it in general though just to pinpoint something, I will point out the
+illustration for the average flux and flux difference.
+
+### What is worst in the paper?
+
+That is has no introduction.
+
+## Miscellaneous Comments
