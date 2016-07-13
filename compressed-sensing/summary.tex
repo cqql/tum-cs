@@ -1,0 +1,359 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, mathescape, numbersep=5pt}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{theorem}
+\newtheorem{example}{Example}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\diff}{~\mathrm{d}}
+\newcommand{\E}{\mathbb{E}~}
+\renewcommand{\Pr}[1]{\mathbb{P}\left( #1 \right)}
+
+\title{Compressed Compressed Sensing Script}
+\author{Marten Lienen}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+This will list only definitions, lemmata and theorems but no proofs.
+
+\section{Basic Tools from Probability Theory and Functional Analysis}
+
+In this whole section we have a probability space $(\Omega, \Sigma, \mathbb{P})$ where $\Omega$ is the sample space, $\Sigma$ is a $\sigma$-algebra of admissible events and $\mathbb{P}$ is a probability measure.
+
+\subsection{Essentials from Probability}
+
+\begin{lemma}[Union Bound]
+  For a collection of events $B_{l} \in \Sigma, l = 1, \dots, n$, we have
+  \begin{equation*}
+    \Pr{\left( \cup_{l = 1}^{n} B_{l} \right)} \le \sum_{l = 1}^{n} \Pr{(B_{l})}
+  \end{equation*}
+\end{lemma}
+
+\begin{definition}
+  A \emph{random variable} $X$ is a real-valued measurable function on $(\Omega, \Sigma)$.
+\end{definition}
+
+\begin{definition}
+  A random variable has a \emph{probability density function} (pdf) $\phi : \mathbb{R} \rightarrow \mathbb{R}_{+}$ if
+  \begin{equation*}
+    \mathbb{P}(a < X \le b) = \int_{a}^{b} \phi(t) \diff t
+  \end{equation*}
+\end{definition}
+
+\begin{example}
+  \begin{description}
+  \item[Rademacher random variable] given by $\Pr{X = 1} = \Pr{X = -1} = \frac{1}{2}$
+  \item[Standard normal random variable] $\Pr{X < a} = \int_{-\infty}^{a} \frac{1}{\sqrt{2\pi}} \exp\left( -\frac{x^{2}}{2} \right) \diff x$
+  \end{description}
+\end{example}
+
+\begin{definition}
+  The \emph{expectation} or \emph{mean} of a random variable $X$ is denoted by
+  \begin{equation*}
+    \E X = \int_{\Omega} X(\omega) \diff \mathbb{P}(\omega)
+  \end{equation*}
+
+  If $X$ has a probability density function $\phi$
+  \begin{equation*}
+    \E g(x) = \int_{\Omega} g(t) \phi(f) \diff t
+  \end{equation*}
+  for any function $g : \mathbb{R} \rightarrow \mathbb{R}$.
+\end{definition}
+
+\begin{definition}
+  $\E X^{p}$ and $\E |X|^{p}$ are called the \emph{$p$-th moment} respectively the \emph{$p$-th absolute moment} of $X$.
+\end{definition}
+
+\begin{lemma}[Basic but important facts]
+  Let $X, Y$ be random variables on a common probability space.
+  \begin{enumerate}
+  \item $|\E X \cdot Y| \le \left( \E |X|^{p} \right)^{\frac{1}{p}} \cdot \left( \E |Y|^{q} \right)^{\frac{1}{q}}$ for $\frac{1}{p} + \frac{1}{q} = 1$ (Hölder's inequality)
+  \item $|\E XY| \le \sqrt{\E |X|^{2} |Y|^{2}}$ (Cauchy-Schwarz inequality)
+  \item $\left( \E |X + Y|^{p} \right)^{\frac{1}{p}} \le \left( \E |X|^{p} \right)^{\frac{1}{p}} + \left( \E |Y|^{p} \right)^{\frac{1}{p}}$ (Minkowski's inequality)
+  \item If $\int_{\Sigma_{X} \times \Sigma_{Y}} |f(x, y)| \diff (\nu \otimes \mu)(x, y) < \infty$, then (Fubini)
+    \begin{equation*}
+      \int_{\Sigma_{X} \times \Sigma_{Y}} |f(x, y)| \diff (\nu \otimes \mu)(x, y) = \int_{\Sigma_{X}} \int_{\Sigma_{Y}} f(x, y) \diff \mu(y) \diff \nu(x) = \int_{\Sigma_{Y}} \int_{\Sigma_{X}} f(x, y) \diff \nu(x) \diff \mu(y)
+    \end{equation*}
+  \end{enumerate}
+\end{lemma}
+
+\begin{proposition}
+  The $p$-th absolute moments of a random variable $X$ can be expressed as
+  \begin{equation*}
+    \E |X|^{p} = p \int_{0}^{\infty} \Pr{|X| \ge t} t^{p - 1} \diff t, p > 0
+  \end{equation*}
+\end{proposition}
+
+\begin{definition}
+  The \emph{tail} of the probability distribution of a random variable $X$ is the function $r \mapsto \Pr{|X| \ge t}$.
+\end{definition}
+
+\begin{theorem}[Markov's inequality]
+  Let $X$ be a random variable. Then
+  \begin{equation*}
+    \Pr{|X| \ge t} \le \frac{\E |X|}{t}
+  \end{equation*}
+  for all $t > 0$.
+\end{theorem}
+
+\subsection{Moments and Tails}
+
+This uses the $\Gamma$-function defined by
+\begin{equation*}
+  \Gamma(x) = \int_{0}^{\infty} t^{x - 1} e^{-t} \diff t
+\end{equation*}
+
+\begin{theorem}[Stirling's formula]
+  \begin{equation*}
+    \Gamma(x) = \sqrt{2\pi} x^{x - \frac{1}{2}} e^{-x} \exp\left( \frac{\mu(x)}{12x} \right)
+  \end{equation*}
+  for $x > 0$ and an unknown function $0 \le \mu(x) \le 1$.
+\end{theorem}
+
+\begin{lemma}[Functional Equation of the $\Gamma$-function]
+  \begin{equation*}
+    \Gamma(x + 1) = x \Gamma(x)
+  \end{equation*}
+\end{lemma}
+
+\begin{proposition}
+  Suppose that a random variable $Z$ satisfies for some $\gamma > 0$
+  \begin{equation*}
+    \Pr{|Z| \ge e^{\frac{1}{\gamma}} \alpha u} \le \beta e^{-\frac{u^{\gamma}}{\gamma}}
+  \end{equation*}
+  for all $u > 0$.
+  Then for $p > 0$,
+  \begin{equation*}
+    \E |Z|^{p} \le \beta \alpha^{p} (e \gamma)^{\frac{p}{\gamma}} \Gamma\left( \frac{p}{\gamma} + 1 \right)
+  \end{equation*}
+  As a consequence, for $p \ge 1$,
+  \begin{equation*}
+    \left( \E |Z|^{p} \right)^{\frac{1}{p}} \le C_{1} \alpha \left( C_{2,\gamma} \beta \right)^{\frac{1}{p}} p^{\frac{1}{\gamma}}
+  \end{equation*}
+  for all $p \ge 1$, where $C_{1} = e^{\frac{1}{2e}} \approx 1.2$ and $C_{2,\gamma} = \sqrt{\frac{2p}{\gamma}} e^{\frac{\gamma}{12}}$.
+\end{proposition}
+
+\section{Collections of Random Variables and Random Vectors}
+
+\begin{definition}
+  A \emph{random vector} $X = [X_{1}, \dots, X_{n}]^{T} \in \mathbb{R}^{n}$ is a collection of $n$ random variables on a common probability space $(\Omega, \Sigma, \mathbb{P})$.
+  Its expectation is the vector $\E X = [\E X_{1}, \dots, \E X_{n}] \in \mathbb{R}^{n}$.
+  $X$ has a \emph{joint probability distribution} if there exists a function $\phi : \mathbb{R}^{n} \rightarrow \mathbb{R}_{+}$ such that for any measurable domain $D \subset \mathbb{R}^{n}$
+  \begin{equation*}
+    \Pr{X \in D} = \int \phi(t_{1}, \dots, t_{n}) \diff t_{1} \dots \diff t_{n}
+  \end{equation*}
+\end{definition}
+
+\begin{definition}
+  A collection of random variables is \emph{(stochastically) independent} if, for all $t_{1}, \dots, t_{n} \in \mathbb{R}$,
+  \begin{equation*}
+    \Pr{X_{1} \le t_{1}, \dots, X_{n} \le t_{n}} = \prod_{l = 1}^{n} \Pr{X_{l} \le t_{l}}
+  \end{equation*}
+\end{definition}
+
+\begin{lemma}
+  A independent collection of random variables satisfies
+  \begin{equation*}
+    \E \left( \prod_{l = 1}^{n} X_{l} \right) = \prod_{l = 1}^{n} \E X_{l}
+  \end{equation*}
+
+  If they have a joint probability density function $\phi$, then
+  \begin{equation*}
+    \phi(t_{1}, \dots, t_{n}) = \prod_{l = 1}^{n} \phi_{l}(t_{l})
+  \end{equation*}
+  where $\phi_{l}$ is the pdf of $X_{l}$.
+\end{lemma}
+
+\begin{definition}
+  A collection of $m$ random vectors $X_{1} \in \mathbb{R}^{n_{1}}, \dots, X_{m} \in \mathbb{R}^{n_{m}}$ are independent if for any collection of measurable sets $A_{l} \subset \mathbb{R}^{n_{l}}, l \in [m]$
+  \begin{equation*}
+    \Pr{X_{1} \in A_{1}, \dots, X_{m} \in A_{m}} = \prod_{l = 1}^{m} \Pr{X_{l} \in A_{l}}
+  \end{equation*}
+\end{definition}
+
+\begin{definition}
+  A collection of independent random vectors $X_{1}, \dots, X_{m}$ that have the same distribution are called independent identically distributed.
+\end{definition}
+
+\begin{definition}
+  If $X'$ is independent from $X$ and has the same distribution, we say that $X'$ is an \emph{independent copy} of $X$.
+\end{definition}
+
+\subsection{Subgaussian Random Variables and Random Vectors}
+
+\begin{definition}
+  A random variable $X$ is called \emph{subgaussian} if there exist constants $\beta, \kappa > 0$ such that
+  \begin{equation*}
+    \Pr{|X| \ge t} \le \beta e^{-\kappa t^{2}} \qquad \text{for all $t > 0$}
+  \end{equation*}
+  It is called \emph{subexponential} if
+  \begin{equation*}
+    \Pr{|x| \ge t} \le \beta e^{-\kappa t} \qquad \text{for all $t > 0$}
+  \end{equation*}
+\end{definition}
+
+\begin{lemma}
+  $X$ is subgaussian if and only if $X^{2}$ is subexponential.
+\end{lemma}
+
+\begin{example}
+  Standard normal and Rademacher random variables are both subgaussian.
+\end{example}
+
+\begin{proposition}
+  Let $X$ be a random variable.
+  \begin{enumerate}
+  \item If $X$ is subgaussian, then there exist constants $c > 0$, $C > 1$ such that $\E \exp(c X^{2}) \le C$
+  \item If $\E \exp(c X^{2}) \le C$ for some constants $c, C > 0$, then $X$ is subgaussian.
+    More precisely, $\Pr{|X| > t} \le C e^{-c t^{2}}$.
+  \item If $X$ is subgaussian with constants $\beta, \kappa$, then $\left( \E |X|^{p} \right)^{\frac{1}{p}} \le \tilde{C} \kappa^{-\frac{1}{2}} \beta^{\frac{1}{p}} p^{\frac{1}{2}}$ for all $p |ge 1$, where $\tilde{C}$ is an absolute constant.
+  \end{enumerate}
+\end{proposition}
+
+\begin{proposition}
+  Let $X$ be a random variable.
+  \begin{enumerate}
+  \item If $X$ is subgaussian with parameters $\beta, \kappa$ and $\E X = 0$, then there exists a constant $c$ (depending only on $\beta$ and $\kappa$) such that $\E \exp(\theta X) \le \exp(c \theta^{2})$ for all $\theta \in \mathbb{R}$.
+  \item Conversely, if $\E \exp(\theta X) \le \exp(c \theta^{2})$ holds for all $\theta \in \mathbb{R}$, then $\E X = 0$ and $X$ is subgaussian with parameters $\beta = 2$ and $\kappa = \frac{1}{4c}$.
+  \end{enumerate}
+\end{proposition}
+
+\begin{remark}
+  This constant $c$ is also called the \emph{subgaussian parameter} of $X$.
+\end{remark}
+
+\begin{theorem}
+  Let $X_{1}, \dots, X_{m}$ be a sequence of independent, mean-zero subgaussian random variables with subgaussian parameter $c$.
+  Let $a \in \mathbb{R}^{m}$ be some vector.
+  Then $Z := \sum_{l = 1}^{m} a_{l} X_{l}$ is subgaussian with parameter $c||a||_{2}^{2}$, i.e.
+  \begin{equation*}
+    \E \exp(\theta Z) \le \exp\left( c||a||_{2}^{2} \theta^{2} \right)
+  \end{equation*}
+  and thus
+  \begin{equation*}
+    \Pr{\left| \sum_{l = 1}^{m} a_{l} X_{l} \right| \ge t} \le 2 \exp\left( -\frac{t^{2}}{4c||a||_{2}^{2}} \right)
+  \end{equation*}
+  for all $t > 0$.
+\end{theorem}
+
+\begin{definition}
+  Let $Y$ by a random vector on $\mathbb{R}^{N}$.
+  \begin{enumerate}
+  \item If $\E |\langle Y, x \rangle|^{2} = ||x||_{2}^{2}$ for all $x \in \mathbb{R}^{N}$, then $Y$ is called \emph{isotropic}.
+  \item If, for all $x \in \mathbb{R}^{N}$ with $||x||_{2} = 1$, the random variable $\langle Y, x \rangle$ is subgaussian with parameter bounded by $c$ independent of $x$, that is,
+    \begin{equation*}
+      \E \exp(\theta \langle Y, x \rangle) \le \exp(c \theta^{2}) \qquad \forall \theta \in \mathbb{R}
+    \end{equation*}
+    then $Y$ is called a \emph{subgaussian random vector}.
+  \end{enumerate}
+\end{definition}
+
+Again $c$ is called the subgaussian parameter of $Y$.
+
+\begin{remark}
+  A random vector $X$ with independent entries of mean $0$ and second moment $1$ is isotropic and subgaussian with a parameter independent of the dimension.
+  The inverse is not true in general, i.e. an isotropic subgaussian random vector need not have independent entries.
+\end{remark}
+
+\begin{lemma}
+  Let $Y \in \mathbb{R}^{N}$ be a random vector with independent, mean zero, subgaussian entries $Y_{l}$ with $\E Y_{l}^{2} = 1$ and subgaussian parameter $c$.
+  Then $Y$ is an isotropic subgaussian vector with parameter $c$.
+\end{lemma}
+
+\section{The Covering Argument}
+
+\begin{definition}
+  Let $T$ be a subset of a metric space $(X, d)$.
+  For $t > 0$, the \emph{convering number} $\mathcal{N}(T, d, t)$ is the smallest $N \in \mathbb{N}$ such that $T$ can be covered with balls
+  \begin{equation*}
+    B(x_{l}, t) = \{ x \in X, d(x, x_{l}) \le t \}, x_{l} \in T, l = 1, \dots, N
+  \end{equation*}
+  i.e. $T \subseteq \cup_{l = 1}^{} B(x_{l}, t)$.
+  The set of points $\{ x_{1}, \dots, x_{N} \}$ is called a \emph{$t$-covering}.
+  The \emph{packing number} $\mathcal{P}(T, d, t)$, for $t > 0$, is the maximal $P \in \mathbb{Z}$ such that there exist $x_{l} \in T, l \in \{ 1, \dots, P \}$, which are \emph{$t$-separated}, i.e. $d(x_{l}, x_{k}) > t$ for all $k, l = 1, \dots, P, k \le l$.
+  If $(X, ||.||)$ is a vector space we also write $\mathcal{T, ||.||, t}$ and $\mathcal{P}(T, ||.||, t)$.
+\end{definition}
+
+\begin{lemma}[Properties]
+  Let $(X, d)$ be a metric space, $S, T \subset X$, $\alpha > 0$.
+  Then
+  \begin{enumerate}
+  \item $\mathcal{N}(S \cup T, d, t) \le \mathcal{N}(S, d, t) + \mathcal{N}(T, d, t)$
+  \item $\mathcal{N}(T, \alpha d, t) = \mathcal{N}\left( T, d, \frac{t}{\alpha} \right)$
+  \item If $X = \mathbb{R}^{n}$ and $d$ is induced by a norm $||.||$, then $\mathcal{N}(\alpha T, d, t) = \mathcal{N}(T, d, \alpha^{-1} t)$
+  \item If $d'$ is another metric that satisfies $d'(x, y) \le d(x, y)$ for all $x, y \in T$, then $\mathcal{N}(T, d', t) \le \mathcal{N}(T, d, t)$
+  \end{enumerate}
+  The same relations hold for $\mathcal{P}$.
+\end{lemma}
+
+\begin{lemma}
+  Let $T$ be a subset of a metric space $(X, d)$ and $t > 0$.
+  Then
+  \begin{equation*}
+    \mathcal{P}(T, d, 2t) \le \mathcal{N}(T, d, t) \le \mathcal{P}(T, d, t)
+  \end{equation*}
+\end{lemma}
+
+\begin{proposition}
+  Let $||.||$ be a norm on $\mathbb{R}^{n}$ and let $U$ be a subset of the unit ball $B = \{ x \in \mathbb{R}^{n}, ||x|| \le 1 \}$.
+  Then the packing and convering numbers satisfy
+  \begin{equation*}
+    \mathcal{N}(U, ||.||, t) \le \mathcal{P}(U, ||.||, t) \le \left( 1 + \frac{2}{t} \right)^{n}
+  \end{equation*}
+\end{proposition}
+
+\begin{theorem}[Covering argument]
+  Let $B$ be an $N \times n$-matrix and let $\mathcal{N}$ be a $t$-covering of $S^{n - 1}$ for some $t \in [0, 1)$.
+  \begin{enumerate}
+  \item $\max_{x \in \mathcal{N}} ||Bx||_{2} \le ||B|| \le (1 - t)^{-1} \max_{x \in \mathcal{N}} ||Bx||_{2}$
+  \item If furthermore $N = n$ and $B$ is symmetric
+    \begin{equation*}
+      \max_{x \in \mathcal{N}} |\langle Bx, x \rangle| \le ||B|| \le (1 - 2t)^{-1} \max_{x \in \mathcal{N}} \max_{x \in \mathcal{N}} |\langle Bx, x \rangle|
+    \end{equation*}
+  \end{enumerate}
+\end{theorem}
+
+\section{Bernstein's inequality}
+
+\begin{theorem}[Bernstein's inequality]
+  Let $X_{1}, \dots, X_{M}$ be independent centered subexponential random variables with parameters $(\beta, \kappa)$.
+  Then for all $t > 0$ and an absolute constant $C$
+  \begin{equation*}
+    \Pr{\left| \sum_{k = 1}^{M} X_{l} \right| > t} \le 2\exp\left( -\frac{\kappa^{2} t^{2}}{4(2\beta M + \kappa t)} \right)
+  \end{equation*}
+\end{theorem}
+
+\end{document}
