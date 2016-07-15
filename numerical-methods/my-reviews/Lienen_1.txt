@@ -1,0 +1,106 @@
+Seminar "Numerical Methods for Hyperbolic PDEs" - Paper Review
+
+1 General Data
+==============
+Title of the reviewed paper: Limiters for Discontinuous Galerkin Schemes
+Name of the author of the reviewed paper: Marten Lienen
+Date: 01.07.2016
+
+2 Summary
+=========
+At the heart of the paper are so called limiters for discontinuous Galerkin
+schemes.  Galerkin schemes are used to solve differential equations. Their
+discontinuous variants produce piece wise continuous solutions that are
+discontinuous at the grid cell boundaries.  Because of the polynomial basis of
+the approximate solutions, they contain oscillations near steep flanks,
+e.g. shocks, of the exact solution. Two methods are presented to mitigate these
+oscillations.  The minmod limiter changes the highest degree polynomial
+coefficient to reduce oscillations by comparing for each cell the signs of the
+slope to the signs of the approximated curvatures in the vicinity.  The moment
+limiter on the other hand remedies some drawbacks of the simple minmod limiter
+by enhancing its idea. It iteratively limits the k-th to the first derivative at
+most.  A concluding comparison with four sample shapes shows how the moment
+limiter of exemplary degree four much better preserves high frequency features
+of the solution than the simple minmod limiter.
+
+3 Review
+========
+
+3.1 Categories
+
+Abstract                                     Points: 4
+* I wouldn't reference any literature in the abstract.
+* Also mention that you compare how they perform.
+* Otherwise: Gives me a good impression of what to expect and if I want to read
+  it.
+
+Formal Aspects                               Points: 4
+* Instead of R_{>=0} I suggest R_0^+ throughout the text, e.g. in the text below
+  equation (1)
+* The equations on page 4 that are missing a left hand expression look odd. If
+  your equations are too long to fit into a single line, then you can use the
+  "multline", "eqnarray" or "align" LaTeX environments.
+
+Structure                                    Points: 5
+* Clear structuring. A guiding thread is absolutely present.
+* If I had to criticize something: The introduction can only be understood after
+  having read section II.
+
+Content, Level of Detail, and Completeness   Points: 4
+* "How the solution U is finally used to estimate the derivatives and advance
+  the solution to the next time step...": I thought U was an approximation of
+  the solution u at time t itself?
+* "A limiter in general restricts the steepness of the gradient of U to sensible
+  values where the bounds may be computed based on the current state or even set
+  based on domain knowledge": Is it really the steepness that is restricted? I
+  thought it was the overshoots/extremes/oscillations.
+* "In the former the total variation is minimized by the 0-slope because the
+  increase in variation at the left boundary is counteracted by the decrease on
+  the right side and ...": According to the definition of the total variation
+  that you have given, we are minimizing a sum of _absolute_ values, thus there
+  is no cancellation (or counteracting as you write). Nevertheless, yes there is
+  a minimization; it is obvious that the TV after limiting is smaller than
+  before.
+
+Written Style and Readability                Points: 2
+* Not sure about this: If the author is only a single person, I would prefer to
+  write in the third person form instead of using "we", e.g. "As a consequence
+  the limiters we present are only applicable to modal DG." would become "As a
+  consequence the limiters presented [here] are only applicable to modal DG."
+* I would prefer the term "slope" instead of "gradient" in the context of your
+  paper. Maybe even "flank" or "edge" would fit better sometimes. In my
+  understanding a gradient is a vector (in the direction of steepest
+  ascend). But I may be wrong...
+* "A concept at the core" -> "A core concept"
+* "... and that the total variation grows as f becomes more wiggly." -> "... and
+  that the total variation increases when f contains stronger diverging
+  oscillations."?
+* "From this follows that solutions..." -> "From this it follows that the
+  solutions..."
+* "There is actually a class of numerical schemes that will provably never
+  produce unphysical extrema..." -> "There is actually a class of numerical
+  schemes that is proven to never produce nonphysical extremes"
+* "Krivodonova experimented with different variations but none of them worked as
+  well as this top-down order." -> "... as good as ..."
+* Sometimes a little clumsy, misleading English.
+
+References                                   Points: 4
+* I am not sure about this, but in my personal opinion I would not give
+  reference in such a detailed way as for example "[6, Sec. 6.7]". And if so,
+  then I would write it like "[6] Section 6.7" or "Section 6.7 of [6]".
+
+Conclusion                                   Points: 3
+* Very brief. Are there alternatives?
+
+Overall Evaluation                           Points: 4
+* Good work. Topic was worked out detailed enough.
+
+3.2 Best and Worst Aspect of the Paper
+What is best in the paper?
+Very clear structure.
+
+What is worst in the paper?
+Worst in the paper is the readability. There are some unclear, mistakable formulations.
+
+3.3 Miscellaneous Comments
+* I had the impression that your greatest challenge was expressing yourself in English.

@@ -1,0 +1,83 @@
+Seminar “Numerical Methods for Hyperbolic
+PDEs” – Paper Review
+
+General Data
+Title of the reviewed paper: Limiters for Discontinuous Galerkin Schemes
+Name of the author of the reviewed paper: Marten Lienen
+Date: 25.06.16
+
+Summary
+The paper discusses two limiters for stabilizing discontinuous Galerkin methods,
+namely, minmod and moment-limiter. The discontinuous Galerkin methods are
+high-order methods for solving hyperbolic partial differential equations (PDEs),
+but they suffer from oscillations when steep gradients or discontinuities occur
+in the solution. A limiter restricts the gradient of the solution to a
+mathematically and physically sensible value.  The minmod limiter is the most
+basic form of limiter which works for first-order methods.  It restricts the
+slope of the solution by bounding it with the forward and backward difference
+quotients of the cell and its neighbors average values.  The generalized
+moment-limiter works for higher-order approximations in a way similar to the
+minmod limiter. The version of the limiter discussed in the paper is applicable
+only for the modal approximation on equidistant grid. It limits the highest
+coefficient of the approximation by the upwind and downwind first-order
+approximations of the derivative.
+
+Review
+Categories
+
+Abstract			Points: 3.5
+Summarizes the contents of the paper aptly.
+
+Formal Aspects		Points: 3.5
+The pace of the paper was adequate to understand the concepts.
+
+Structure			Points: 3
+The paper is well structured. However, the introduction seems to be rather long
+since the methods are going to be discussed in detailed in further sections.
+
+Content, Level of Detail, and Completeness			 Points: 3
+The level of detail when discussing moment-limiters and total variation seems to
+be adequate and seems complete. The numerical result provided helps visualize
+what the methods are doing.  Now for some criticism.
+
+There is a need to explain in brief as to why limiting is necessary, for
+example, the interpolation causes oscillations due to steep gradients. This
+should be supported with a figure which is more refined than the one
+presented. It should be clear as to how the oscillations change if the degree of
+the approximating polynomial is increased or decreased.  The paper needs more
+clarity while explaining the concepts, for example it is unclear as to how the
+minmod limiter proceeds through the mesh. Does it go from left to right or right
+to left or something else altogether. The last paragraph on page 2 suggests
+something entirely different. It is also not clear as to whether the first-order
+polynomial approximation c1x + c0 is on the i ireference interval or on the
+actual interval.  The figure which discusses the numerical results has no labels
+on the axes.  Although the figure is described in the text that follows, it
+would be a good idea to include the labels so that it is easily understood.
+
+Written Style and Readability			Points: 3.5
+There was no problem in reading the paper.
+
+References			Points: 4
+The references relating to the paper provide for an advanced reading experience.
+
+Conclusion			Points: 3
+The conclusion seems to be written rather sloppily. It could be a good idea to
+guide the reader towards further references and give a short summary of the
+topics discussed.
+
+Overall Evaluation			Points: 3.5
+Overall the paper seems to discuss adequately what it states in the abstract
+given the length restriction. Good job.
+
+Best and Worst Aspect of the Paper
+
+What is best in the paper?
+The discussion on moment-limiters was up to the mark. It was good to look at
+what exactly the limiters were doing with the help of a numerical example.
+
+What is worst in the paper?
+Almost no discussion to motivate the need for limiters.
+
+Miscellaneous Comments
+Reducing the introduction, motivating the need for limiters, and making the
+discussion slightly more detailed would improve the quality of the paper a lot.
