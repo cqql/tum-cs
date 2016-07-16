@@ -3,17 +3,17 @@
 \label{sec:total-variation}
 
 In 1983 Harten published his theory on total variation diminishing methods \cite{Harten1983} that can be used to analyze a numerical method's ``oscillation-repressivity''.
-A concept at the core of his work is the \emph{total variation} (TV) of a function, a way to measure the length of the graph of a function.
+\red{A core concept} of his work is the \emph{total variation} (TV) of a function, a way to measure the length of the graph of a function.
 For an arbitrary function $f$ it is defined\cite[Sec. 6.7]{LeVequeFVMforHP} by
 \begin{equation*}
   TV(f) = \sup_{\xi_{0}, \xi_{1}, \dots, \xi_{N}} \sum_{n = 1}^{N} |f(\xi_{n}) - f(\xi_{n - 1})|
 \end{equation*}
 where the $\xi_{n}$ form a partition of the domain of $f$, i.e. $\xi_{n - 1} < \xi_{n}$ and $\xi_{0}$ and $\xi_{N}$ are the left and right boundary of the domain of $f$.
-Important properties are that the minimum is $0$ which is attained for constant $f$ and that the total variation grows as $f$ becomes more wiggly.
+Important properties are that the minimum is $0$ which is attained for constant $f$ and that the total variation grows as $f$ \red{deviates more and more from a constant value, e.g. due to slopes and oscillations}.
 In particular the introduction of new extrema increases the total variation.
 
-The connection to the weak solution of a differential equation is given by the properties that the solution does not develop new extrema and the values of existing local minima are non-decreasing respectively the values of existing local maxima are non-increasing in time.
-From this follows that solutions are \emph{total variation non-increasing} (TVNI) which is normally called \emph{total variation diminishing} (TVD) and means that the total variation of the solution is non-increasing in time.
+The connection to the weak solution of a differential equation is given by the \red{property} that the solution does not develop new extrema and the values of existing local minima are non-decreasing respectively the values of existing local maxima are non-increasing in time.
+From this \red{it} follows that \red{the} solutions are \emph{total variation non-increasing} (TVNI) which is normally called \emph{total variation diminishing} (TVD) and means that the total variation of the solution is non-increasing in time.
 
 There is actually a class of numerical schemes that will provably never produce unphysical extrema called \emph{monotone} schemes.
 Unfortunately though, there is also a theorem by Godunov\cite{Godunov1959} that states that monotone schemes are at most first-order accurate.

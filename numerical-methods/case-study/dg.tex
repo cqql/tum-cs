@@ -5,14 +5,14 @@
 Discontinuous Galerkin methods (DG) are a class of numerical schemes for solving differential equations that draw on ideas from the finite volume as well as the finite element communities.
 For simplicity's sake we will only consider one-dimensional problems.
 Consider a spatial domain $X = [a, b] \subset \mathbb{R}$.
-Let $u(x, t) : X \times \mathbb{R}_{\ge 0} \rightarrow \mathbb{R}$ be a scalar quantity defined on $X$ that varies with time $t$.
+Let $u(x, t) : X \times \mathbb{R}_{\red{+}} \rightarrow \mathbb{R}$ be a scalar quantity defined on $X$ that varies with time $t$.
 Furthermore consider the partial differential equation
 \begin{equation}
   \label{eq:dg-pde}
   u_{t} + f(u)_{x} = 0
 \end{equation}
 that describes the behavior of $u$ where $u_{t}$ is $u$'s partial derivative with respect to time and $f(u)_{x}$ is the spatial derivative of some function $f$ of $u$.
-Now given some boundary conditions, i.e. values for $u(a, t)$ and $u(b, t)$, and initial value conditions $u(x, 0)$ for all $x \in X, t \in \mathbb{R}_{\ge 0}$, we would like to solve Equation \eqref{eq:dg-pde} for $u$.
+Now given some boundary conditions, i.e. values for $u(a, t)$ and $u(b, t)$, and initial value conditions $u(x, 0)$ for all $x \in X, t \in \mathbb{R}_{\red{+}}$, we would like to solve Equation \eqref{eq:dg-pde} for $u$.
 The first step towards this goal is to discretize the spatial domain -- not necessarily uniformly -- into $n \in \mathbb{N}$ cells $[x_{i}, x_{i + 1}], i \in \{ 0, \dots, n - 1 \}$ such that the cells are ordered ($x_{0} < x_{1} < \dots < x_{n}$) and the resulting mesh covers the domain ($\cup_{i = 0}^{n - 1} [x_{i}, x_{i + 1}] = X$).
 
 DG then approximates the solution $u$ from the data at each point in time $t$ by a piecewise continuous function $U$ that is continuous on the cell interiors but discontinuous at their boundaries.
@@ -29,7 +29,7 @@ So the polynomial on cell $i$ can be written as
 \end{equation*}
 where $P_{j}$ is the $j$-th Legendre polynomial, $U_{i}$ is of degree $p$ and the $c_{i}^{j}$ are the coefficients that are determined as part of the DG method.
 
-How the solution $U$ is finally used to estimate the derivatives and advance the solution to the next time step goes beyond the scope of this article.
+How the \red{approximation} $U$ is finally used to estimate the derivatives and advance the solution to the next time step goes beyond the scope of this article.
 The interested reader is encouraged to refer to \cite[Chapter 3]{Hesthaven2007}.
 
 There are actually two approaches to compute the polynomial approximations called \emph{nodal} and \emph{modal}.

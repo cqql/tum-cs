@@ -5,12 +5,12 @@ Discontinuous Galerkin methods are high-order methods for the numerical solution
 This property makes them popular in a community of scientists that require high accuracy.
 However, Godunov's Theorem dictates that schemes of any order greater than one cannot prevent the introduction of unphysical new extrema in general.
 In practice such high-resolution schemes lead to very accurate approximations in smooth parts of the solution but develop oscillations in the vicinity of discontinuities and steep gradients.
-The tried and tested solution to this problem is to actually detect the oscillations and reduce their effect by limiting them to mathematically and physically sensible values.
+The tried and tested solution to this problem is to detect the oscillations and reduce their effect by limiting them to mathematically and physically sensible values.
 How to actually perform this truncation is nonetheless an active area of research and has been since the 70s.
 
 One of the first limiters was given by van Leer in 1979 called \emph{minmod}\cite{VanLeer1979}.
 It ensures that the gradient inside a cell agrees with the trend that one would estimate from the upwind and downwind slopes and that the gradient's magnitude does not exceed the magnitude of any of these approximations.
-If upwind and downwind slopes disagree in sign, the current cell has to contain an extremum and its gradient is limited to $0$.
+If upwind and downwind slopes disagree in sign, the current cell has to contain an extremum and its \red{slope} is limited to $0$.
 minmod yields a reasonable improvement over an unlimited solution though the default case of limiting to $0$ is too restrictive and flattens out the actual extrema over time.
 So you could argue that restricting to first order is truncating too much information and one should look into more refined methods.
 

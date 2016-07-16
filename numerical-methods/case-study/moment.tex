@@ -37,17 +37,20 @@ Consequently its $j$-th derivative is given by
 \end{equation*}
 which we will use during the computation of the $k$-th derivative of $U_{i} \circ \xi_{i}$.
 \begin{align}
-  & \partial_{x}^{k} U_{i} \circ \xi_{i}(x) = \sum_{j = 0}^{p} c_{i}^{j} \partial_{x}^{k} P_{j}(\xi_{i}(x))\nonumber\\
+  \partial_{x}^{k} U_{i} \circ \xi_{i}(x) = & \sum_{j = 0}^{p} c_{i}^{j} \partial_{x}^{k} P_{j}(\xi_{i}(x))\nonumber\\
   \intertext{The first $k - 1$ terms vanish since the $k + 1$-th derivative of a polynomial of degree $k$ is $0$.}
   =~& \sum_{j = k}^{p} c_{i}^{j} \partial_{x}^{k} P_{j}(\xi_{i}(x))\nonumber\\
   \intertext{Since the first derivative of $\xi_{i}$ is $\frac{2}{\Delta x_{i}}$, applying the chain rule $k$ times just pulls out this factor to the $k$-th power.}
   =~& \sum_{j = k}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x))\nonumber\\
   \intertext{Separating the first summand}
-  =~& c_{i}^{k} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{k}(\xi_{i}(x)) + \sum_{j = k + 1}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x))\nonumber\\
+  =~& c_{i}^{k} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{k}(\xi_{i}(x))\\
+  & + \sum_{j = k + 1}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x))\nonumber\\
   \intertext{lets us plug in the $k$-th derivative of $P_{k}$}
-  =~& c_{i}^{k} \left( \frac{2}{\Delta x_{i}} \right)^{k} \frac{(2k)!}{2^{k} k!} + \sum_{j = k + 1}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x))\nonumber\\
+  =~& c_{i}^{k} \left( \frac{2}{\Delta x_{i}} \right)^{k} \frac{(2k)!}{2^{k} k!}\\
+  & + \sum_{j = k + 1}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x))\nonumber\\
   \intertext{and simplify to}
-  =~& c_{i}^{k} \left( \frac{2}{\Delta x_{i}} \right)^{k} \left( 2k - 1 \right)!! + \sum_{j = k + 1}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x)) \label{eq:kth-deriv}
+  =~& c_{i}^{k} \left( \frac{2}{\Delta x_{i}} \right)^{k} \left( 2k - 1 \right)!!\\
+  & + \sum_{j = k + 1}^{p} c_{i}^{j} \left( \frac{2}{\Delta x_{i}} \right)^{k} \partial_{\xi_{i}}^{k} P_{j}(\xi_{i}(x)) \label{eq:kth-deriv}
 \end{align}
 where $!!$ is the double factorial, i.e. the factorial with all even factors canceled out.
 
