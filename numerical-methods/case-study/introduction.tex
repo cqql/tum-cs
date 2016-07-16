@@ -10,7 +10,7 @@ How to actually perform this truncation is nonetheless an active area of researc
 
 One of the first limiters was given by van Leer in 1979 called \emph{minmod}\cite{VanLeer1979}.
 It ensures that the gradient inside a cell agrees with the trend that one would estimate from the upwind and downwind slopes and that the gradient's magnitude does not exceed the magnitude of any of these approximations.
-If upwind and downwind slopes disagree in sign, the current cell has to contain an extremum and its \red{slope} is limited to $0$.
+If upwind and downwind slopes disagree in sign, the current cell has to contain an extremum and its slope is limited to $0$.
 minmod yields a reasonable improvement over an unlimited solution though the default case of limiting to $0$ is too restrictive and flattens out the actual extrema over time.
 So you could argue that restricting to first order is truncating too much information and one should look into more refined methods.
 
