@@ -908,8 +908,8 @@ Associated to the process $(X_{t})_{t \in T}$ we define the pseudo-metric
   Let $(X_{t})_{t \in T}$ be a centered real-valued subgaussian process with associated pseudo-metric $d$ and subgaussian parameter $c$.
   Then
   \begin{itemize}
-  \item $\E \sup_{t \in T} X_{t} \le 8\sqrt{c} \int_{0}^{\frac{\Delta(T)}{2}} \sqrt{\log(\mathcal{N}(T, d, u))} \mathrm{d}u$
-  \item $\E \sup_{t \in T} |X_{t}| \le 8\sqrt{c} \int_{0}^{\frac{\Delta(T)}{2}} \sqrt{\log(2\mathcal{N}(T, d, u))} \mathrm{d}u$
+  \item $\E \sup_{t \in T} X_{t} \le 8\sqrt{c} \int_{0}^{\frac{\Delta(T)}{2}} \sqrt{\log(\mathcal{N}(T, d, u))} \diff u$
+  \item $\E \sup_{t \in T} |X_{t}| \le 8\sqrt{c} \int_{0}^{\frac{\Delta(T)}{2}} \sqrt{\log(2\mathcal{N}(T, d, u))} \diff u$
   \end{itemize}
   where $\Delta(T) = \sup_{t \in T} \sqrt{\E |X_{t}|^{2}}$ is the radius of $T$ with respect to $d$.
 \end{theorem}
@@ -920,8 +920,79 @@ Associated to the process $(X_{t})_{t \in T}$ we define the pseudo-metric
 
 \section{Random Sampling in Bounded Orthogonal Systems}
 
+Recall that our main motivation was to recover images from undersampled linear measurements, the prime example of which is Magnetic Resonance Imaging (MRI).
+There we measure an image $f \in L^{2}([0, 1]^{2})$ by
+\begin{equation*}
+  f(s, t) = \sum_{k, l} \hat{f}(k, l) \cdot e^{2\pi i (ks + lt)}
+\end{equation*}
+where $\hat{f}$ are the MRI measurements which correspond to the Fourier coefficients
+\begin{equation*}
+  \hat{f}(k, l) = \int f(s, t) \cdot e^{-2\pi i (ks + lt)} \diff s \diff t
+\end{equation*}
+This image is discretized as $f \in \mathbb{C}^{N \times N}$.
+DFT measurements of $(\mathcal{F}f)$ provide a discrete approximation of the MRI measurement.
+From this one can recover the original by applying the adjoint DFT matrix due to $\mathcal{F}^{*}\mathcal{F} = I$.
+The question is: Can we recover approximately sparse signals from a small subset of their DFT measurements?
+
+The resulting matrix is a collection of random samples of rows of $\mathcal{F}$.
+
+So far we have seen that
+\begin{enumerate}
+\item $2s$ measurements allows for reconstructions (uniqueness), but there is no efficient algorithm
+\item If a matrix $A$ has the Restricted Isometry Property of order $s$ and level $\delta < \frac{1}{3}$, then $s$-sparse vectors can be reconstructed via $l_{1}$-minimization
+\item Subgaussian matrices have the RIP with high probability for embedding dimension $m = O\left(\delta^{-1}s\log\left( \frac{N}{s} \right)\right)$.
+\end{enumerate}
+We need an extension of the last point: Partial Fourier matrices have the RIP for embedding dimension $m \ge ?$.
+Again we use randomness to select a collection of frequencies to construct the partial Fourier matrix.
+But we will examine this as a special case of sampling a Bounded Orthonormal System.
+
 \subsection{Bounded Orthogonal Systems}
 
+\begin{definition}
+  Let $D \subset \mathbb{R}^{d}$ be endowed with a probability measure $\nu$.
+  Further, let $\Phi = \{ \phi_{1}, \dots, \phi_{N} \}$ be an orthonormal system of complex valued functions on $D$, that is, for $j, k \in [N]$
+  \begin{equation*}
+    \int_{D} \phi_{j}(t) \overline{\phi_{k}(t)} \diff \nu(t) = \delta_{jk} = \begin{cases}
+      0 & \text{if $j \ne k$}\\
+      1 & \text{if $j = k$}
+    \end{cases}
+  \end{equation*}
+  Then $\Phi$ is called an \emph{bounded orthonormal system} (BOS) with constant $K$ if
+  \begin{equation*}
+    ||\phi_{j}||_{\infty} := \sup_{t \in D} |\phi_{j}(t)| \le K \quad \text{for all $j \in [N]$}
+  \end{equation*}
+\end{definition}
+
+\begin{definition}
+  The \emph{random matrix} of embedding dimension $m$ associated to a BOS consists of $m$ rows $(\phi_{1}(t_{l}), \dots, \phi_{N}(t_{l})), l = 1..m$ where the $t_{l}$ are independently drawn according to $\nu$.
+\end{definition}
+
 \subsection{Restricted Isometry Property for Bounded Orthogonal Systems}
+
+\begin{theorem}
+  Let $D \subset \mathbb{R}^{d}$ and let $\{ \phi_{j} \}_{j = 1}^{N}$ be a BOS on $D$ with associated probability measure $\nu$ and constant $k \ge 1$.
+  Let $\delta \in (0, 1)$.
+  Then exists $C > 0$ such that the random matrix associated to the BOS
+  \begin{equation*}
+    \tilde{A} = \frac{1}{\sqrt{m}} \left( \phi_{k}(t_{l}) \right)_{l = 1, k = 1}^{m, N}, t_{l} \sim \nu~\text{i.i.d.}
+  \end{equation*}
+  satisfies
+  \begin{equation*}
+    \E \delta_{s}(\tilde{A}) \le \delta
+  \end{equation*}
+  if $m$ satisfies
+  \begin{equation*}
+    \frac{m}{\log(9m)} \ge C \delta^{-2} K^{2} s \log(4s)\log(8N)
+  \end{equation*}
+\end{theorem}
+
+\begin{lemma}[Noncommutative Rudelson's Lemma]
+  Let $x_{1}, \dots, x_{m} \in \mathbb{C}^{N}$ with $||x_{l}||_{\infty} \le k$ for all $l \in [m]$.
+  Then, for $s \le m$,
+  \begin{equation*}
+    \E \Big|\Big|\Big| \sum_{l = 1}^{m} \varepsilon_{l} x_{l}x_{l}^{*} \Big|\Big|\Big|_{s} \le C_{1} K \sqrt{s} \log(4s) \sqrt{\log(8N) \log(9m)} \sqrt{\Big|\Big|\Big| \sum_{l = 1}^{m} x_{l}x_{l}^{*} \Big|\Big|\Big|}
+  \end{equation*}
+  where $C_{1}$ is an absolute constant.
+\end{lemma}
 
 \end{document}
