@@ -717,4 +717,69 @@ Again $c$ is called the subgaussian parameter of $Y$.
   \end{equation*}
 \end{theorem}
 
+\section{Examples of RIP matrices: Subgaussian Matrices}
+
+\begin{definition}
+  Let $A$ be an $m \times N$ random matrix.
+  \begin{itemize}
+  \item If the entries of $A$ are independent Rademacher variables, i.e. $\Pr{X = 1} = \Pr{X = -1} = \frac{1}{2}$, then $A$ is called a \emph{Bernoulli random matrix}.
+  \item If the entries of $A$ are independent standard normal random variables, then $A$ is called a \emph{Gaussian random matrix}.
+  \item If the entries of $A$ are independent mean-zero subgaussian random variables of variance $1$ with the same constants $\beta, \kappa$, i.e. $\Pr{|A_{i,j}| \ge t} \le \beta e^{-\kappa t^{2}}$ for all $t > 0$, $i \in [m], j \in [N]$, then $A$ is called a \emph{subgaussian random matrix}.
+  \end{itemize}
+\end{definition}
+
+\begin{remark}
+  In the last case then entries are required to be independent but not identically distributed.
+\end{remark}
+
+\begin{theorem}
+  let $A$ be an $m \times N$ subgaussian rando matrix.
+  Then there exists a constant $C > 0$ (depending only on the subgaussian parameters $\beta$, $\kappa$) such that the restricted isometry constant of $\frac{1}{\sqrt{m}}A$ satisfies $\delta_{s} \le \delta$ with probability at least $1 - \epsilon$ provided
+  \begin{equation*}
+    m \ge C \delta^{-2} \left( s \log\left( \frac{eN}{s} \right) + \log(2\epsilon^{-1}) \right)
+  \end{equation*}
+\end{theorem}
+
+\begin{remark}
+  \begin{itemize}
+  \item Setting $\epsilon = \exp\left( -\delta^{2} \frac{m}{2C} \right)$ yields a simple condition $m \ge 2C\delta^{-2} s \log\left( \frac{eN}{s} \right)$ with corresponding success probability $\ge 1 - \exp\left( -\delta^{2} \frac{m}{2C} \right)$.
+  \item The restricted isometry property for any $s$ entails that norms on $1$-sparse vectors must be preserved.
+    This means that each column of the RIP matrix must have norm approximately $1$, which is why the normalization constant is $\frac{1}{\sqrt{m}}$.
+  \end{itemize}
+\end{remark}
+
+\begin{lemma}
+  Let $A$ be an $m \times N$ random matrix whose rows are independent, isotropic, subgaussian random vectors with the same subgaussian parameter $c$, i.e. $\E\left[ \exp(\lambda \langle A_{i}, x \rangle) \right] \le \exp(c \lambda^{2})$ for all $\lambda \in \mathbb{R}$, $||x||_{2} = 1$ where $A_{i}$ is the $i$-th row of $A$.
+  Then, for all $x \in \mathbb{R}^{N}$ and every $t \in (0, 1)$,
+  \begin{equation*}
+    \Pr{\big| m^{-1} ||Ax||_{2}^{2} - ||x||_{2}^{2} \big| \ge t||x||_{2}^{2}} \le 2\exp(-\tau t^{2} m)
+  \end{equation*}
+  where $\tau$ depends only on $c$.
+\end{lemma}
+
+\begin{theorem}
+  Suppose that an $m \times N$ random matrix $A$ is drawn according to a probability distribution for which the concentration inequality
+  \begin{equation*}
+    \Pr{\big| ||Ax||_{2}^{2} - ||x||_{2}^{2} \big| > t||x||_{2}^{2}} \le 2\exp(-\tilde{c}t^{2}m)
+  \end{equation*}
+  holds for all $t \in (0, 1)$ and $x \in \mathbb{R}^{N}$.
+  If for $\delta, \epsilon \in (0, 1)$
+  \begin{equation*}
+    m \ge C \delta^{-2} \left( s \log\left( \frac{N}{s} \right) + \log(\epsilon^{-1}) \right)
+  \end{equation*}
+  where $C$ only depends on $\tilde{c}$, then with probability at least $1 - \varepsilon$ the restricted isometry property constant $\delta_{s}$ of $A$ satisfies $\delta_{s} \le \delta$.
+\end{theorem}
+
+\section{Advanced Probabilistic Tools}
+
+\subsection{Rademacher Sums and Symmetrization}
+
+\subsection{Dudley's Inequality}
+
+\section{Random Sampling in Bounded Orthogonal Systems}
+
+\subsection{Bounded Orthogonal Systems}
+
+\subsection{Restricted Isometry Property for Bounded Orthogonal Systems}
+
 \end{document}
