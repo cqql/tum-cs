@@ -46,6 +46,7 @@
 \newtheorem{remark}{Remark}
 \newtheorem{notation}{Notation}
 \newtheorem{algorithm}{Algorithm}
+\newtheorem{corollary}{Corollary}
 
 \DeclareMathOperator{\supp}{supp}
 \DeclareMathOperator{\Ker}{Ker}
@@ -294,7 +295,7 @@ Instead we have to consider the problem
 
 \begin{theorem}
   Suppose that a matrix $A \in \mathbb{C}^{m \times N}$ satisfies the robust nullspace property of order $s$ with constants $0 < \rho < 1$ and $\tau > 0$.
-  Then, for any $x \in \mathbb{C}^{N}$, a solution $x^{\#}$ of Equation \eqref{eq:P1eta} with $y = Ax + \epsilon$ and $||\epsilon||_{2} < \eta$ approximates the vector $x$ with $l_{1}$-error
+  Then, for any $x \in \mathbb{C}^{N}$, a solution $x^{\#}$ of Equation \eqref{eq:P1eta} with $y = Ax + \varepsilon$ and $||\varepsilon||_{2} < \eta$ approximates the vector $x$ with $l_{1}$-error
   \begin{equation*}
     ||x - x^{\#}||_{1} \le \frac{2(1 + \delta)}{1 - \delta}\sigma_{s}(x)_{1} + \frac{4\tau}{1 - \delta}\eta
   \end{equation*}
@@ -359,7 +360,7 @@ where $||\cdot||$ is the spectral norm $||A|| = \sup_{||x||_{2} = 1} ||Ax||_{2}$
 
 \begin{theorem}
   Suppose that $A \in \mathbb{C}^{m \times N}$ has the $l_{2}$-robust nullspace property of order $s$ with constants $0 < \rho < 1$ and $\tau > 0$.
-  Then, for any $x \in \mathbb{C}^{N}$, a solution $x^{\#}$ of \eqref{eq:P1eta} with $y = Ax + \epsilon$ and $||\epsilon||_{2} \le \eta$ approximates $x$ with $l_{2}$-error
+  Then, for any $x \in \mathbb{C}^{N}$, a solution $x^{\#}$ of \eqref{eq:P1eta} with $y = Ax + \varepsilon$ and $||\varepsilon||_{2} \le \eta$ approximates $x$ with $l_{2}$-error
   \begin{equation*}
     ||x - x^{\#}||_{2} \le \frac{C}{\sqrt{s}} \sigma_{s}(x)_{1} + D\eta
   \end{equation*}
@@ -605,6 +606,7 @@ This uses the $\Gamma$-function defined by
 \end{proposition}
 
 \begin{proposition}
+  \label{proposition:subgaussian}
   Let $X$ be a random variable.
   \begin{enumerate}
   \item If $X$ is subgaussian with parameters $\beta, \kappa$ and $\E X = 0$, then there exists a constant $c$ (depending only on $\beta$ and $\kappa$) such that $\E \exp(\theta X) \le \exp(c \theta^{2})$ for all $\theta \in \mathbb{R}$.
@@ -734,15 +736,15 @@ Again $c$ is called the subgaussian parameter of $Y$.
 
 \begin{theorem}
   let $A$ be an $m \times N$ subgaussian rando matrix.
-  Then there exists a constant $C > 0$ (depending only on the subgaussian parameters $\beta$, $\kappa$) such that the restricted isometry constant of $\frac{1}{\sqrt{m}}A$ satisfies $\delta_{s} \le \delta$ with probability at least $1 - \epsilon$ provided
+  Then there exists a constant $C > 0$ (depending only on the subgaussian parameters $\beta$, $\kappa$) such that the restricted isometry constant of $\frac{1}{\sqrt{m}}A$ satisfies $\delta_{s} \le \delta$ with probability at least $1 - \varepsilon$ provided
   \begin{equation*}
-    m \ge C \delta^{-2} \left( s \log\left( \frac{eN}{s} \right) + \log(2\epsilon^{-1}) \right)
+    m \ge C \delta^{-2} \left( s \log\left( \frac{eN}{s} \right) + \log(2\varepsilon^{-1}) \right)
   \end{equation*}
 \end{theorem}
 
 \begin{remark}
   \begin{itemize}
-  \item Setting $\epsilon = \exp\left( -\delta^{2} \frac{m}{2C} \right)$ yields a simple condition $m \ge 2C\delta^{-2} s \log\left( \frac{eN}{s} \right)$ with corresponding success probability $\ge 1 - \exp\left( -\delta^{2} \frac{m}{2C} \right)$.
+  \item Setting $\varepsilon = \exp\left( -\delta^{2} \frac{m}{2C} \right)$ yields a simple condition $m \ge 2C\delta^{-2} s \log\left( \frac{eN}{s} \right)$ with corresponding success probability $\ge 1 - \exp\left( -\delta^{2} \frac{m}{2C} \right)$.
   \item The restricted isometry property for any $s$ entails that norms on $1$-sparse vectors must be preserved.
     This means that each column of the RIP matrix must have norm approximately $1$, which is why the normalization constant is $\frac{1}{\sqrt{m}}$.
   \end{itemize}
@@ -763,9 +765,9 @@ Again $c$ is called the subgaussian parameter of $Y$.
     \Pr{\big| ||Ax||_{2}^{2} - ||x||_{2}^{2} \big| > t||x||_{2}^{2}} \le 2\exp(-\tilde{c}t^{2}m)
   \end{equation*}
   holds for all $t \in (0, 1)$ and $x \in \mathbb{R}^{N}$.
-  If for $\delta, \epsilon \in (0, 1)$
+  If for $\delta, \varepsilon \in (0, 1)$
   \begin{equation*}
-    m \ge C \delta^{-2} \left( s \log\left( \frac{N}{s} \right) + \log(\epsilon^{-1}) \right)
+    m \ge C \delta^{-2} \left( s \log\left( \frac{N}{s} \right) + \log(\varepsilon^{-1}) \right)
   \end{equation*}
   where $C$ only depends on $\tilde{c}$, then with probability at least $1 - \varepsilon$ the restricted isometry property constant $\delta_{s}$ of $A$ satisfies $\delta_{s} \le \delta$.
 \end{theorem}
@@ -774,7 +776,147 @@ Again $c$ is called the subgaussian parameter of $Y$.
 
 \subsection{Rademacher Sums and Symmetrization}
 
+\begin{definition}
+  A \emph{Rademacher sum} is of the form $\sum_{l = 1}^{M} \varepsilon_{l} x_{l}$ where $\varepsilon_{l}$ are independent Rademacher variables and $x_{l}$ scalars, vectors or matrices.
+\end{definition}
+
+The proof strategy developed in this chapter has two steps:
+\begin{enumerate}
+\item Estimate sum of independent random variables via a Rademacher sum (Symmetrization)
+\item Estimate Rademacher sum using standard tools
+\end{enumerate}
+
+\subsubsection{Introducing Rademacher variables into the sum}
+
+\begin{lemma}[Symmetrization]
+  Assume that $\xi = (\xi_{l})_{l = 1}^{M}$ is a sequence of independent random vectors in a finite-dimensional vector space $V$ with norm $||\cdot||$.
+  Let $F : V \rightarrow \mathbb{R}$ be a convex function.
+  Then
+  \begin{equation*}
+    \E F\left( \sum_{l = 1}^{M} \left( \xi_{l} - \E \xi_{l} \right) \right) \le \E F\left( 2 \sum_{l = 1}^{M} \varepsilon_{l} \xi_{l} \right),
+  \end{equation*}
+  where $(\varepsilon_{l})$ is a Rademacher sequence independent of $(\xi_{l})$.
+  In particular, for $1 \le p < \infty$,
+  \begin{equation*}
+    \left( \E \Big|\Big| \sum_{l = 1}^{M} \xi_{l} - \E \xi_{l} \Big|\Big|^{p} \right)^{\frac{1}{p}} \le 2 \left( \E \Big|\Big| \sum_{l = 1}^{M} \varepsilon_{l} \xi_{l} \Big|\Big|^{p} \right)^{\frac{1}{p}}
+  \end{equation*}
+\end{lemma}
+
+\subsubsection{Estimating moments and tails of Rademacher sums}
+
+using Khintchin's inequality
+
+\begin{theorem}
+  Let $a \in \mathbb{C}^{M}$ and $(\varepsilon_{1}, \dots, \varepsilon_{M})$ be a Rademacher sequence.
+  Then, for all $n \in \mathbb{N}$,
+  \begin{equation*}
+    \E \Big| \sum_{l = 1}^{M} \varepsilon_{l} a_{l} \Big|^{2n} \le \frac{(2n)!}{2^{n}n!} ||a||_{2}^{2n}
+  \end{equation*}
+\end{theorem}
+
+\begin{lemma}[Multinomial Theorem]
+  For $m, n \in \mathbb{N}$ and $x_{1}, \dots, x_{m} \in \mathbb{C}$, one has
+  \begin{equation*}
+    \left( \sum_{l = 1}^{m} x_{l} \right)^{n} = \sum_{k_{1} + \dots + k_{m} = n} \frac{n!}{k_{1}! \cdots k_{m}!} \prod_{j = 1}^{m} x_{j}^{k_{j}}
+  \end{equation*}
+\end{lemma}
+
+\begin{corollary}[Hoeffding's Inequality]
+  \label{corollary:hoeffding}
+  Let $a \in \mathbb{C}^{M}$ and $(\varepsilon_{l})_{l = 1}^{M}$ be a Rademacher sequence.
+  Then there is a constant $C$ such that for all $u > 0$
+  \begin{equation*}
+    \Pr{\Big| \sum_{l = 1}^{M} \varepsilon_{l} a_{l} \Big| \ge ||a||_{2} u} \le 2 \exp(-C u^{2})
+  \end{equation*}
+\end{corollary}
+
+\begin{remark}
+  Using a more refined analysis (Stirling's formula) one obtains the optimal constant $C = \frac{1}{2}$.
+\end{remark}
+
 \subsection{Dudley's Inequality}
+
+We want to estimate suprema of stochastic processes.
+
+\begin{definition}
+  A \emph{stochastic process} is a collection $(X_{t})_{t \in T}$ of random variables for some set $T$.
+\end{definition}
+
+In this section $T$ will be the set of sparse vectors and $X_{t} = |\langle t, (A^{*}A - I)t \rangle|$ or a random matrix.
+Then $\sup_{t} X_{t}$ will be the restricted isometry constant.
+
+\begin{itemize}
+\item Estimate $\E \sup_{t} X_{t}$
+\item Estimate deviation $\Pr{|\sup_{t} X_{t} - \E \sup_{t} X_{t}| > \varepsilon}$
+\end{itemize}
+
+Step 1 is based on Dudley's inequality, while step 2 requires technical tools based on concentration measure.
+
+In this chapter we assume that the process is centered, i.e. $\E X_{t} = 0$ for all $t \in T$.
+
+Associated to the process $(X_{t})_{t \in T}$ we define the pseudo-metric
+\begin{equation}
+  d(s, t) := \left( \E |X_{s} - X_{t}|^{2} \right)^{\frac{1}{2}} \label{eq:pseudometric}
+\end{equation}
+
+\begin{definition}
+  A \emph{pseudo-metric} $d$ has to properties
+  \begin{itemize}
+  \item $d(x, y) = d(y, x)$
+  \item $d(x, z) \le d(x, y) + d(y, z)$
+  \end{itemize}
+  The third condition in the definition of a metric $d(x, y) = 0 \Leftrightarrow x = y$ does not necessarily hold.
+\end{definition}
+
+\begin{definition}
+  A centered stochastic process $(X_{t})_{t \in T}$ is called \emph{subgaussian} with parameter $C > 0$ if
+  \begin{equation*}
+    \E \exp(\theta(X_{s} - X_{t})) \le \exp(\theta^{2} C d(s, t)^{2}), \qquad s, t \in T, \theta > 0
+  \end{equation*}
+  with $d$ being the pseudo-metric defined in Equation \eqref{eq:pseudometric}.
+\end{definition}
+
+\begin{example}
+  A process $(X_{t})_{t \in T}$ is called a centered Gaussian process if, for every finite collection $t_{1}, \dots, t_{n} \in T$, the random vector $(X_{t_{1}}, \dots, X_{t_{n}})$ is a mean-zero Gaussian rando vector.
+  Then $X_{t} - X_{s}$ is a univariate Gaussian random variable with $\E X_{t} - X_{s} = 0$ and, by definition, variance $\E |X_{t} - X_{s}|^{2} = d(s, t)^{2}$.
+  Thus $\frac{X_{t} - X_{s}}{d(s, t)}$ is a standard normal and hence subgaussian and we have by Proposition \ref{proposition:subgaussian}
+  \begin{equation*}
+    \E \exp\left( \tilde{\theta} \frac{X_{t} - X_{s}}{d(s, t)} \right) \le \exp(c \tilde{\theta}^{2}) \quad \text{for all $\tilde{\theta} \in \mathbb{R}$}
+  \end{equation*}
+  which for $\tilde{\theta} = \theta d(s, t)$ implies that $X_{t}$ is a subgaussian process.
+\end{example}
+
+\begin{example}
+  A \emph{Rademacher process} has the form
+  \begin{equation*}
+    X_{t} = \sum_{j = 1}^{M} \varepsilon_{j} x_{j}(t),
+  \end{equation*}
+  where $(\varepsilon_{l})_{l = 1}^{M}$ is a Rademacher sequence and $x_{j} : T \rightarrow \mathbb{R}, j \in [M]$ are arbitrary functions.
+  $X_t$ is centered as $\E \varepsilon_{j} = 0$ for all $j$.
+  The pseudo-metric \eqref{eq:pseudometric} becomes
+  \begin{equation*}
+    d(s, t) = \sqrt{\E |X_{t} - X_{s}|^{2}} = \sqrt{\E \Big| \sum_{j = 1}^{M} \varepsilon_{j} (x_{j}^{t} - x_{j}^{s}) \Big|^{2}} = \left( \sum_{j = 1}^{M} \left( x_{j}(t) - x_{j}(s) \right)^{2} \right)^{\frac{1}{2}} = ||x(t) - x(s)||_{2}
+  \end{equation*}
+  On the other hand Hoeffding's inequality, Corollary \ref{corollary:hoeffding}, implies that
+  \begin{equation*}
+    \Pr{\Big| \sum_{l = 1}^{M} \varepsilon_{l} (x_{l}(t) - x_{l}(s)) \Big| > ||x(t) - x(s)||_{2} u} \le 2\exp(-Cu^{2})
+  \end{equation*}
+  Thus the subgaussian parameter of $X_{t} - X_{s}$ is bounded by $\tilde{c}||x(t) - x(s)||_{2} = \tilde{c}d(s, t)$ where $\tilde{c}$ is an absolute constant, again by Proposition \ref{proposition:subgaussian}, which implies that $X_{t}$ is a subgaussian process.
+\end{example}
+
+\begin{theorem}[Dudley's Inequality]
+  Let $(X_{t})_{t \in T}$ be a centered real-valued subgaussian process with associated pseudo-metric $d$ and subgaussian parameter $c$.
+  Then
+  \begin{itemize}
+  \item $\E \sup_{t \in T} X_{t} \le 8\sqrt{c} \int_{0}^{\frac{\Delta(T)}{2}} \sqrt{\log(\mathcal{N}(T, d, u))} \mathrm{d}u$
+  \item $\E \sup_{t \in T} |X_{t}| \le 8\sqrt{c} \int_{0}^{\frac{\Delta(T)}{2}} \sqrt{\log(2\mathcal{N}(T, d, u))} \mathrm{d}u$
+  \end{itemize}
+  where $\Delta(T) = \sup_{t \in T} \sqrt{\E |X_{t}|^{2}}$ is the radius of $T$ with respect to $d$.
+\end{theorem}
+
+\begin{remark}
+  If $(X_{t})_{t \in T}$ is a Gaussian process, T is a subset of a finite dimensional space and $d$ is induced by a norm, these bounds are known to be sharp up to logarithmic factors in the dimension.
+\end{remark}
 
 \section{Random Sampling in Bounded Orthogonal Systems}
 
