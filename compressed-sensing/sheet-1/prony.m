@@ -11,7 +11,7 @@ x(ind(1:s)) = normrnd(3, 1, s, 1);
 DFT = zeros(2*s, N);
 for i = 1:2*s
     for j = 1:N
-        DFT(i, j) = exp(2 * pi * 1i * (i - 1) * (j - 1) / N);
+        DFT(i, j) = exp(-2 * pi * 1i * (i - 1) * (j - 1) / N);
     end
 end
 
@@ -27,12 +27,12 @@ for i = 1:s
     A(i, :) = fliplr(y(i:(i + s - 1))');
 end
 q = A \ -y((s + 1):2*s);
-q = q / N;
+q = [N; q; zeros(N - s - 1, 1)];
 
 % Evaluate polynomial q on 1:N
 vals = zeros(1, N);
-for i = 1:N
-    vals(i) = 1 + exp(2 * pi * 1i * i * (1:s) / N) * q;
+for j = 1:N
+  vals(j) = (exp(2 * pi * 1i * (j - 1) * (0:(N - 1)) / N) * q) / N;
 end
 
 % S is the set of indices with the smallest values
