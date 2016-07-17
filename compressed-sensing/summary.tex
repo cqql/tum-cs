@@ -28,12 +28,28 @@
 % Do not indent paragraphs
 \usepackage{parskip}
 
+\newtheoremstyle{thmstyle}
+  {6pt} % Space above
+  {6pt} % Space below
+  {} % Body font
+  {} % Indent amount
+  {\bfseries} % Theorem head font
+  {.} % Punctuation after theorem head
+  {.5em} % Space after theorem head
+  {} % Theorem head spec (can be left empty, meaning `normal')
+\theoremstyle{thmstyle}
 \newtheorem{definition}{Definition}
 \newtheorem{lemma}{Lemma}
-\newtheorem{theorem}{theorem}
+\newtheorem{theorem}{Theorem}
 \newtheorem{example}{Example}
 \newtheorem{proposition}{Proposition}
 \newtheorem{remark}{Remark}
+\newtheorem{notation}{Notation}
+\newtheorem{algorithm}{Algorithm}
+
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\Ker}{Ker}
+\DeclareMathOperator{\card}{card}
 
 \newcommand{\diff}{~\mathrm{d}}
 \newcommand{\E}{\mathbb{E}~}
@@ -48,6 +64,176 @@
 \maketitle
 
 This will list only definitions, lemmata and theorems but no proofs.
+
+\section{Introduction}
+
+\subsection{Imaging}
+
+\subsection{Machine Learning}
+
+\subsection{Sparsity and Compressibility}
+
+\begin{notation}
+  \begin{description}
+  \item[$p$-Norm]
+    \begin{equation*}
+      ||x||_{p} = \left( \sum_{j = 1}^{N} |x_{j}|^{p} \right)^{\frac{1}{p}}, \quad 0 < p < \infty
+    \end{equation*}
+  \item[$\infty$-quasinorm]
+    \begin{equation*}
+      ||x||_{\infty} = \sup_{j} |x_{j}|
+    \end{equation*}
+  \item[Sequence from $1$ to $N$]
+    \begin{equation*}
+      [N] = \{ 1, \dots, N \}
+    \end{equation*}
+  \end{description}
+\end{notation}
+
+\begin{definition}[sparsity, support]
+  For a vector $x \in \mathbb{R}^{N}$ or $\mathbb{C}^{N}$ its \emph{support} is defined as
+  \begin{equation*}
+    \supp x = \{ k : x_{k} \ne 0 \}
+  \end{equation*}
+  $x$ is \emph{$k$-sparse} if $\supp x \le k$.
+  Furthermore, denote $||x||_{0} := |\supp x|$; with some abuse of notation we speak of the $0$-norm (as $||x||_{p} \rightarrow_{p \rightarrow 0} ||x||0$).
+\end{definition}
+
+\begin{definition}[error of best $s$-term approximation]
+  The error of the best $s$-term approximation of a vector $x \in \mathbb{R}^{N}$ or $\mathbb{C}^{N}$ is
+  \begin{equation*}
+    \sigma_{s}(x)_{p} := \inf \{ ||x - z||_{p} : z~\text{is $s$-sparse} \}
+  \end{equation*}
+\end{definition}
+
+\begin{definition}
+  A vector $x$ is called \emph{compressible} if $\sigma_{s}(x)_{p}$ decays quickly in $s$.
+\end{definition}
+
+\begin{proposition}[Stechkin]
+  For any $q > p > 0$ and any $x \in \mathbb{C}^{N}$,
+  \begin{equation*}
+    \sigma_{s}(x)_{q} \le \frac{1}{s^{\frac{1}{p} - \frac{1}{q}}} ||x||_{p}
+  \end{equation*}
+\end{proposition}
+
+\begin{definition}
+  The \emph{non-increasing rearrangement} of $x \in \mathbb{C}^{N}$ is the vector $x^{*} \in \mathbb{R}_{+}^{N}$ for which
+  \begin{equation*}
+    x_{1}^{*} \ge x_{2}^{*} \ge \dots \ge x_{N}^{*} \ge 0
+  \end{equation*}
+  and there is a permutation $\pi : [N] \rightarrow [N]$ with $x_{j}^{*} = |x_{\pi(j)}|$ for all $j \in [N]$.
+\end{definition}
+
+\begin{remark}
+  Using convex analysis the constant can be refined to obtain
+  \begin{equation*}
+    \sigma_{s}(x)_{q} \le \frac{c_{p,q}}{s^{\frac{1}{p} - \frac{1}{q}}} ||x||_{p}
+  \end{equation*}
+  where
+  \begin{equation*}
+    c_{p,q} = \left[ \left( \frac{p}{q} \right)^{\frac{p}{q}} \left( 1 - \frac{p}{1} \right)^{1 - \frac{p}{q}} \right]^{\frac{1}{p}}
+  \end{equation*}
+  For $p = 1, q = 2$ this yields $\sigma_{s}(x)_{2} \le \frac{1}{2\sqrt{s}} ||x||_{1}$.
+\end{remark}
+
+\subsection{The Compressed Sensing Problem}
+
+Solve $Ax = y$ for $x$ knowing that $x$ is sparse (or compressible).
+Does this problem even have a unique solution?
+Not always, for example choose $A$ as a subset of rows of $I$.
+
+\begin{theorem}
+  Given $A \in \mathbb{C}^{m \times N}$, the following properties are equivalent.
+  \begin{itemize}
+  \item every $s$-sparse vector $x \in \mathbb{C}^{N}$ is the unique $s$-sparse solution of $Az = Ax$, that is, if $Ax = Az$ and both $x$ ans $z$ are $s$-sparse, then $x = z$.
+  \item The null space $\Ker A$ does not contain any $2s$-sparse vector other than the zero vector, that is, $(\Ker A) \cap \{ z \in \mathbb{C}^{N} : ||z||_{0} \le 2s \} = \{ 0 \}$.
+  \item For every $S \subset [N]$ with $\card(s) \le 2s$, the submatrix $A_{S}$ is injective.
+  \item Every set of $2s$ columns of $A$ is linearly independent.
+  \end{itemize}
+\end{theorem}
+
+\begin{theorem}
+  For any $N \ge 2s$, there exists a measurement matrix $A \in \mathbb{C}^{m \times N}$ with $m = 2s$ rows such that every $s$-sparse vector $x \in \mathbb{C}^{N}$ can be recovered from its measurement vector $y = Ax \in \mathbb{C}^{m}$ as the unique solution of minimal support.
+\end{theorem}
+
+Consider $A$ as the first $2s$ rows of the DFT matrix $M = (e^{2\pi i \frac{(l - 1)(k - 1)}{N}})_{k=l=1}^{N}$.
+Applying $A$ to an $x \in \mathbb{C}^{N}$ computes its first $2s$ discrete Fourier coefficients.
+If $x$ was $s$-sparse it can be derived from $y = Ax$.
+
+Define the polynomial $p$ of degree $s$ as
+\begin{equation*}
+  p(t) := \prod_{k \in S} (1 - e^{-2\pi i \frac{k}{N}} e^{2\pi i \frac{t}{N}})
+\end{equation*}
+where $S = \supp x$.
+Note that $t \in S \Rightarrow p(t) = 0$ and $t \not\in S \Rightarrow x(t) = 0$ where $x(t)$ is the functional equivalent to $x$'s vector form.
+From this it follows that $p(t)x(t) = 0~\forall t \in [N]$.
+
+Application of the DFT results in
+\begin{equation*}
+  0 = \widehat{p(\cdot)x(\cdot)}[j] = \sum_{k = 0}^{N - 1} p(k)x(k) e^{-2\pi i \frac{jk}{N}} \quad \text{for $0 \le j \le N - 1$}
+\end{equation*}
+By plugging in the inverse DFT of $p$ respectively $x$ you get
+\begin{align}
+  0 & = \sum_{k = 0}^{N - 1} \frac{1}{N^{2}} \left( \sum_{l = 0}^{N - 1} \hat{p}(l) e^{2\pi i \frac{kl}{N}} \right) \left( \sum_{m = 0}^{N - 1} \hat{x}(m) e^{2\pi i \frac{km}{N}} \right) e^{-2\pi i \frac{jk}{N}}\nonumber\\
+    & = \sum_{l, m = 0}^{N - 1} \frac{1}{N^{2}} \hat{p}(l) \hat{x}(m) \underbrace{\sum_{k = 0}^{N - 1} e^{2\pi i \frac{k(l + m - j)}{N}}}_{= \begin{cases}
+        0 & \text{if $l \not\equiv j - m \mod N$}\\
+        N & \text{if $l \equiv j - m \mod N$}\\
+      \end{cases}}\nonumber\\
+    & = \frac{1}{N} \sum_{l = 0}^{N - 1} \hat{p}(l) \hat{x}(j - l) \label{eq:prony-sum}
+\end{align}
+
+Note that $p$ is a polynomial of degree $s$, thus it can be written as
+\begin{equation*}
+  p(t) = 1 + \sum_{l = 1}^{s} \alpha_{l} e^{2\pi i \frac{lt}{N}}
+\end{equation*}
+which shows that $\hat{p}(0) = N$ and $\hat{p}(l) = 0$ for $s < l < N$.
+Equation \eqref{eq:prony-sum} becomes
+\begin{equation}
+  \begin{pmatrix}
+    \hat{x}(s - 1) & \hat{x}(s - 2) & \hdots & \hat{x}(0)\\
+    \hat{x}(s) & \hat{x}(s - 1) & \hdots & \hat{x}(1)\\
+    \vdots & & & \\
+    \hat{x}(2s - 2) & \hat{x}(2s - 3) & \hdots & \hat{x}(s - 1)
+  \end{pmatrix}
+  \begin{pmatrix}
+    \hat{p}(1)\\
+    \hat{p}(2)\\
+    \vdots\\
+    \hat{p}(s)
+  \end{pmatrix}
+  =
+  -\begin{pmatrix}
+    \hat{x}(s)\\
+    \hat{x}(s + 1)\\
+    \vdots\\
+    \hat{x}(2s - 1)
+  \end{pmatrix}
+  \label{eq:prony-system}
+\end{equation}
+Recall that $\hat{x}(0), \dots, \hat{x}(2s - 1)$ are known because these are the measurements.
+This system of equations cannot be solved in general, consider for example $x = e_{1}$ for which $\hat{x} = 1$ and all the matrix entries are $1$.
+Hence, we can only find \emph{some} solution $[\hat{q}(1), \dots, \hat{q}(s)]$.
+Extend $\hat{q}$ with our knowledge about $\hat{p}$ to $[N, \hat{q}(1), \dots, \hat{q}(s), 0, \dots, 0]$.
+Now $x(t)q(t) = 0$ and $q$ vanishes on $S$.
+Since $q$ cannot have more than $s$ zeros, the support of $x$ can be found by solving for the roots of $q$.
+
+\begin{algorithm}[Prony's Method]
+  \begin{enumerate}
+  \item Find some solution $[\hat{q}(1), \dots, \hat{q}(s)]^{T}$ of Equation \eqref{eq:prony-system}
+  \item Find the zeros of $q$, i.e. the support of $x$
+  \item Solve overdetermined system given by columns of the DFT matrix $A$ corresponding to the support of $x$
+  \end{enumerate}
+\end{algorithm}
+
+\begin{remark}
+  \begin{enumerate}
+  \item Prony's method is sensitive to noise
+  \item Only works for sparse vectors, not for compressible ones
+  \end{enumerate}
+\end{remark}
+
+\section{$l_{1}$-minimization and the Restricted Isometry Property}
 
 \section{Basic Tools from Probability Theory and Functional Analysis}
 
@@ -166,7 +352,7 @@ This uses the $\Gamma$-function defined by
   for all $p \ge 1$, where $C_{1} = e^{\frac{1}{2e}} \approx 1.2$ and $C_{2,\gamma} = \sqrt{\frac{2p}{\gamma}} e^{\frac{\gamma}{12}}$.
 \end{proposition}
 
-\section{Collections of Random Variables and Random Vectors}
+\subsection{Collections of Random Variables and Random Vectors}
 
 \begin{definition}
   A \emph{random vector} $X = [X_{1}, \dots, X_{n}]^{T} \in \mathbb{R}^{n}$ is a collection of $n$ random variables on a common probability space $(\Omega, \Sigma, \mathbb{P})$.
@@ -293,7 +479,7 @@ Again $c$ is called the subgaussian parameter of $Y$.
   Then $Y$ is an isotropic subgaussian vector with parameter $c$.
 \end{lemma}
 
-\section{The Covering Argument}
+\subsection{The Covering Argument}
 
 \begin{definition}
   Let $T$ be a subset of a metric space $(X, d)$.
@@ -346,7 +532,7 @@ Again $c$ is called the subgaussian parameter of $Y$.
   \end{enumerate}
 \end{theorem}
 
-\section{Bernstein's inequality}
+\subsection{Bernstein's inequality}
 
 \begin{theorem}[Bernstein's inequality]
   Let $X_{1}, \dots, X_{M}$ be independent centered subexponential random variables with parameters $(\beta, \kappa)$.
