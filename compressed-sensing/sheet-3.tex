@@ -1,0 +1,107 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, mathescape, numbersep=5pt}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\newcommand{\pr}[1]{\mathbb{P}\left( #1 \right)}
+
+\title{Compressed Sensing, Sheet 3}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+Solve with Markov's inequality.
+
+\begin{proof}
+  \begin{align*}
+    \pr{|Z| \ge e(\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})} =~& \pr{|Z|^{u} \ge e(\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})^{u}}\\
+    \le~& \frac{\mathrm{E}|Z|^{u}}{e(\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})^{u}}\\
+    \le~& \frac{\beta (\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})^{u}}{e(\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})^{u}}\\
+    =~& \beta \left( \frac{(\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})}{e(\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})} \right)^{u}\\
+    =~& \beta \left( \frac{e(\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})}{(\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})} \right)^{-u}\\
+    =~& \beta \left( e^{\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3} - \log(\alpha_{1}u + \alpha_{2}\sqrt{u} + \alpha_{3})} \right)^{-u}\\
+    \le~& \beta \left( e^{1} \right)^{-u}\\
+    \le~& \beta e^{-u}
+  \end{align*}
+\end{proof}
+
+\section*{Exercise 2}
+
+\subsection*{Part a)}
+
+\subsubsection*{i)}
+
+\subsubsection*{ii)}
+
+\subsubsection*{iii)}
+
+\subsection*{Part b)}
+
+\subsubsection*{i)}
+
+- Just do it
+
+\subsubsection*{ii)}
+
+- Compute p-th moment
+- Partial integration
+- Recursion with p-th moment
+
+\subsubsection*{iii)}
+
+- Compute moments of parts (even = 0, odd = something)
+- Compute for sum (binomial formula; simplify as far as possible)
+
+\section*{Exercise 3}
+
+\subsection*{Part a)}
+
+- E[exp(theta * X)] nach Erwartungswert entwickeln; Taylor series? Generator?
+
+\subsection*{Part b)}
+
+\subsubsection*{i)}
+
+- Fourier transform of standard normal
+
+\subsubsection*{ii)}
+
+\subsubsection*{iii)}
+
+\section*{Exercise 4}
+
+- multiply by $exp(-(c * theta^2) / (2t))$
+- integrate both sides over theta
+- Equate right side with Gaussian interval and use that it integrates to $1$
+- Fubini on left side to pull out expectation; solve inner integral; Quadratische Ergänzung im Exponenten; Use again similarity to Gaussian integral
+
+\end{document}
