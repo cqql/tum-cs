@@ -1,0 +1,75 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, mathescape, numbersep=5pt}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\DeclareMathOperator{\Ker}{Ker}
+
+\title{Compressed Sensing, Sheet 2}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\begin{proof}
+  $x$ is in the set by definition.
+  Now pick two vectors $x$ and $y$ from the set.
+  Then we have $Ax = Ay$, i.e. $A(x - y) = 0$.
+  But this in turn means that $x - y \in \Ker A$ and thus $\sum_{j = 1}^{N} (x - y)_{j} = 0 \Leftrightarrow \sum_{j = 1}^{N} x_{j} = \sum_{j = 1}^{N} y_{j}$.
+  From the fact that both $x$ and $y$ are non-negative, it follows that $||x||_{1} = ||y||_{1}$.
+  But $x$ is the $l_{1}$-minimizer and thus uniquely recovered.
+  Therefore $x = y$ and $x$ is the only member of the set.
+\end{proof}
+
+\section*{Exercise 2}
+
+\begin{proof}
+  $A$ has the $(\delta, s)$-RIP, that is $(1 - \delta)||x||_{2}^{2} \le ||Ax||_{2}^{2} \le (1 + \delta)||x||_{2}^{2}$ for all $x \in \mathbb{C}^{N}$.
+  Split $[N]$ into $k$ sets $S_{i}$ of length $s$ (except possibly the last one) such that $s \le t$ for all $s \in S_{i}$ and $t \in S_{j}$ for all $j < i$.
+  \begin{align*}
+    ||Ax||_{2} & = ||A\sum_{i = 1}^{k} x_{S_{i}}||_{2}\\
+               & \le \sum_{i = 1}^{k} ||Ax_{S_{i}}||_{2}\\
+               & \le \sum_{i = 1}^{k} \sqrt{1 + \delta} ||x_{S_{i}}||_{2}\\
+               & = \sqrt{1 + \delta} \left( ||x_{S_{1}}||_{2} + \sum_{i = 2}^{k} ||x_{S_{i}}||_{2} \right)\\
+               & \le \sqrt{1 + \delta} \left( ||x_{S_{1}}||_{2} + \sum_{i = 2}^{k} \frac{1}{\sqrt{s}} ||x_{S_{i - 1}}||_{1} \right)\\
+               & \le \sqrt{1 + \delta} \left( ||x||_{2} + \frac{1}{\sqrt{s}} ||x||_{1} \right)
+  \end{align*}
+\end{proof}
+
+\section*{Exercise 3}
+
+\section*{Exercise 4}
+
+\subsection*{Part a)}
+
+\subsection*{Part b)}
+
+\end{document}
