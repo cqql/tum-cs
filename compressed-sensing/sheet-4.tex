@@ -1,0 +1,63 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, mathescape, numbersep=5pt}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\title{Compressed Sensing, Sheet 4}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\begin{proof}
+  We know from the definition of the RIP constant $\delta_{s}(A)$ that
+  \begin{equation*}
+    (1 - \delta)||x||_{2}^{2} \le ||Ax||_{2}^{2} \le (1 + \delta)||x||_{2}^{2}
+  \end{equation*}
+  By using $||Ax||_{2}^{2} = ||A||^{2}||x||_{2}^{2}$ we get
+  \begin{equation*}
+    -\delta \le ||A||^{2} - 1 \le \delta \Leftrightarrow \delta \ge \left| ||A||^{2} - 1 \right| = \sup_{x \in S^{n}} \left| ||Ax||_{2}^{2} - 1 \right| \ge \sup_{x \in \mathcal{T}} \left| ||Ax||_{2}^{2} - 1 \right|
+  \end{equation*}
+  So $c_{1} = 1$.
+
+  Theorem 3.17a (covering argument) gives us
+  \begin{equation*}
+    -\delta \le (1 - t)^{-2} \max_{x \in \mathcal{T}} ||Ax||_{2}^{2} - 1 \quad \text{and} \quad \max_{x \in \mathcal{T}} ||Ax||_{2}^{2} - 1 \le \delta
+  \end{equation*}z1
+
+  \begin{equation*}
+    \delta_{s}(A) = \sup_{x \in T_{s}} \big| ||Ax||_{2}^{2} - 1 \big| = \big| ||A||^{2} - 1 \big|
+  \end{equation*}
+\end{proof}
+
+\section*{Exercise 2}
+
+\end{document}

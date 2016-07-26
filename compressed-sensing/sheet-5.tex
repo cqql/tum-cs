@@ -1,0 +1,66 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+% Define the page margin
+\usepackage[margin=3cm]{geometry}
+
+% Better typography (font rendering)
+\usepackage{microtype}
+
+% Math environments and macros
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Define \includegraphics to include graphics
+\usepackage{graphicx}
+
+% Syntax highlighting
+\usepackage{minted}
+
+% Set global minted options
+\setminted{linenos, autogobble, mathescape, numbersep=5pt}
+
+% Import the comment environment for orgtbl-mode
+\usepackage{comment}
+
+% Do not indent paragraphs
+\usepackage{parskip}
+
+\DeclareMathOperator{\vol}{vol}
+
+\title{Compressed Sensing, Sheet 5}
+\author{Marten Lienen (03670270)}
+
+\begin{document}
+
+\maketitle
+
+\section*{Exercise 1}
+
+\subsection*{Part a)}
+
+$D_{s, N}$ can be split into $\binom{N}{s}$ sets that are isomorph to the $s$-sphere.
+\begin{align*}
+  \mathcal{N}(S_{s}, ||\cdot||_{2}, t) \vol\left( \mathcal{B}_{s}\left( 0, \frac{t}{2} \right) \right) \le \vol\left( \mathcal{B}_{s}\left( 0, 1 + \frac{t}{2} \right) \right) \Leftrightarrow \mathcal{N}(S_{s}, ||\cdot||_{2}, t) \le \left( 1 + \frac{2}{t} \right)^{s}
+\end{align*}
+\begin{align*}
+  \mathcal{N}(D_{s, N}, ||\cdot||_{2}, t) \le \binom{N}{s}~\mathcal{N}(S_{s}, ||\cdot||_{2}, t) = \binom{N}{s}~\left( 1 + \frac{2}{t} \right)^{s}
+\end{align*}
+
+\subsection*{Part b)}
+
+\section*{Exercise 2}
+
+\section*{Exercise 3}
+
+The largest constant is $1$ where equality is achieved for the vectors of the canonical basis, e.g. $a = e_{1}$.
+
+\begin{equation*}
+  ||a||_{2}^{2^{n}} = 1 \le 1 = \mathbb{E}\left( |\varepsilon_{1}|^{2} \right) = \mathbb{E}\left( \left| \sum_{l = 1}^{M} \varepsilon_{l}a_{l} \right|^{2n} \right)
+\end{equation*}
+
+\section*{Exercise 4}
+
+\end{document}
