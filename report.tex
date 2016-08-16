@@ -19,45 +19,132 @@
 % Do not indent paragraphs
 \usepackage{parskip}
 
-\newtheorem{lemma}{Lemma}
-\newtheorem{definition}{Definition}
+% Citations, bibliography
+\usepackage{cite}
 
-\DeclareMathOperator{\mean}{mean}
+% Reformat enumeration labels
+\usepackage{enumitem}
+
+% Shallow fractions
+\usepackage{nicefrac}
+
+\newtheorem{theorem}{Theorem}
+
+\DeclareMathOperator{\Tr}{Tr}
 
 \title{Semidefinite Programming Approaches to Clustering}
-\author{Marten Lienen (03670270)}
+\author{Marten Lienen}
 \date{}
 
 \begin{document}
 
 \maketitle
 
-\begin{definition}
-  Let $P \in \mathbb{R}^{m \times N}$ denote the data matrix that has the data points as its columns.
-\end{definition}
+\section{Introduction}
 
-\begin{definition}
-  Let $X_{D}$ be the minimizer of the SDP.
-\end{definition}
+In this interdisciplinary project I have studied a recent paper on clustering, implemented the devised algorithm and did some theoretical work on a small detail that is required for an implementation.
+The paper \cite{sdp} by Mixon, Villar and Ward presents an approximate k-medoid algorithm.
 
-\begin{definition}
-  We say that $x_{i}$ and $x_{j}$ \emph{belong together} if ... $X_{D,ij} = \max_{k} X_{D,ik}$?
-  This means that $x_{i}$ and $x_{j}$ probably belong to the same cluster according to the denoising procedure.
-\end{definition}
+The setup is as follows: there are $k$ clusters.
+For each cluster $t = 1, \dots, k$ we have $n_{t}$ datapoints $x_{t, l} \in \mathbb{R}^{m}, l = 1, \dots, n_{t}$, which were drawn according to a subgaussian probability distribution $\mathcal{D}_{t}$ with expectation $\gamma_{t}$ and covariance matrix $\Sigma_{t}$ with eigenvalues $0 < \sigma_{t, 1}^{2} \le \dots \le \sigma_{t, m}^{2}$.
+Furthermore let $N = \sum_{t} n_{t}$ be the total number of datapoints and $x_{l}, l = 1, \dots, N$ be an enumeration of all datapoints $x_{t, l}$.
 
-\begin{definition}
-  $\hat{\gamma}_{i} = \mean \{ c_{j} \mid x_{j}~\text{belongs to}~x_{i} \}$ where $c_{j}$ is the $j$-th column of $PX_{D}$.
-  These should be the best cluster center approximators according to the estimated cluster affiliations.
-\end{definition}
+\section{The Semidefinite Programming Approach}
 
-\begin{lemma}
-  Construct an estimator $d_{\min} = \min \left\{ ||\hat{\gamma}_{a} - \hat{\gamma}_{b}|| \right\}$ for the minimum cluster center separation.
-  Then $d_{\min} \le (1 + \varepsilon) \Delta_{\min}$ with probability $P(\varepsilon, ..)$.
-\end{lemma}
+The k-medoid problem is then to select $k$ of the datapoints as approximations to the $k$ cluster centers $\gamma_{t}$.
+However, their approach actually starts with the k-means clustering objective, i.e. solving the following minimization problem.
+\begin{align*}
+  \text{minimize} \quad & \sum_{t = 1}^{k} \sum_{i \in A_{t}} \left|\left| x_{i} - \frac{1}{|A_{t}|} \sum_{j \in A_{t}} x_{j} \right|\right|_{2}^{2}\\
+  \text{subject to} \quad & \bigcup_{t} A_{t} = \{ 1, \dots, N \} \quad \text{and} \quad A_{s} \cap A_{t} = \emptyset~\forall s \ne t
+\end{align*}
+By defining the pairwise $N \times N$ squared-distance matrix $(D)_{ij} = ||x_{i} - x_{j}||_{2}^{2}$ and a cluster-affinity matrix $X$ given as
+\begin{equation*}
+  X_{ij} = \begin{cases}
+    \frac{1}{|A_{t}|} & \text{if $i$ and $j$ belong to the same cluster $t$}\\
+    0 & \text{otherwise}
+  \end{cases}
+\end{equation*}
+you can rewrite the problem as
+\begin{align*}
+  \text{minimize} \quad & \Tr(DX)\\
+  \text{subject to} \quad & \bigcup_{t} A_{t} = \{ 1, \dots, N \} \quad \text{and} \quad A_{s} \cap A_{t} = \emptyset~\forall s \ne t.
+\end{align*}
+This in turn has the following semidefinite relaxation.
+\begin{align*}
+  \text{minimize} \quad & \Tr(DX)\\
+  \text{subject to} \quad & \Tr(X) = k\\
+                        & X1 = 1\\
+                        & X \ge 0\\
+                        & X \succeq 0
+\end{align*}
 
-Maybe find a statement for the $\tilde{\gamma}_{i}$s first.
-$\tilde{\gamma}_{i}$ is $\hat{\gamma}_{i}$ if we knew the real cluster assignments.
+\section{Selecting Cluster Center Approximations}
+\label{sec:rounding}
 
-If this lemma holds, we can use this $d_{\min}$ to choose an $\varepsilon < \frac{\Delta_{\min}}{8}$ for the rounding step.
+All clusters have same number of datapoints $n$.
+
+\begin{theorem}
+  Take $\varepsilon < \nicefrac{\Delta_{min}}{8}$, suppose
+  \begin{equation*}
+    \#\left\{ (a, i) : ||c_{a, i} - \tilde{\gamma}_{a}||_{2} > \varepsilon \right\} < \frac{n}{2}
+  \end{equation*}
+  and consider the graph $G$ of vertices $\{ c_{a, i} \}_{a = 1,}^{k}{}_{i = 1}^{n}$ such that $c_{a, i} \leftrightarrow c_{b, j}$ if $||c_{a, i} - c_{b, j}||_{2} \le 2\varepsilon$.
+  For each $i = 1, \dots, k$ select the vertex $v_{i}$ of maximum degree (breaking ties arbitrarily) and update $G$ by removing every vertex $w$ such that $||w - v_{i}||_{2} \le 4\varepsilon$.
+  Then there exists a permutation $\pi$ on $\{ 1, \dots, k \}$ such that
+  \begin{equation*}
+    ||v_{i} - \tilde{\gamma}_{\pi(i)}||_{2} \le 3\varepsilon
+  \end{equation*}
+  for every $i \in \{ 1, \dots, k \}$.
+\end{theorem}
+
+\begin{proof}
+  We will prove the theorem by showing that a set of invariants holds across all $k$ iterations, one of which is the claim itself.
+  Denote by $R_{i}$ the set of clusters for which we have not yet selected an approximation $v_{i}$, i.e. $R_{1} = \{ 1, \dots, k \}$ and $R_{i + 1} = R_{i} \setminus \{ \pi(i) \}$.
+  Then the invariants read
+  \begin{enumerate}[label=(\roman*)]
+  \item \label{item:inv-outside} less than $\nicefrac{n}{2}$ vertices lie outside $\bigcup_{a \in R_{i}} B(\tilde{\gamma}_{a}, \varepsilon)$,
+  \item \label{item:inv-inside} at least $\nicefrac{n}{2}$ vertices lie inside $B(v_{i}, 2\varepsilon)$ and
+  \item \label{item:inv-unique} there exists a unique $a \in R_{i}$ such that $||v_{i} - \tilde{\gamma}_{a}||_{2} \le 3\varepsilon$
+  \end{enumerate}
+  where $B(x, r)$ is the closed ball around $x$ with radius $r$.
+  First, we show that \ref{item:inv-outside} and \ref{item:inv-inside} imply \ref{item:inv-unique}.
+  Afterwards we show by induction that \ref{item:inv-outside} and \ref{item:inv-inside} hold in every iteration and how to choose $\pi(i)$.
+
+  From \ref{item:inv-outside} we know that there are at least $\nicefrac{n}{2}$ vertices in $B(v_{i}, 2\varepsilon)$.
+  In combination with \ref{item:inv-inside} we get that at least one of them has to be in $B(\tilde{\gamma}_{a}, \varepsilon)$ for some $a \in R_{i}$ and thus $||v_{i} - \tilde{\gamma}_{a}||_{2} \le 3\varepsilon$ by the triangle inequality.
+  Furthermore $3\varepsilon < \nicefrac{3}{8}\Delta_{min} < \nicefrac{\Delta_{min}}{2}$ making $a$ unique and we set $\pi(i) = a$ which gives us \ref{item:inv-unique}.
+
+  In the first iteration \ref{item:inv-outside} is assumed and regarding \ref{item:inv-inside} we see that every ball $B(\tilde{\gamma}_{a}, \varepsilon)$ contains at least $\nicefrac{n}{2}$ vertices.
+  Again using the triangle inequality we conclude that every vertex has a degree of at least $\nicefrac{n}{2} - 1$ and therefore at least $\nicefrac{n}{2}$ vertices in its $2\varepsilon$-ball.
+  This is true in particular for the vertex of maximum degree, giving us \ref{item:inv-inside}.
+
+  Assume \ref{item:inv-outside}, \ref{item:inv-inside} and \ref{item:inv-unique} for iteration $i < k$.
+  Since $B(\tilde{\gamma}_{\pi(i)}, \varepsilon) \subset B(v_{i}, 4\varepsilon)$, the removal step removes all vertices inside $B(\tilde{\gamma}_{\pi(i)}, \varepsilon)$ and consequently ensures that \ref{item:inv-outside} holds for iteration $i + 1$.
+  On top of this, if $v$ is a vertex to be removed, we have
+  \begin{equation}
+    ||v - \tilde{\gamma}_{\pi(i)}||_{2} \le ||v - v_{i}||_{2} + ||v_{i} - \tilde{\gamma}_{\pi(i)}||_{2} \le 7\varepsilon \label{eq:questionable}
+  \end{equation}
+  which implies that no vertices within an $\varepsilon$-radius of any other cluster center are removed.
+  As a consequence invariant \ref{item:inv-inside} continues to hold in iteration $i + 1$ with the same argument as in the base case.
+\end{proof}
+
+This is how the proof is presented in the paper but on closer consideration the conclusion from Equation \eqref{eq:questionable} relies on the fact that $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2} > 8\varepsilon$ for all $a \ne b$.
+Yet this might not be true because $8\varepsilon < \Delta_{min} \le ||\gamma_{a} - \gamma_{b}||_{2}$ but instead we are working with the random variable $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2}$ which could take on values less than $\Delta_{min}$.
+We will touch on that topic again in Section \ref{sec:epsilon}.
+
+Why is the assumption justified?
+The problem with estimating $||\gamma_{a} - \gamma_{b}||$ through $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2}$.
+
+\section{Choosing an $\varepsilon$}
+\label{sec:epsilon}
+
+Using theorem from \cite{tailbounds}.
+
+\section{An Implementation}
+
+Slow, $O(n^{6})$, mostly used for verification.
+
+\bibliography{report}{}
+\bibliographystyle{plain}
 
 \end{document}
