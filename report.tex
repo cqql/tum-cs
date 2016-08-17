@@ -58,12 +58,13 @@ However, their approach actually starts with the k-means clustering objective, i
   \text{subject to} \quad & \bigcup_{t} A_{t} = \{ 1, \dots, N \} \quad \text{and} \quad A_{s} \cap A_{t} = \emptyset~\forall s \ne t
 \end{align*}
 By defining the pairwise $N \times N$ squared-distance matrix $(D)_{ij} = ||x_{i} - x_{j}||_{2}^{2}$ and a cluster-affinity matrix $X$ given as
-\begin{equation*}
+\begin{equation}
   X_{ij} = \begin{cases}
     \frac{1}{|A_{t}|} & \text{if $i$ and $j$ belong to the same cluster $t$}\\
     0 & \text{otherwise}
   \end{cases}
-\end{equation*}
+  \label{eq:x_r}
+\end{equation}
 you can rewrite the problem as
 \begin{align*}
   \text{minimize} \quad & \Tr(DX)\\
@@ -78,10 +79,24 @@ This in turn has the following semidefinite relaxation.
                         & X \succeq 0
 \end{align*}
 
+From this point on they proceed in three main steps.
+First they define a matrix $R$ and show that the minimizer of the semidefinite program $X_{R}$ equals the definition in Equation \eqref{eq:x_r} if you replace $D$ by $R$.
+Next they show that $D \approx R$ under the condition that the cluster centers are separated by at least $O(k\sigma_{max})$ and conclude through a series of steps that $X_{D} \approx X_{R}$ in the sense that $||X_{D} - X_{R}||_{F}^{2}$ is small.
+
+The following steps are easily applicable to general distributions and datasets, though the paper's formal analysis is restricted to spherical Gaussians with variance $\sigma$ and the same number $n$ of datapoints drawn from each cluster.
+Nonetheless the results from Section \ref{sec:results} demonstrate experimentally that their approach also works for differing numbers of datapoints and probability distributions.
+
+In the second step called \emph{denoising} they define $P \in \mathbb{R}^{m \times N}$ as a matrix that has $x_{a, i}$ as its $(a, i)$-th column.
+Then they argue that the matrix $PX_{R}$ has $\tilde{\gamma}_{a}$ as its $(a, i)$-th column and prove that the columns of $PX_{D}$ denoted by $c_{a, i}$ approximate the $\tilde{\gamma}_{a}$ as a consequence from the first step.
+The $c_{a, i}$ are called the \emph{denoised datapoints}.
+\emph{TODO: Add a figure for denoised data}
+
+Lastly they perform the so called \emph{rounding}, an iterative algorithm that selects $k$ of the denoised datapoints as approximations to the $\tilde{\gamma}_{a}$s, i.e. the k-means-optimal centroids.
+During the implementation of the rounding algorithm we noticed that it requires the choice of an $\varepsilon$ to construct a graph which in turn is based on the unknown $\Delta_{min}$.
+Since this is the stimulus for our theory work in Section \ref{sec:epsilon}, we will present the central theorem and its proof in Section \ref{sec:rounding}.
+
 \section{Selecting Cluster Center Approximations}
 \label{sec:rounding}
-
-All clusters have same number of datapoints $n$.
 
 \begin{theorem}
   Take $\varepsilon < \nicefrac{\Delta_{min}}{8}$, suppose
@@ -141,6 +156,7 @@ The problem with estimating $||\gamma_{a} - \gamma_{b}||$ through $||\tilde{\gam
 Using theorem from \cite{tailbounds}.
 
 \section{An Implementation}
+\label{sec:results}
 
 Slow, $O(n^{6})$, mostly used for verification.
 
