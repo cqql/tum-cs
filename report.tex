@@ -28,6 +28,11 @@
 % Shallow fractions
 \usepackage{nicefrac}
 
+% Put tildes under things
+\def\utilde#1{\,\mathord{\vtop{\ialign{##\crcr
+$\hfil\displaystyle{#1}\hfil$\crcr\noalign{\kern1.5pt\nointerlineskip}
+$\hfil\widetilde{}\hfil$\crcr\noalign{\kern1.5pt}}}}\,}
+
 \newtheorem{theorem}{Theorem}
 
 \DeclareMathOperator{\Tr}{Tr}
@@ -102,6 +107,7 @@ Since this is the stimulus for our theory work in Section \ref{sec:epsilon}, we 
 \label{sec:rounding}
 
 \begin{theorem}
+  \label{thm:rounding}
   Take $\varepsilon < \nicefrac{\Delta_{min}}{8}$, suppose
   \begin{equation*}
     \#\left\{ (a, i) : ||c_{a, i} - \tilde{\gamma}_{a}||_{2} > \varepsilon \right\} < \frac{n}{2}
@@ -150,8 +156,44 @@ This is how the proof is presented in the paper but on closer consideration the 
 Yet this might not be true because $8\varepsilon < \Delta_{min} \le ||\gamma_{a} - \gamma_{b}||_{2}$ but instead we are working with the random variable $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2}$ which could take on values less than $\Delta_{min}$.
 We will touch on that topic again in Section \ref{sec:epsilon}.
 
-Why is the assumption justified?
-The problem with estimating $||\gamma_{a} - \gamma_{b}||$ through $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2}$.
+The rounding algorithm has two preconditions: first, you have to choose an $\varepsilon < \nicefrac{\Delta_{min}}{8}$ and second, less than $\nicefrac{n}{2}$ denoised datapoints are allowed to be farther than an $\varepsilon$ away from their respective k-means-optimal centroid.
+The former requires an estimate of $\Delta_{min}$ (see Sec. \ref{sec:epsilon}) while the latter can be argued from the following denoising result shown in the paper.
+
+\vspace{.5em}
+\begin{theorem}
+  Suppose $\sigma \utilde{<} \Delta_{min} / \sqrt{k}$. Then
+  \begin{equation}
+    \frac{1}{N} \sum_{a = 1}^{k} \sum_{i = 1}^{n} ||c_{a, i} - \tilde{\gamma}_{a}||_{2}^{2} \utilde{<} \frac{||\Gamma||_{2 \rightarrow 2}^{2}}{\Delta_{min}^{2}} \cdot k\sigma^{2}
+    \label{eq:denoising-bound}
+  \end{equation}
+  with high probability as $n \rightarrow \infty$.
+  Here, the $a$th column of $\Gamma$ is $\tilde{\gamma}_{a} - \frac{1}{k} \sum_{b = 1}^{k} \tilde{\gamma}_{b}$.
+\end{theorem}
+
+This means that the mean squared error of the denoised datapoints is bounded by $k\sigma^{2}$ with high probability if none of the cluster center approximators is too far away from their mean, which is equivalent to the condition that no cluster is too far out insofar that the $\tilde{\gamma}_{a}$ converge to the true $\gamma_{a}$.
+Taking the square root on both sides of Equation \eqref{eq:denoising-bound}, we get
+\begin{equation*}
+  \frac{1}{\sqrt{N}} \sqrt{\sum_{a = 1}^{k} \sum_{i = 1}^{n} ||c_{a, i} - \tilde{\gamma}_{a}||_{2}^{2}} \utilde{<} \sqrt{k} \sigma \utilde{<} \Delta_{min}.
+\end{equation*}
+A further application of Jensen's inequality for concave functions and dividing both sides by $\sqrt{N}$ yields
+\begin{equation}
+  \frac{1}{N} \sum_{a = 1}^{k} \sum_{i = 1}^{n} ||c_{a, i} - \tilde{\gamma}_{a}||_{2} \utilde{<} \frac{\Delta_{min}}{\sqrt{N}}.
+  \label{eq:mean-error-bound}
+\end{equation}
+We see that the mean distance between $c_{a, i}$ and the associated $\tilde{\gamma}_{a}$ is bounded by $\nicefrac{\Delta_{min}}{\sqrt{N}}$.
+Consequently there will be few denoised datapoints with $||c_{a, i} - \tilde{\gamma}_{a}||_{2} > \varepsilon$ for some $\varepsilon < \nicefrac{\Delta_{min}}{8}$ -- in particular less than $\nicefrac{n}{2}$ for $N$ large enough -- justifying the second precondition.
+The following sketch shows that $N \in O(k^{2})$ datapoints suffice.
+Let $p$ be the number of denoised datapoints with a distance $||c_{a, i} - \tilde{\gamma}_{a}||_{2}$ of at least $\varepsilon$.
+Since all distances are non-negative, $p$ is maximized if the distances are minimized, i.e. $p$ points have a distance of $\varepsilon$ and the rest has a distance of $0$.
+Assume that $\varepsilon$ is chosen not too small, i.e. $\nicefrac{\Delta_{min}}{\varepsilon} \le q$ for some $q > 8$.
+\begin{equation*}
+  \frac{1}{N} \cdot p \cdot \varepsilon \utilde{<} \frac{\Delta_{min}}{\sqrt{N}} \Leftrightarrow p \utilde{<} \frac{\Delta_{min}}{\varepsilon} \sqrt{N} < q \sqrt{N}
+\end{equation*}
+Now we can compute a lower bound for $N$ by checking when the upper bound is less than $\nicefrac{n}{2}$.
+\begin{equation*}
+  q \sqrt{N} = q \sqrt{kn} < \frac{n}{2} \Leftrightarrow (2q)^{2}k < n \Leftrightarrow N > (2q)^{2} k^{2} > 256k^{2}
+\end{equation*}
+This shows first that $N \in O(k^{2})$ datapoints suffice to satisfy the second condition of Theorem \ref{thm:rounding} and second that you want to choose an $\varepsilon$ as close to $\nicefrac{\Delta_{min}}{8}$ as possible to require fewer datapoints.
 
 \section{Choosing an $\varepsilon$}
 \label{sec:epsilon}
@@ -162,6 +204,8 @@ Using theorem from \cite{tailbounds}.
 \label{sec:results}
 
 Slow, $O(n^{6})$, mostly used for verification.
+
+Iterated application of denoising.
 
 \bibliography{report}{}
 \bibliographystyle{plain}
