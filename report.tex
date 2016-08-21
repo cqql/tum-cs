@@ -34,8 +34,10 @@ $\hfil\displaystyle{#1}\hfil$\crcr\noalign{\kern1.5pt\nointerlineskip}
 $\hfil\widetilde{}\hfil$\crcr\noalign{\kern1.5pt}}}}\,}
 
 \newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
 
 \DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator{\argmax}{arg\,max}
 
 \title{Semidefinite Programming Approaches to Clustering}
 \author{Marten Lienen}
@@ -48,7 +50,7 @@ $\hfil\widetilde{}\hfil$\crcr\noalign{\kern1.5pt}}}}\,}
 \section{Introduction}
 
 In this interdisciplinary project I have studied a recent paper on clustering, implemented the devised algorithm and did some theoretical work on a small detail that is required for an implementation.
-The paper \cite{sdp} by Mixon, Villar and Ward presents an approximate k-medoid algorithm.
+The first pre-print \cite{sdp} of a paper by Mixon, Villar and Ward presents an approximate k-medoid algorithm.
 
 The setup is as follows: there are $k$ clusters.
 For each cluster $t = 1, \dots, k$ we have $n_{t}$ datapoints $x_{t, l} \in \mathbb{R}^{m}, l = 1, \dots, n_{t}$, which were drawn according to a subgaussian probability distribution $\mathcal{D}_{t}$ with expectation $\gamma_{t}$ and covariance matrix $\Sigma_{t}$ with eigenvalues $0 < \sigma_{t, 1}^{2} \le \dots \le \sigma_{t, m}^{2}$.
@@ -200,7 +202,101 @@ This shows first that $N \in O(k^{2})$ datapoints suffice to satisfy the second 
 \section{Choosing an $\varepsilon$}
 \label{sec:epsilon}
 
-Using theorem from \cite{tailbounds}.
+Using the following theorem from Tropp's paper \cite{tailbounds} on tail bounds for sums of random matrices.
+\vspace{.5em}
+\begin{theorem}[Matrix Bernstein]
+  \label{thm:matrix-bernstein}
+  Consider a finite sequence $\{ X_{k} \}$ of independent, random, self-adjoint matrices with dimension $d$.
+  Assume that each random matrix satisfies
+  \begin{equation*}
+    \mathbb{E}\,X_{k} = 0 \quad \text{and} \quad \lambda_{max}(X_{k}) \le R\ \text{almost surely.}
+  \end{equation*}
+  Then, for all $t \ge 0$,
+  \begin{equation*}
+    \mathbb{P}\left( \lambda_{max}\left( \sum_{k} X_{k} \right) \ge t \right) \le d \cdot \exp\left( -\frac{\nicefrac{t^{2}}{2}}{\sigma^{2} + R \nicefrac{t}{3}} \right)
+  \end{equation*}
+  where $\sigma^{2} = ||\sum_{k} \mathbb{E}\,X_{k}^{2}||$.
+\end{theorem}
+
+Assume that $||x_{t, l} - \gamma_{t}||_{2} \le R_{t}$.
+Otherwise truncation.
+
+\vspace{.5em}
+\begin{lemma}
+  \begin{equation*}
+    \mathbb{P}\left( ||\tilde{\gamma}_{t} - \gamma_{t}||_{2} \ge \delta \right) \le (m + 1) \cdot \exp\left( -\frac{\delta^{2} \nicefrac{n_{t}}{2}}{R_{t} \nicefrac{\delta}{3} + \sum_{l = 1}^{m} \sigma_{t, l}^{2}} \right)
+  \end{equation*}
+\end{lemma}
+
+In the following we will use $x_{t, l}$ as random variables with distribution $\mathcal{D}_{t}$ instead of the concrete samples.
+\begin{proof}
+  Define random variables $y_{l} = x_{t, l} - \gamma_{t}$ and random, self-adjoint matrices
+  \begin{equation*}
+    Y_{l} = \begin{pmatrix}
+      0 & y_{l}^{T}\\
+      y_{l} & 0
+    \end{pmatrix}.
+  \end{equation*}
+  Since the $y_{l}$ are independent and $\mathbb{E}\,y_{l} = 0$, the matrices $Y_{l}$ are independent with $\mathbb{E}\,Y_{l} = 0$ and $\lambda_{max}(Y_{l}) = ||y_{l}||_{2}$ (TODO: show this).
+  Applying theorem \ref{thm:matrix-bernstein} gives us
+  \begin{align*}
+    \mathbb{P}(||\tilde{\gamma}_{t} - \gamma_{t}||_{2} \ge \delta) & = \mathbb{P}\left( \frac{1}{n_{t}} \left|\left| \sum_{l = 1}^{n_{t}} x_{t, l} - \gamma_{t} \right|\right|_{2} \ge \delta \right)\\
+    & = \mathbb{P}\left( \left|\left| \sum_{l = 1}^{n_{t}} y_{l} \right|\right|_{2} \ge n_{t}\delta \right)\\
+    & = \mathbb{P}\left( \lambda_{max}\left( \sum_{l = 1}^{n_{t}} Y_{l} \right) \ge n_{t}\delta \right)\\
+    & \le (m + 1) \cdot \exp\left( -\frac{\delta^{2} \nicefrac{n_{t}^{2}}{2}}{R_{t} \nicefrac{\delta n_{t}}{3} + \sigma^{2}} \right)
+  \end{align*}
+  with $\sigma^{2} = \left|\left| \sum_{l} \mathbb{E}\, Y_{l}^{2} \right|\right|$.
+  To determine the largest singular value of $\sigma^{2}$ we will first compute $\mathbb{E}\,Y_{l}^{2}$.
+  \begin{equation*}
+    \mathbb{E}\,Y_{l}^{2} = \mathbb{E}\,\begin{pmatrix}
+      y_{l}^{T}y_{l} & 0\\
+      0 & y_{l}y_{l}^{T}
+    \end{pmatrix}
+    = \begin{pmatrix}
+      \Tr(\Sigma_{t}) & 0\\
+      0 & \Sigma_{t}
+    \end{pmatrix}
+  \end{equation*}
+  Now let $UWV^{*}$ be a singular value decomposition of $\Sigma_{t}$.
+  Then we can write $\mathbb{E}\,Y_{l}$ as
+  \begin{equation*}
+    \mathbb{E}\,Y_{l}^{2} = \begin{pmatrix}
+      1 & 0\\
+      0 & U
+    \end{pmatrix}
+    \begin{pmatrix}
+      \Tr(\Sigma_{t}) & 0\\
+      0 & W
+    \end{pmatrix}
+    \begin{pmatrix}
+      1 & 0\\
+      0 & V^{*}
+    \end{pmatrix}.
+  \end{equation*}
+  Since the left- and right-hand matrix are unitary and the matrix in the middle is diagonal, this form is a singular value decomposition of $\mathbb{E}\,Y_{l}$ and the center matrix's diagonal carries the singular values.
+  Therefore the maximum singular value of $\mathbb{E}\,Y_{l}^{2}$ is
+  \begin{equation*}
+    ||\mathbb{E}\,Y_{l}^{2}|| = \max\left( \Tr(\Sigma_{t}), \lambda_{max}(\Sigma_{t}) \right) = \max\left( \sum_{l = 1}^{m} \sigma_{t, l}^{2}, \sigma_{t, m}^{2} \right) = \sum_{l = 1}^{m} \sigma_{t, l}^{2}.
+  \end{equation*}
+  In combination with
+  \begin{equation*}
+    \sigma^{2} = \left|\left| \sum_{l = 1}^{n_{t}} \mathbb{E}\,Y_{l} \right|\right| = n_{t} \left|\left| \mathbb{E}\,Y_{1} \right|\right|
+  \end{equation*}
+  we get the claimed result.
+\end{proof}
+
+\vspace{.5em}
+\begin{lemma}
+  Let $a, b$ be the minimizers of $\min_{\substack{a, b\\a \ne b}} ||\gamma_{a} - \gamma_{b}||_{2}$.
+  Then
+  \begin{equation*}
+    \mathbb{P}\left( \min_{\substack{s, t\\s \ne t}} ||\tilde{\gamma}_{s} - \tilde{\gamma}_{t}||_{2} - \Delta_{min} \ge \delta \right) \le (m + 1) \left( \exp\left( -\frac{\delta^{2} \nicefrac{n_{a}}{8}}{R_{a} \nicefrac{\delta}{6} + \sum_{l = 1}^{m} \sigma_{a, l}^{2}} \right) + \exp\left( -\frac{\delta^{2} \nicefrac{n_{b}}{8}}{R_{b} \nicefrac{\delta}{6} + \sum_{l = 1}^{m} \sigma_{b, l}^{2}} \right) \right).
+  \end{equation*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
 
 \section{An Implementation}
 \label{sec:results}
