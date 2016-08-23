@@ -7,3 +7,6 @@ _minted-report
 _region_.tex
 *.bbl
 *.blg
+
+# Compiled python
+__pycache__
