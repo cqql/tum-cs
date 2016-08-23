@@ -105,7 +105,7 @@ def sdpcluster(k, P, epsilon=None):
     X_D = np.array(X.value)
 
     # Denoised data
-    PX_D = P @X_D
+    PX_D = P @ X_D # yapf: disable
 
     # Extract approximate cluster affinities
     nodes = set(range(N))
