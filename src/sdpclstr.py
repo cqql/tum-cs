@@ -8,29 +8,19 @@ import scipy
 import scipy.spatial
 
 
-def cluster(k, P, epsilon=None):
-    """Run the SDP clustering algorithm.
+def sdp(P, k):
+    """Solve the SDP relaxation.
 
     Parameters
     ----------
+    P : np.array
+        m*N matrix of N m-dimensional points stacked columnwise
     k : int
         Number of clusters
-    P : np.array
-        m*N matrix of N m-dimensional points stacked columnwise.
-    epsilon : float, optional
-        Radius of the ball used for medoid determination in the end.
-
-        If no value is given, it will be estimated from the denoised data.
 
     Returns
     -------
-    (PX_D, clusters, centers)
-    PX_D : np.array
-        Denoised points
-    clusters : list(list(int))
-        Lists of indices of points that probably belong to the same cluster
-    centers : np.array
-        m*k matrix of k cluster-medoids
+    The SDP minimizer S_D
     """
     N = P.shape[1]
 
@@ -50,6 +40,36 @@ def cluster(k, P, epsilon=None):
 
     # Extract the SDP solution
     X_D = np.array(X.value)
+
+    return X_D
+
+
+def cluster(k, P, epsilon=None):
+    """Run the SDP clustering algorithm.
+
+    Parameters
+    ----------
+    k : int
+        Number of clusters
+    P : np.array
+        m*N matrix of N m-dimensional points stacked columnwise
+    epsilon : float, optional
+        Radius of the ball used for medoid determination in the end
+
+        If no value is given, it will be estimated from the denoised data.
+
+    Returns
+    -------
+    (PX_D, clusters, centers)
+    PX_D : np.array
+        Denoised points
+    clusters : list(list(int))
+        Lists of indices of points that probably belong to the same cluster
+    centers : np.array
+        m*k matrix of k cluster-medoids
+    """
+    N = P.shape[1]
+    X_D = sdp(P, k)
 
     # Denoised data
     PX_D = P @ X_D # yapf: disable
