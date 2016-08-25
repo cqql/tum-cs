@@ -35,6 +35,7 @@ $\hfil\widetilde{}\hfil$\crcr\noalign{\kern1.5pt}}}}\,}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
+\newtheorem{algorithm}{Algorithm}
 
 \DeclareMathOperator{\Tr}{Tr}
 \DeclareMathOperator{\argmax}{arg\,max}
@@ -157,7 +158,7 @@ Since this is the stimulus for our theory work in Section \ref{sec:epsilon}, we 
 \end{proof}
 
 This is how the proof is presented in the paper but on closer consideration the conclusion from Equation \eqref{eq:questionable} relies on the fact that $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2} > 8\varepsilon$ for all $a \ne b$.
-Yet this might not be true because $8\varepsilon < \Delta_{min} \le ||\gamma_{a} - \gamma_{b}||_{2}$ but instead we are working with the random variable $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2}$ which could take on values less than $\Delta_{min}$.
+Yet this might not be true because $8\varepsilon < \Delta_{min} \le ||\gamma_{a} - \gamma_{b}||_{2}$ but instead we are working with the random variable $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2}$ which could take on values less than $\Delta_{min}$ \emph{TODO: Clarify this. What does ``work with'' mean}.
 We will touch on that topic again in Section \ref{sec:epsilon}.
 
 The rounding algorithm has two preconditions: first, you have to choose an $\varepsilon < \nicefrac{\Delta_{min}}{8}$ and second, less than $\nicefrac{n}{2}$ denoised datapoints are allowed to be farther than an $\varepsilon$ away from their respective k-means-optimal centroid.
@@ -202,7 +203,87 @@ This shows first that $N \in O(k^{2})$ datapoints suffice to satisfy the second 
 \section{Choosing an $\varepsilon$}
 \label{sec:epsilon}
 
-Using the following theorem from Tropp's paper \cite{tailbounds} on tail bounds for sums of random matrices.
+In the previous section we have seen that the rounding step presented in Theorem \ref{thm:rounding} requires the choice of an $\varepsilon$.
+On the one hand the choice has to respect an upper bound of $\nicefrac{\Delta_{min}}{8}$ and on the other hand you want to pick a value as large as possible.
+In the optimal case one would chose something similar to $\varepsilon = \nicefrac{\Delta_{min}}{9}$ but a priori this is infeasible because $\Delta_{min}$ is unknown.
+Consequently its value has to be estimated from the data.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figures/chessboard}
+  \caption{$\log_{10}$ of the exact solution $X_{R}$, the relaxation solution $X_{D}$ for a stochastic ball model and the relaxation solution $X_{D}$ of a mixture of normals model}
+  \label{fig:chessboard}
+\end{figure}
+
+Figure \ref{fig:chessboard} presents matrix plots of solutions $X$ of the SDP in the following two settings.
+In both cases there are three clusters centered at $(-2, -1), (-1, 2.5), (3, 1)$ with $10$, $15$ and $15$ samples.
+The difference is that the first setting uses stochastic ball models of radii $1$, $1$ and $1.5$ while the second setting uses multivariate normal distributions of variance $1$, $1$ and $1.5$.
+All plots actually show the element-wise $\log_{10}$ to make the noise visible.
+The first two plots are from the stochastic ball scenario whereas the former shows the exact solution $X$ as defined in the introduction as cluster-affinity matrix while the latter shows the solution $X_{D}$ as computed by our implementation.
+The last plot on the right again shows the minimizer of the SDP but for the mixture of normals model.
+
+The exact solution has non-zero block matrices on the diagonal and is zero everywhere else which allows for an easy recovery of the cluster affinities.
+Even though the center matrix is non-zero everywhere it is still basically the exact solution with some very light noise on the order of $10^{-9}$ applied.
+As we will see shortly you can recover the cluster affinities from this noisy result just as well as from the exact solution.
+The last case is the most interesting as the unboundedness of the normal distribution has introduced as significant deviation from the optimal solution.
+Nonetheless you can still recognize the block structure and at least experimentally we have seen that this is good enough for a working estimate of $\Delta_{min}$.
+
+From these observations we have defined the following greedy algorithm to perform this estimate.
+
+\vspace{0.5em}
+\begin{algorithm}
+  \label{alg:d-min}
+  Let $X_{D}$ be the minimizer of the SDP.
+  Furthermore define $C = \{ 1, \dots, N \}$ as the set of nodes which have not been assigned to a cluster yet and let $i = 1$ be the cluster that we are currently assigning nodes to.
+  \begin{enumerate}[label=(\roman*)]
+  \item \label{item:clusters} Repeat until $C = \emptyset$
+    \begin{enumerate}
+    \item Select $j \in C$
+    \item Define $C_{i} = \{ j' : j' \in C\ \text{and}\ X_{D,jj'} \ge \frac{1}{N} \}$
+    \item Update $C \leftarrow C \setminus C_{i}$ and $i \leftarrow i + 1$
+    \end{enumerate}
+  \item \label{item:gamma-hat} Compute $\hat{\Gamma} = \left\{ \frac{1}{|C_{j}|} \sum_{j' \in C_{j}} x_{j'} : j \in \{ 1, \dots, i - 1 \} \right\}$
+  \item \label{item:d-min} Estimate $\Delta_{min}$ by $\tilde{\Delta}_{min} = \min_{a \ne b} ||\hat{\Gamma}_{a} - \hat{\Gamma}_{b}||_{2}$
+  \end{enumerate}
+\end{algorithm}
+
+In the first step we reconstruct the clusters $C_{i}$ from $X_{D}$ by selecting rows of $X_{D}$ and assigning all points to the same cluster whose column value in the respective row is at least $\nicefrac{1}{N}$ until all points have been assigned.
+The choice of lower bound is based on the fact that it is the smallest non-zero value that an entry can assume in the exact solution.
+The second step computes the means $\hat{\Gamma}$ from the recovered clusters.
+For the rest of this section we denote the elements of $\hat{\Gamma}$ by $\hat{\gamma}_{i}$.
+Finally step \ref{item:d-min} estimates $\Delta_{min}$ by computing the minimum distance between any pair of $\hat{\gamma}_{i}$.
+
+The following lemma shows that Algorithm \ref{alg:d-min} recovers the cluster affinities from the exact solution and from the minimizer for stochastic ball models as long as they are sufficiently far separated, since the noise decreases with larger separation.
+
+\vspace{0.5em}
+\begin{lemma}
+  \label{lemma:noise}
+  Let $\varepsilon_{max} = \max_{i,j} |X_{D,ij} - X_{ij}|$, where $X_{D}$ is the minimizer of the SDP and $X$ is the exact solution, be the maximum noise.
+  Furthermore let $A_{1}, \dots, A_{k}$ be the optimal cluster assignments as defined in the original problem.
+  If $\varepsilon_{max} \le \min_{i \in [k]} \nicefrac{1}{|A_{i}|} - \nicefrac{1}{N}$ and $\varepsilon_{max} < \nicefrac{1}{N}$, Algorithm \ref{alg:d-min} will reconstruct the clusters as given by $A_{1}, \dots, A_{k}$.
+\end{lemma}
+
+\begin{proof}
+  Select some row $i$ and consider its $j$th column.
+  Let $t \in [k]$ such that $i \in A_{t}$.
+  The algorithm will put $i$ and $j$ into the same cluster iff $X_{D,ij} \ge \nicefrac{1}{N}$.
+  Consider the following two cases.
+  In the first case $j \not\in A_{t}$ but $X_{D,ij} \ge \nicefrac{1}{N}$.
+  Since $i$ and $j$ do not belong to the same cluster, we know that $X_{ij} = 0$ from which it follows that $|X_{D,ij} - X_{ij}| \ge \nicefrac{1}{N}$ contradicting the precondition.
+  In the second case $j \in A_{t}$ but $X_{D,ij} < \nicefrac{1}{N}$.
+  From the definition of $X$ we know that $X_{ij} = \nicefrac{1}{|A_{t}|}$ yielding
+  \begin{equation*}
+    |X_{D,ij} - X_{ij}| = X_{ij} - X_{D,ij} > \frac{1}{|A_{t}|} - \frac{1}{N} \ge \min_{i \in [k]} \frac{1}{|A_{i}|} - \frac{1}{N}
+  \end{equation*}
+  which again contradicts the precondition.
+  In combination this means that $j \in A_{t} \Leftrightarrow j \in C_{t'}$ where $t' \in [k]$ such that $i \in C_{t'}$ which shows that the algorithm finds the original $A_{1}, \dots, A_{k}$.
+\end{proof}
+
+Step \ref{item:d-min} of the algorithm produces the estimate $\tilde{\Delta}_{min} = \min_{a, b} ||\hat{\gamma}_{a} - \hat{\gamma}_{b}||_{2}$.
+As we have just seen this is actually equal to $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2}$ in the case of stochastic ball models under the preconditions of Lemma \ref{lemma:noise}.
+In the following analysis we will restrict ourselves to these models though the experiments in Section \ref{sec:results} indicate that the algorithm also works in a more general setting.
+In the rest of this section we will show that our estimator will not be too large compared to $\Delta_{min}$ with high probability by using the following theorem from Tropp's paper \cite{tailbounds} on tail bounds for sums of random matrices.
+
 \vspace{.5em}
 \begin{theorem}[Matrix Bernstein]
   \label{thm:matrix-bernstein}
@@ -211,24 +292,26 @@ Using the following theorem from Tropp's paper \cite{tailbounds} on tail bounds 
   \begin{equation*}
     \mathbb{E}\,X_{k} = 0 \quad \text{and} \quad \lambda_{max}(X_{k}) \le R\ \text{almost surely.}
   \end{equation*}
-  Then, for all $t \ge 0$,
+  Then, for all $\delta \ge 0$,
   \begin{equation*}
-    \mathbb{P}\left( \lambda_{max}\left( \sum_{k} X_{k} \right) \ge t \right) \le d \cdot \exp\left( -\frac{\nicefrac{t^{2}}{2}}{\sigma^{2} + R \nicefrac{t}{3}} \right)
+    \mathbb{P}\left( \lambda_{max}\left( \sum_{k} X_{k} \right) \ge \delta \right) \le d \cdot \exp\left( -\frac{\nicefrac{\delta^{2}}{2}}{\sigma^{2} + R \nicefrac{\delta}{3}} \right)
   \end{equation*}
   where $\sigma^{2} = ||\sum_{k} \mathbb{E}\,X_{k}^{2}||$.
 \end{theorem}
 
-Assume that $||x_{t, l} - \gamma_{t}||_{2} \le R_{t}$.
-Otherwise truncation.
+First, we are going to see that the estimators $\tilde{\gamma}_{t}$ are concentrated around their respective means $\gamma_{t}$.
+In the following we will use $x_{t, l}$ as random variables with distribution $\mathcal{D}_{t}$ instead of the concrete samples.
+Since we restricted ourselves to stochastic ball models, we can safely assume that $||x_{t, l} - \gamma_{t}||_{2} \le R_{t}$ for some $R_{t} > 0$.
 
 \vspace{.5em}
 \begin{lemma}
+  \label{lemma:concentration}
+  If there exists an $R_{t} > 0$ for each $t \in [k]$ such that $||X_{t, l} - \gamma_{t}||_{2} \le R_{t}$ for all $l \in [n_{t}]$, then, for all $\delta \ge 0$,
   \begin{equation*}
-    \mathbb{P}\left( ||\tilde{\gamma}_{t} - \gamma_{t}||_{2} \ge \delta \right) \le (m + 1) \cdot \exp\left( -\frac{\delta^{2} \nicefrac{n_{t}}{2}}{R_{t} \nicefrac{\delta}{3} + \sum_{l = 1}^{m} \sigma_{t, l}^{2}} \right)
+    \mathbb{P}\left( ||\tilde{\gamma}_{t} - \gamma_{t}||_{2} \ge \delta \right) \le (m + 1) \cdot \exp\left( -\frac{\delta^{2} \nicefrac{n_{t}}{2}}{R_{t} \nicefrac{\delta}{3} + \sum_{l = 1}^{m} \sigma_{t, l}^{2}} \right).
   \end{equation*}
 \end{lemma}
 
-In the following we will use $x_{t, l}$ as random variables with distribution $\mathcal{D}_{t}$ instead of the concrete samples.
 \begin{proof}
   Define random variables $y_{l} = x_{t, l} - \gamma_{t}$ and random, self-adjoint matrices
   \begin{equation*}
@@ -237,17 +320,17 @@ In the following we will use $x_{t, l}$ as random variables with distribution $\
       y_{l} & 0
     \end{pmatrix}.
   \end{equation*}
-  Since the $y_{l}$ are independent and $\mathbb{E}\,y_{l} = 0$, the matrices $Y_{l}$ are independent with $\mathbb{E}\,Y_{l} = 0$ and $\lambda_{max}(Y_{l}) = ||y_{l}||_{2}$ (TODO: show this).
-  Applying theorem \ref{thm:matrix-bernstein} gives us
+  Since the $y_{l}$ are independent and $\mathbb{E}\,y_{l} = 0$, the matrices $Y_{l}$ are independent with $\mathbb{E}\,Y_{l} = 0$ and $\lambda_{max}(Y_{l}) = ||y_{l}||_{2}$.
+  The second property follows from the form of $Y_{l}Y_{l}^{T} = Y_{l}^{2}$ computed in Equation \eqref{eq:y-t-squared} and the fact that the singular values are the square roots of the eigenvalues of $Y_{l}^{2}$.
+  It is of rank $2$ and has two eigenvalues both of which are $||y_{l}||_{2}^{2}$ (the corresponding eigenvectors are $e_{1}$ and $(0, y_{l})$).
+  Applying theorem \ref{thm:matrix-bernstein} we can derive
   \begin{align*}
-    \mathbb{P}(||\tilde{\gamma}_{t} - \gamma_{t}||_{2} \ge \delta) & = \mathbb{P}\left( \frac{1}{n_{t}} \left|\left| \sum_{l = 1}^{n_{t}} x_{t, l} - \gamma_{t} \right|\right|_{2} \ge \delta \right)\\
-    & = \mathbb{P}\left( \left|\left| \sum_{l = 1}^{n_{t}} y_{l} \right|\right|_{2} \ge n_{t}\delta \right)\\
-    & = \mathbb{P}\left( \lambda_{max}\left( \sum_{l = 1}^{n_{t}} Y_{l} \right) \ge n_{t}\delta \right)\\
-    & \le (m + 1) \cdot \exp\left( -\frac{\delta^{2} \nicefrac{n_{t}^{2}}{2}}{R_{t} \nicefrac{\delta n_{t}}{3} + \sigma^{2}} \right)
+    \mathbb{P}(||\tilde{\gamma}_{t} - \gamma_{t}||_{2} \ge \delta) & = \mathbb{P}\left( \frac{1}{n_{t}} \left|\left| \sum_{l = 1}^{n_{t}} x_{t, l} - \gamma_{t} \right|\right|_{2} \ge \delta \right) = \mathbb{P}\left( \left|\left| \sum_{l = 1}^{n_{t}} y_{l} \right|\right|_{2} \ge n_{t}\delta \right)\\
+    & = \mathbb{P}\left( \lambda_{max}\left( \sum_{l = 1}^{n_{t}} Y_{l} \right) \ge n_{t}\delta \right) \le (m + 1) \cdot \exp\left( -\frac{\delta^{2} \nicefrac{n_{t}^{2}}{2}}{R_{t} \nicefrac{\delta n_{t}}{3} + \sigma^{2}} \right)
   \end{align*}
   with $\sigma^{2} = \left|\left| \sum_{l} \mathbb{E}\, Y_{l}^{2} \right|\right|$.
-  To determine the largest singular value of $\sigma^{2}$ we will first compute $\mathbb{E}\,Y_{l}^{2}$.
-  \begin{equation*}
+  To determine $\sigma^{2}$, i.e. the largest singular value of $\sum_{l} \mathbb{E}\,Y_{l}^{2}$, we will first determine the actual form of the sum terms.
+  \begin{equation}
     \mathbb{E}\,Y_{l}^{2} = \mathbb{E}\,\begin{pmatrix}
       y_{l}^{T}y_{l} & 0\\
       0 & y_{l}y_{l}^{T}
@@ -256,7 +339,8 @@ In the following we will use $x_{t, l}$ as random variables with distribution $\
       \Tr(\Sigma_{t}) & 0\\
       0 & \Sigma_{t}
     \end{pmatrix}
-  \end{equation*}
+    \label{eq:y-t-squared}
+  \end{equation}
   Now let $UWV^{*}$ be a singular value decomposition of $\Sigma_{t}$.
   Then we can write $\mathbb{E}\,Y_{l}$ as
   \begin{equation*}
@@ -273,37 +357,84 @@ In the following we will use $x_{t, l}$ as random variables with distribution $\
       0 & V^{*}
     \end{pmatrix}.
   \end{equation*}
-  Since the left- and right-hand matrix are unitary and the matrix in the middle is diagonal, this form is a singular value decomposition of $\mathbb{E}\,Y_{l}$ and the center matrix's diagonal carries the singular values.
+  Since the left- and right-hand matrix are unitary and the matrix in the center is diagonal, this form is a singular value decomposition of $\mathbb{E}\,Y_{l}$ and the center matrix's diagonal carries the singular values.
   Therefore the maximum singular value of $\mathbb{E}\,Y_{l}^{2}$ is
   \begin{equation*}
     ||\mathbb{E}\,Y_{l}^{2}|| = \max\left( \Tr(\Sigma_{t}), \lambda_{max}(\Sigma_{t}) \right) = \max\left( \sum_{l = 1}^{m} \sigma_{t, l}^{2}, \sigma_{t, m}^{2} \right) = \sum_{l = 1}^{m} \sigma_{t, l}^{2}.
   \end{equation*}
   In combination with
   \begin{equation*}
-    \sigma^{2} = \left|\left| \sum_{l = 1}^{n_{t}} \mathbb{E}\,Y_{l} \right|\right| = n_{t} \left|\left| \mathbb{E}\,Y_{1} \right|\right|
+    \sigma^{2} = \left|\left| \sum_{l = 1}^{n_{t}} \mathbb{E}\,Y_{l}^{2} \right|\right| = n_{t} \left|\left| \mathbb{E}\,Y_{1}^{2} \right|\right|
   \end{equation*}
-  we get the claimed result.
+  we obtain the claimed result.
 \end{proof}
+
+Finally we will apply this intermediate result to show that the estimate $\tilde{\Delta}_{min} = \min_{s, t} ||\tilde{\gamma}_{s} - \tilde{\gamma}_{t}||_{2}$ is not too large with high probability.
 
 \vspace{.5em}
 \begin{lemma}
+  \label{lemma:bound}
   Let $a, b$ be the minimizers of $\min_{\substack{a, b\\a \ne b}} ||\gamma_{a} - \gamma_{b}||_{2}$.
   Then
   \begin{equation*}
-    \mathbb{P}\left( \min_{\substack{s, t\\s \ne t}} ||\tilde{\gamma}_{s} - \tilde{\gamma}_{t}||_{2} - \Delta_{min} \ge \delta \right) \le (m + 1) \left( \exp\left( -\frac{\delta^{2} \nicefrac{n_{a}}{8}}{R_{a} \nicefrac{\delta}{6} + \sum_{l = 1}^{m} \sigma_{a, l}^{2}} \right) + \exp\left( -\frac{\delta^{2} \nicefrac{n_{b}}{8}}{R_{b} \nicefrac{\delta}{6} + \sum_{l = 1}^{m} \sigma_{b, l}^{2}} \right) \right).
+    \mathbb{P}\left( \min_{\substack{s, t\\s \ne t}} ||\tilde{\gamma}_{s} - \tilde{\gamma}_{t}||_{2} - \Delta_{min} \ge \delta \right) \le (m + 1) \begin{pmatrix} \exp\left( -\frac{\delta^{2} \nicefrac{n_{a}}{8}}{R_{a} \nicefrac{\delta}{6} + \sum_{k = 1}^{m} \sigma_{a,k}^{2}} \right)\\ + \exp\left( -\frac{\delta^{2} \nicefrac{n_{b}}{8}}{R_{b} \nicefrac{\delta}{6} + \sum_{k = 1}^{m} \sigma_{b,k}^{2}} \right) \end{pmatrix}
   \end{equation*}
 \end{lemma}
 
 \begin{proof}
+  The first step is to see that the difference between our estimator and $\Delta_{min}$ can be upper-bounded by the distance between the k-means-optimal centroids of clusters $a$ and $b$ and their respective true centers.
+  \begin{align*}
+    \min_{\substack{s, t\\s \ne t}} ||\tilde{\gamma}_{s} - \tilde{\gamma}_{t}||_{2} - \Delta_{min} & = \min_{\substack{s, t\\s \ne t}} ||\tilde{\gamma}_{s} - \tilde{\gamma}_{t}||_{2} - \min_{\substack{c, d\\c \ne d}} ||\gamma_{c} - \gamma_{d}||_{2}\\
+    \intertext{The minimum is surely less than the distance between two specific $\tilde{\gamma}.$}
+    & \le ||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2} - ||\gamma_{a} - \gamma_{b}||_{2}\\
+    & = ||\tilde{\gamma}_{a} - \gamma_{a} + \gamma_{a} - \gamma_{b} + \gamma_{b} - \tilde{\gamma}_{b}||_{2} - ||\gamma_{a} - \gamma_{b}||_{2}\\
+    & \le ||\tilde{\gamma}_{a} - \gamma_{a}||_{2} + ||\tilde{\gamma}_{b} - \gamma_{b}||_{2} & \text{Triangle inequality}
+  \end{align*}
 
+  In a second step we can use this upper bound and the concentration inequality from Lemma \ref{lemma:concentration} to in turn give an upper bound on the probability that $\tilde{\Delta}_{min}$ is larger than $\Delta_{min} + \delta$ for some $\delta \ge 0$.
+  \begin{align*}
+    \mathbb{P}\left( \min_{\substack{s, t\\s \ne t}} ||\tilde{\gamma}_{s} - \tilde{\gamma}_{t}||_{2} - \Delta_{min} \ge \delta \right) & \le \mathbb{P}\left( ||\tilde{\gamma}_{a} - \gamma_{a}||_{2} + ||\tilde{\gamma}_{b} - \gamma_{b}||_{2} \ge \delta \right)\\
+    \intertext{If the sum of the distances is greater than or equal to $\delta$, at least one of them has to be greater than or equal to $\nicefrac{\delta}{2}$.
+    Therefore the previous event is included in the next one.}
+    & \le \mathbb{P}\left( \max \left\{ ||\tilde{\gamma}_{a} - \gamma_{a}||_{2}, ||\tilde{\gamma}_{b} - \gamma_{b}||_{2} \right\} \ge \frac{\delta}{2} \right)\\
+    & \le \mathbb{P}\left( ||\tilde{\gamma}_{a} - \gamma_{a}||_{2} \ge \frac{\delta}{2} \right) + \mathbb{P}\left( ||\tilde{\gamma}_{b} - \gamma_{b}||_{2} \ge \frac{\delta}{2} \right) & \text{Union bound}\\
+    & \le (m + 1) \begin{pmatrix} \exp\left( -\frac{\delta^{2} \nicefrac{n_{a}}{8}}{R_{a} \nicefrac{\delta}{6} + \sum_{k = 1}^{m} \sigma_{a,k}^{2}} \right)\\ + \exp\left( -\frac{\delta^{2} \nicefrac{n_{b}}{8}}{R_{b} \nicefrac{\delta}{6} + \sum_{k = 1}^{m} \sigma_{b,k}^{2}} \right) \end{pmatrix} & \text{Lemma \ref{lemma:concentration}}
+  \end{align*}
 \end{proof}
+
+In the end we come to the actual choice of $\varepsilon$.
+For this we will assume that all clusters have at least $n_{min}$ samples, a maximum radius of $R_{max}$ and that $\sum_{k = 1}^{m} \sigma_{a,k}^{2}$ is bounded by some $\Sigma_{max}^{2}$ for all $a \in [k]$.
+This lets us further simplify the upper bound from Lemma \ref{lemma:bound} to
+\begin{equation*}
+  2(m + 1)\exp\left( -\frac{\delta^{2} \nicefrac{n_{min}}{8}}{R_{max} \nicefrac{\delta}{6} + \Sigma_{max}^{2}} \right).
+\end{equation*}
+Setting this less than or equal to some $0 < \kappa \le 1$ and solving for $\delta$ yields
+\begin{equation}
+  \delta^{2} + \frac{8R_{max}}{6n_{min}}\log\left( \frac{\kappa}{2(m + 1)} \right)\delta \ge -\log\left( \frac{\kappa}{2(m + 1)} \right)\frac{8}{n_{min}}\Sigma_{max}^{2}.
+  \label{eq:delta-epsilon}
+\end{equation}
+Since $\kappa$ is surely less than $2(m + 1)$, the right-hand side is a positive number and the left is an upwards opening parabola.
+So in theory you could use Equation \eqref{eq:delta-epsilon} to determine a $\delta > 0$ such that $\mathbb{P}(\tilde{\Delta}_{min} - \Delta_{min} \ge \delta) \le \kappa$ and set $\varepsilon = \nicefrac{\tilde{\Delta}_{min} - \delta}{8}$ which would be less than $\nicefrac{\Delta_{min}}{8}$ with probability $\kappa$.
+In practice however it is impossible because all values besides $\kappa$ and $m$ are unknown.
+
+It is also quite possible that our bounds are far from tight, since this formula applied to the scenario in Figure \ref{fig:chessboard} results in $\delta \approx 3.2$.
+This in turn would result in a choice of $\varepsilon$ very close to $0$ and possibly even negative, even though choices of $\varepsilon$ up to $0.45$ would be valid.
+Therefore we decided to run all our experiments in the next section with $\varepsilon = \nicefrac{\tilde{\Delta}_{min}}{10}$.
 
 \section{An Implementation}
 \label{sec:results}
 
+Iterated application of denoising.
+
+wrong number of clusters found in $X_{D}$.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
 Slow, $O(n^{6})$, mostly used for verification.
 
-Iterated application of denoising.
+Truncation.
+Generalization to arbitrary distributions.
 
 \bibliography{report}{}
 \bibliographystyle{plain}

@@ -83,7 +83,7 @@ def cluster(k, P, epsilon=None):
 
         cluster = set([node])
         for i in range(N):
-            if i in nodes and row[i] > 1 / N:
+            if i in nodes and row[i] >= 1 / N:
                 cluster.add(i)
                 nodes.remove(i)
 
