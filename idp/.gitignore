@@ -1,0 +1,13 @@
+# LaTeX artifacts
+*.aux
+*.log
+*.pdf
+*.synctex.gz
+_minted-report
+_region_.tex
+*.bbl
+*.blg
+*.out
+
+# Compiled python
+__pycache__
