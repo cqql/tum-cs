@@ -462,13 +462,87 @@ Therefore we decided to run all our experiments in the next section with $\varep
 We have implemented the complete algorithm including the estimation of $\Delta_{min}$ as a python program.
 It is built on top of \texttt{scipy}/\texttt{numpy} for easy handling of matrices and uses \texttt{picos} and \texttt{cvxopt} to solve the SDP and \texttt{networkx} for graph operations, for example extracting the node of maximum degree.
 The code is available for inspection and hosted on github\footnote{\url{https://github.com/cqql/tum-cs/idp/src}}.
-In the following we will present different clustering results to showcase the workings of the algorithm.
+In the following we will present different clustering results to showcase the performance of the algorithm.
+Each of the Figures \ref{fig:results-balls} to \ref{fig:results-mixed-top} consists of three plots: the first shows just the samples, the second shows the denoised data points and the last one shows the k-means-optimal centroid marked with a triangle and the estimator that our algorithm selected as a star.
+On top of that all plots include the true cluster centers that we are trying to approximate as crosses.
 
-Differing number of data points. Different distributions (different variances, oval variances).
+As expected one gets very good results in the case of non-overlapping stochastic ball models (Figure \ref{fig:results-balls}).
+The approximations $v_{a}$ are close to the k-means-optimal centroids which in turn approximate the true centers well.
+A slight error arises from the small distance between the left two clusters.
+Figure \ref{fig:results-normals} shows the exact same situation but with normal distributions instead which have the former radii as their covariance.
+It stands out that the denoising procedure could not fully separate the data points sampled from the left two clusters.
+Consequently the estimators are also noticeably further off.
+Lastly, Figure \ref{fig:results-mixed} demonstrates the case of mixed distributions with non-isotropic covariance.
+The bottom two clusters are normal distributions and the top one is a stochastic ball model.
+In addition the left-most cluster has a non-isotropic distribution where the variance in y-direction is twice as large as the variance in x-direction.
+Also the number of samples drawn from it is twice the number of samples drawn from each of the other two clusters.
+This time the denoising step has even more problems separating the data points which leads to an increased approximation error.
+Yet it is still well within the bounds given by the performance guarantee in the paper.
 
-Iterated application of denoising.
+\begin{figure}[h]
+  \centering
+  \begin{tabular}{c|c|c|c|c|c}
+    Problem & Iterations & $\varepsilon$ & Misclassification rate & Total distance to $\gamma_{a}$ & Total distance to $\tilde{\gamma}_{a}$ \\
+    \hline
+    Figure \ref{fig:results-balls} & 1 & $0.308$ & 2\% & $0.639$ & $0.232$\\
+    Figure \ref{fig:results-normals} & 1 & $0.28$ & 11\% & $1.444$ & $0.805$\\
+    Figure \ref{fig:results-normals-iterated} & 2 & $0.279$ & 9\% & $1.021$ & $0.424$\\
+    Figure \ref{fig:results-mixed} & 1 & $0.228$ & 20\% & $1.295$ & $1.266$\\
+    Figure \ref{fig:results-mixed-iterated} & 3 & $0.232$ & 13\% & $0.873$ & $0.678$
+  \end{tabular}
+  \caption{Summary of result statistics of the different experiments. The misclassification rate refers to the classification/assignment step in Algorithm \ref{alg:d-min}.}
+  \label{fig:results}
+\end{figure}
 
-wrong number of clusters found in $X_{D}$.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figures/results-3sb}
+  \caption{3 non-overlapping stochastic ball model clusters}
+  \label{fig:results-balls}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/results-3nm}
+    \caption{Direct application of the algorithm}
+\label{fig:results-normals}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/results-3nm-iterated}
+    \caption{A run with a second denoising step}
+\label{fig:results-normals-iterated}
+  \end{subfigure}
+  \caption{3 clusters with identical, isotropic normal distributions}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/results-mixed}
+    \caption{Direct application of the algorithm}
+\label{fig:results-mixed}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/results-mixed-iterated}
+    \caption{It took three iterations of denoising to cluster the points that tightly}
+\label{fig:results-mixed-iterated}
+  \end{subfigure}
+  \caption{3 clusters with different, non-isotropic distributions and differing numbers of samples drawn}
+  \label{fig:results-mixed-top}
+\end{figure}
+
+During the project presentation Michael Sandbichler proposed the idea of iterating the denoising step.
+The results can be found in Figure \ref{fig:results-normals-iterated}, \ref{fig:results-mixed-iterated} and Table \ref{fig:results}.
+Surprisingly, it actually works and improves the approximation.
+Enough iterations of denoising cluster the data points just as tightly as a single iteration does in the case of stochastic ball models.
+At first we suspected that the second and later iterations might denoise the data even more but in a way that does not change or improve the performance in the end.
+However, the statistics in Table \ref{fig:results} disprove that.
+Actually the improvement is impressive and halved total error in both cases.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -486,7 +560,9 @@ A first step in this direction might be to switch out the Matrix Bernstein theor
 This leads over to the second point, the restriction to stochastic ball models.
 One should be able to generalize this relatively easily to general subgaussian distributions by truncation.
 That means that you transform the general distributions into bounded distributions by defining a cut-off distance from its center such that the probability weight outside of this inner ball is very small.
-The outer probability mass is then counted towards the error probability while the inner probability mass defines the probability density of new bounded random variables (after rescaling).
+The outer probability mass is then counted towards the error probability while the inner probability mass defines the probability density of new, bounded random variables (after rescaling).
+
+Finally I think that the idea of iterated denoising is interesting and worthy of further investigation, by experimentation as well as theoretically.
 
 \bibliography{report}{}
 \bibliographystyle{plain}
