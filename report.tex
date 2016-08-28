@@ -50,19 +50,29 @@ $\hfil\widetilde{}\hfil$\crcr\noalign{\kern1.5pt}}}}\,}
 
 \section{Introduction}
 
-In this interdisciplinary project I have studied a recent paper on clustering, implemented the devised algorithm and did some theoretical work on a small detail that is required for an implementation.
-The first pre-print \cite{sdp} of a paper by Mixon, Villar and Ward presents an approximate k-medoid algorithm.
+This project is based on a pre-print of a recent paper on clustering via semidefinite programming \cite{sdp} by Mixon, Villar and Ward.
+In it the authors present a clustering algorithm based on semidefinite programming (SDP) that employs a relax-and-round strategy whereas the involved semidefinite program is already known to be optimal in the case of stochastic ball models with high probability.
+Throughout the paper the develop the complete algorithm as well as performance guarantees in the more general case of subgaussian cluster models.
+Besides the pure study of this paper, the project was initially about implementing the devised algorithm which led to an implementation detail that was left out of the original paper.
+Over the course of this project we worked on filling in this hole.
+The presentation of our idea in this report is accompanied by some performance guarantees in the fashion of the guarantees in the book, i.e. high probability statements.
+However, a reality check in the end shows that our main result -- though it is indeed exponential in nature -- contains constants that inhibit its usefulness in practice.
+
+The report is structured as follows: the remaining paragraphs of the first section will introduce all relevant quantities used throughout this report as well as some notation.
+What follows is a a big-picture overview of their algorithm and its three steps.
+The following Section \ref{sec:rounding} goes into the details of the rounding step which will introduce the reader to the aforementioned missing piece on our way to a working implementation.
+Next we will motivate, explain and analyze our idea in Section \ref{sec:epsilon}.
+Afterwards we present some experimental results obtained through our final implementation in Section \ref{sec:results}.
+In the end we will discuss the results as well as examine the limits of our analysis in Section \ref{sec:conclusion}.
 
 The setup is as follows: there are $k$ clusters.
 For each cluster $t = 1, \dots, k$ we have $n_{t}$ datapoints $x_{t, l} \in \mathbb{R}^{m}, l = 1, \dots, n_{t}$, which were drawn according to a subgaussian probability distribution $\mathcal{D}_{t}$ with expectation $\gamma_{t}$ and covariance matrix $\Sigma_{t}$ with eigenvalues $0 < \sigma_{t, 1}^{2} \le \dots \le \sigma_{t, m}^{2}$.
 Furthermore let $N = \sum_{t} n_{t}$ be the total number of datapoints and $x_{l}, l = 1, \dots, N$ be an enumeration of all datapoints $x_{t, l}$.
-
-Throughout their paper they often use the notation $(a, i)$ as an index which is to be read as a two-level index along a single dimension instead of two indices.
-Finally we also need to introduce the k-means-optimal centroids $\tilde{\gamma}_{a} = \frac{1}{n_{a}} \sum_{i = 1}^{n_{a}} x_{a, i}$, i.e. the optimal estimators for $\gamma_{a}$ if you know the cluster affinities of each datapoint.
-
-\emph{TODO: Relax and Round (SDP speak)}.
+Throughout their paper the authors often use the notation $(a, i)$ as an index which is to be read as a two-level index along a single dimension instead of two indices.
+Finally we also need to introduce the k-means-optimal centroids $\tilde{\gamma}_{a} = \frac{1}{n_{a}} \sum_{i = 1}^{n_{a}} x_{a, i}$, i.e. the optimal estimators for $\gamma_{a}$ if you know the cluster affinity of each datapoint.
 
 \section{The Semidefinite Programming Approach}
+\label{sec:approach}
 
 The k-medoid problem is then to select $k$ of the datapoints as approximations to the $k$ cluster centers $\gamma_{t}$.
 However, their approach actually starts with the k-means clustering objective, i.e. solving the following minimization problem.
