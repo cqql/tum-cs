@@ -66,7 +66,7 @@ What follows is a a big-picture overview of their algorithm and its three steps.
 The following Section \ref{sec:rounding} goes into the details of the rounding step which will introduce the reader to the aforementioned missing piece on our way to a working implementation.
 Next we will motivate, explain and analyze our idea in Section \ref{sec:epsilon}.
 Afterwards we present some experimental results obtained through our final implementation in Section \ref{sec:results}.
-In the end we will discuss the results as well as examine the limits of our analysis in Section \ref{sec:conclusion}.
+In the end we will discuss the results as well as the limits of our analysis in Section \ref{sec:conclusion}.
 
 The setup is as follows: there are $k$ clusters.
 For each cluster $t = 1, \dots, k$ we have $n_{t}$ datapoints $x_{t, l} \in \mathbb{R}^{m}, l = 1, \dots, n_{t}$, which were drawn according to a subgaussian probability distribution $\mathcal{D}_{t}$ with expectation $\gamma_{t}$ and covariance matrix $\Sigma_{t}$ with eigenvalues $0 < \sigma_{t, 1}^{2} \le \dots \le \sigma_{t, m}^{2}$.
@@ -463,10 +463,20 @@ wrong number of clusters found in $X_{D}$.
 \section{Conclusion}
 \label{sec:conclusion}
 
-Slow, $O(n^{6})$, mostly used for verification.
+For me it was the first time working with an exact clustering algorithm.
+Prior to this project I had only encountered the standard k-means algorithm and EM, both of which are heuristic.
+Thus, it came as an exciting surprise to me how well these methods are working, even though they have nothing in common with the ones I knew before.
+At the same time though I got the impression that SDP based clustering methods are basically not applicable to large problems because of the scaling behaviour of SDP solvers.
+The one I used was so slow that it could not even solve instances with $100$ datapoints in a reasonable timeframe.
+Of course other solvers might perform better and the paper authors solved a problem with $300$ datapoints in just 16 seconds but I suspect that their solver has the same scaling behaviour up to constant factors.
 
-Truncation.
-Generalization to arbitrary distributions.
+The analysis in Section \ref{sec:epsilon} has two major points that one could improve.
+First, one should try to find a tighter upper-bound so that the theoretical results achieve practical relevance.
+A first step in this direction might be to switch out the Matrix Bernstein theorem for the Matrix Hoeffding theorem from the same paper \cite{tailbounds} which usually gives better results and has the added benefit of not including the radius $R$.
+This leads over to the second point, the restriction to stochastic ball models.
+One should be able to generalize this relatively easily to general subgaussian distributions by truncation.
+That means that you transform the general distributions into bounded distributions by defining a cut-off distance from its center such that the probability weight outside of this inner ball is very small.
+The outer probability mass is then counted towards the error probability while the inner probability mass defines the probability density of new bounded random variables (after rescaling).
 
 \bibliography{report}{}
 \bibliographystyle{plain}
