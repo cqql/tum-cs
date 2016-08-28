@@ -31,6 +31,9 @@
 % Shallow fractions
 \usepackage{nicefrac}
 
+% Links
+\usepackage{hyperref}
+
 % Put tildes under things
 \def\utilde#1{\,\mathord{\vtop{\ialign{##\crcr
 $\hfil\displaystyle{#1}\hfil$\crcr\noalign{\kern1.5pt\nointerlineskip}
@@ -69,16 +72,16 @@ Afterwards we present some experimental results obtained through our final imple
 In the end we will discuss the results as well as the limits of our analysis in Section \ref{sec:conclusion}.
 
 The setup is as follows: there are $k$ clusters.
-For each cluster $t = 1, \dots, k$ we have $n_{t}$ datapoints $x_{t, l} \in \mathbb{R}^{m}, l = 1, \dots, n_{t}$, which were drawn according to a subgaussian probability distribution $\mathcal{D}_{t}$ with expectation $\gamma_{t}$ and covariance matrix $\Sigma_{t}$ with eigenvalues $0 < \sigma_{t, 1}^{2} \le \dots \le \sigma_{t, m}^{2}$.
-Furthermore let $N = \sum_{t} n_{t}$ be the total number of datapoints and $x_{l}, l = 1, \dots, N$ be an enumeration of all datapoints $x_{t, l}$.
+For each cluster $t = 1, \dots, k$ we have $n_{t}$ data points $x_{t, l} \in \mathbb{R}^{m}, l = 1, \dots, n_{t}$, which were drawn according to a subgaussian probability distribution $\mathcal{D}_{t}$ with expectation $\gamma_{t}$ and covariance matrix $\Sigma_{t}$ with eigenvalues $0 < \sigma_{t, 1}^{2} \le \dots \le \sigma_{t, m}^{2}$.
+Furthermore let $N = \sum_{t} n_{t}$ be the total number of data points and $x_{l}, l = 1, \dots, N$ be an enumeration of all data points $x_{t, l}$.
 Throughout their paper the authors often use the notation $(a, i)$ as an index which is to be read as a two-level index along a single dimension instead of two indices.
-Finally we also need to introduce the k-means-optimal centroids $\tilde{\gamma}_{a} = \frac{1}{n_{a}} \sum_{i = 1}^{n_{a}} x_{a, i}$, i.e. the optimal estimators for $\gamma_{a}$ if you know the cluster affinity of each datapoint.
+Finally we also need to introduce the k-means-optimal centroids $\tilde{\gamma}_{a} = \frac{1}{n_{a}} \sum_{i = 1}^{n_{a}} x_{a, i}$, i.e. the optimal estimators for $\gamma_{a}$ if you know the cluster affinity of each data point.
 
 \section{The Semidefinite Programming Approach}
 \label{sec:approach}
 
-The authors developed a three-step algorithm that in the end selects $k$ of the original datapoints (after some transformation) as approximations to the true cluster centers $\gamma_{t}$.
-Even though this might read like a k-medoid problem, it really is not because the datapoints are transformed before being selected.
+The authors developed a three-step algorithm that in the end selects $k$ of the original data points (after some transformation) as approximations to the true cluster centers $\gamma_{t}$.
+Even though this might read like a k-medoid problem, it really is not because the data points are transformed before being selected.
 And indeed, they actually start out with the k-means clustering objective, i.e. solving the following minimization problem.
 \begin{align*}
   \text{minimize} \quad & \sum_{t = 1}^{k} \sum_{i \in A_{t}} \left|\left| x_{i} - \frac{1}{|A_{t}|} \sum_{j \in A_{t}} x_{j} \right|\right|_{2}^{2}\\
@@ -110,8 +113,8 @@ From this point on they proceed in three main steps.
 First, they define a matrix $R$ and show that the minimizer of the semidefinite program $X_{R}$ equals the definition in Equation \eqref{eq:x_r} if you replace $D$ by $R$.
 Next they show that $D \approx R$ under the condition that the cluster centers are separated by at least $O(k\sigma_{max})$ and conclude through a series of steps that $X_{D} \approx X_{R}$ in the sense that $||X_{D} - X_{R}||_{F}^{2}$ is small.
 
-The following steps are easily applicable to general distributions and datasets, though the paper's formal analysis is restricted to spherical Gaussians with variance $\sigma$ and the same number $n$ of datapoints drawn from each cluster.
-Nonetheless the results from Section \ref{sec:results} demonstrate experimentally that their approach also works for differing numbers of datapoints and probability distributions.
+The following steps are easily applicable to general distributions and data sets, though the paper's formal analysis is restricted to spherical Gaussians with variance $\sigma$ and the same number $n$ of data points drawn from each cluster.
+Nonetheless the results from Section \ref{sec:results} demonstrate experimentally that their approach also works for differing numbers of data points and probability distributions.
 
 \begin{figure}[h!]
   \centering
@@ -134,10 +137,10 @@ Nonetheless the results from Section \ref{sec:results} demonstrate experimentall
 
 In the second step called \emph{denoising} they define $P \in \mathbb{R}^{m \times N}$ as a matrix that has $x_{a, i}$ as its $(a, i)$-th column.
 Then they argue that the matrix $PX_{R}$ has $\tilde{\gamma}_{a}$ as its $(a, i)$-th column and prove that the columns of $PX_{D}$ denoted by $c_{a, i}$ approximate the $\tilde{\gamma}_{a}$ as a consequence of the first step.
-The $c_{a, i}$ are called the \emph{denoised datapoints}.
+The $c_{a, i}$ are called the \emph{denoised data points}.
 Figure \ref{fig:denoising} demonstrates the surprising effectiveness of this procedure by applying it to three Gaussians with $20$ samples each.
 
-Lastly they perform the so called \emph{rounding}, an iterative algorithm that selects $k$ of the denoised datapoints as approximations to the $\tilde{\gamma}_{a}$, i.e. the k-means-optimal centroids.
+Lastly they perform the so called \emph{rounding}, an iterative algorithm that selects $k$ of the denoised data points as approximations to the $\tilde{\gamma}_{a}$, i.e. the k-means-optimal centroids.
 During the implementation of the rounding algorithm we noticed that it requires the choice of an $\varepsilon$ to construct an intermediate graph structure.
 Since this choice is the stimulus for our theory work in Section \ref{sec:epsilon}, we will now present the central rounding theorem from the paper and its proof.
 
@@ -193,7 +196,7 @@ Since this choice is the stimulus for our theory work in Section \ref{sec:epsilo
 This is how the proof is presented in the paper but on closer consideration the conclusion from Equation \eqref{eq:questionable} relies on the fact that $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2} > 8\varepsilon$ for all $a \ne b$.
 Yet this might not be true because indeed $8\varepsilon < \Delta_{min} \le ||\gamma_{a} - \gamma_{b}||_{2}$ but this does not necessarily hold for the random variable $||\tilde{\gamma}_{a} - \tilde{\gamma}_{b}||_{2}$ which could take on values less than $\Delta_{min}$.
 
-The rounding algorithm has two preconditions: first, you have to choose an $\varepsilon < \nicefrac{\Delta_{min}}{8}$ and second, less than $\nicefrac{n}{2}$ denoised datapoints are allowed to be farther than an $\varepsilon$ away from their respective k-means-optimal centroid.
+The rounding algorithm has two preconditions: first, you have to choose an $\varepsilon < \nicefrac{\Delta_{min}}{8}$ and second, less than $\nicefrac{n}{2}$ denoised data points are allowed to be farther than an $\varepsilon$ away from their respective k-means-optimal centroid.
 The former requires an estimate of $\Delta_{min}$ (see Sec. \ref{sec:epsilon}) while the latter can be argued from the following denoising result shown in the paper.
 
 \vspace{.5em}
@@ -207,7 +210,7 @@ The former requires an estimate of $\Delta_{min}$ (see Sec. \ref{sec:epsilon}) w
   Here, the $a$th column of $\Gamma$ is $\tilde{\gamma}_{a} - \frac{1}{k} \sum_{b = 1}^{k} \tilde{\gamma}_{b}$.
 \end{theorem}
 
-This means that the mean squared error of the denoised datapoints is bounded by $k\sigma^{2}$ with high probability if none of the cluster center approximators is too far away from their mean, which is equivalent to the condition that no cluster is too far out insofar that the $\tilde{\gamma}_{a}$ converge to the true $\gamma_{a}$.
+This means that the mean squared error of the denoised data points is bounded by $k\sigma^{2}$ with high probability if none of the cluster center approximators is too far away from their mean, which is equivalent to the condition that no cluster is too far out insofar that the $\tilde{\gamma}_{a}$ converge to the true $\gamma_{a}$.
 Taking the square root on both sides of Equation \eqref{eq:denoising-bound}, we get
 \begin{equation*}
   \frac{1}{\sqrt{N}} \sqrt{\sum_{a = 1}^{k} \sum_{i = 1}^{n} ||c_{a, i} - \tilde{\gamma}_{a}||_{2}^{2}} \utilde{<} \sqrt{k} \sigma \utilde{<} \Delta_{min}.
@@ -218,9 +221,9 @@ A further application of Jensen's inequality for concave functions and dividing 
   \label{eq:mean-error-bound}
 \end{equation}
 We see that the mean distance between $c_{a, i}$ and the associated $\tilde{\gamma}_{a}$ is bounded by $\nicefrac{\Delta_{min}}{\sqrt{N}}$.
-Consequently there will be few denoised datapoints with $||c_{a, i} - \tilde{\gamma}_{a}||_{2} > \varepsilon$ for some $\varepsilon < \nicefrac{\Delta_{min}}{8}$ -- in particular less than $\nicefrac{n}{2}$ for $N$ large enough -- justifying the second precondition.
-The following sketch shows that $N \in O(k^{2})$ datapoints suffice.
-Let $p$ be the number of denoised datapoints with a distance $||c_{a, i} - \tilde{\gamma}_{a}||_{2}$ of at least $\varepsilon$.
+Consequently there will be few denoised data points with $||c_{a, i} - \tilde{\gamma}_{a}||_{2} > \varepsilon$ for some $\varepsilon < \nicefrac{\Delta_{min}}{8}$ -- in particular less than $\nicefrac{n}{2}$ for $N$ large enough -- justifying the second precondition.
+The following sketch shows that $N \in O(k^{2})$ data points suffice.
+Let $p$ be the number of denoised data points with a distance $||c_{a, i} - \tilde{\gamma}_{a}||_{2}$ of at least $\varepsilon$.
 Since all distances are non-negative, $p$ is maximized if the distances are minimized, i.e. $p$ points have a distance of $\varepsilon$ and the rest has a distance of $0$.
 Assume that $\varepsilon$ is chosen not too small, i.e. $\nicefrac{\Delta_{min}}{\varepsilon} \le q$ for some $q > 8$.
 \begin{equation*}
@@ -230,7 +233,7 @@ Now we can compute a lower bound for $N$ by checking when the upper bound is les
 \begin{equation*}
   q \sqrt{N} = q \sqrt{kn} < \frac{n}{2} \Leftrightarrow (2q)^{2}k < n \Leftrightarrow N > (2q)^{2} k^{2} > 256k^{2}
 \end{equation*}
-This shows first that $N \in O(k^{2})$ datapoints suffice to satisfy the second condition of Theorem \ref{thm:rounding} and second that you want to choose an $\varepsilon$ as close to $\nicefrac{\Delta_{min}}{8}$ as possible to require fewer datapoints.
+This shows first that $N \in O(k^{2})$ data points suffice to satisfy the second condition of Theorem \ref{thm:rounding} and second that you want to choose an $\varepsilon$ as close to $\nicefrac{\Delta_{min}}{8}$ as possible to require fewer data points.
 
 \section{Choosing an $\varepsilon$}
 \label{sec:epsilon}
@@ -456,6 +459,13 @@ Therefore we decided to run all our experiments in the next section with $\varep
 \section{An Implementation}
 \label{sec:results}
 
+We have implemented the complete algorithm including the estimation of $\Delta_{min}$ as a python program.
+It is built on top of \texttt{scipy}/\texttt{numpy} for easy handling of matrices and uses \texttt{picos} and \texttt{cvxopt} to solve the SDP and \texttt{networkx} for graph operations, for example extracting the node of maximum degree.
+The code is available for inspection and hosted on github\footnote{\url{https://github.com/cqql/tum-cs/idp/src}}.
+In the following we will present different clustering results to showcase the workings of the algorithm.
+
+Differing number of data points. Different distributions (different variances, oval variances).
+
 Iterated application of denoising.
 
 wrong number of clusters found in $X_{D}$.
@@ -466,9 +476,9 @@ wrong number of clusters found in $X_{D}$.
 For me it was the first time working with an exact clustering algorithm.
 Prior to this project I had only encountered the standard k-means algorithm and EM, both of which are heuristic.
 Thus, it came as an exciting surprise to me how well these methods are working, even though they have nothing in common with the ones I knew before.
-At the same time though I got the impression that SDP based clustering methods are basically not applicable to large problems because of the scaling behaviour of SDP solvers.
-The one I used was so slow that it could not even solve instances with $100$ datapoints in a reasonable timeframe.
-Of course other solvers might perform better and the paper authors solved a problem with $300$ datapoints in just 16 seconds but I suspect that their solver has the same scaling behaviour up to constant factors.
+At the same time though I got the impression that SDP based clustering methods are basically not applicable to large problems because of the scaling behavior of SDP solvers.
+The one I used was so slow that it could not even solve instances with $100$ data points in a reasonable time frame.
+Of course other solvers might perform better and the paper authors solved a problem with $300$ data points in just 16 seconds but I suspect that their solver has the same scaling behavior up to constant factors.
 
 The analysis in Section \ref{sec:epsilon} has two major points that one could improve.
 First, one should try to find a tighter upper-bound so that the theoretical results achieve practical relevance.
